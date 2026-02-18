@@ -1,0 +1,236 @@
+<div class="attendance-container">
+  <p-toast />
+  
+  <div class="attendance-header">
+    <div class="header-left">
+      <h1>Registro de Frequência</h1>
+    </div>
+    
+    <div class="header-actions">
+      <p-datepicker
+        [(ngModel)]="selectedDate"
+        (onSelect)="onDateChange($event)"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        placeholder="Selecione a data"
+        styleClass="date-selector">
+      </p-datepicker>
+      
+      <p-select
+        [options]="professionalsOptions()"
+        [(ngModel)]="selectedProfessional"
+        (onChange)="onProfessionalChange($event.value)"
+        placeholder="Filtrar profissional"
+        [showClear]="false"
+        styleClass="filter-dropdown">
+      </p-select>
+      
+      <!-- NOVO: Toggle de visualização -->
+      <p-selectButton
+        [options]="viewModeOptions"
+        [(ngModel)]="showMarkedStudents"
+        (onChange)="onViewModeChange($event.value)"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="view-mode-toggle">
+        <ng-template let-item pTemplate>
+          <i [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </ng-template>
+      </p-selectButton>
+    </div>
+  </div>
+  
+  <!-- Stats Cards -->
+  @let stats = getStats();
+  <div class="stats-grid">
+    <p-card styleClass="stat-card total">
+      <div class="stat-content">
+        <i class="pi pi-users"></i>
+        <div class="stat-info">
+          <span class="stat-label">Total de Aulas</span>
+          <span class="stat-value">{{ stats.total }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card present">
+      <div class="stat-content">
+        <i class="pi pi-check-circle"></i>
+        <div class="stat-info">
+          <span class="stat-label">Presenças</span>
+          <span class="stat-value">{{ stats.present }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card absent">
+      <div class="stat-content">
+        <i class="pi pi-times-circle"></i>
+        <div class="stat-info">
+          <span class="stat-label">Faltas</span>
+          <span class="stat-value">{{ stats.absent }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card pending">
+      <div class="stat-content">
+        <i class="pi pi-clock"></i>
+        <div class="stat-info">
+          <span class="stat-label">Pendentes</span>
+          <span class="stat-value">{{ stats.pending }}</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+  
+  <!-- Bulk Actions -->
+  @if (stats.pending > 0 && !showMarkedStudents()) {
+    <div class="bulk-actions">
+      <p-button
+        label="Marcar Todos como Presente"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="markAllPresent()"
+        [loading]="saving()">
+      </p-button>
+    </div>
+  }
+  
+  <!-- Lista de Alunos -->
+  <p-card styleClass="attendance-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Carregando alunos...</p>
+      </div>
+    } @else if (filteredPatients().length === 0) {
+      <div class="empty-state">
+        @if (showMarkedStudents()) {
+          <i class="pi pi-check-circle"></i>
+          <h3>Tudo em ordem!</h3>
+          <p>Todos os alunos do dia já têm frequência registrada</p>
+        } @else {
+          <i class="pi pi-calendar-times"></i>
+          <h3>Nenhuma aula agendada</h3>
+          <p>Não há alunos com aula agendada para este dia</p>
+        }
+      </div>
+    } @else {
+      <!-- Contador de resultados -->
+      <div class="results-header">
+        <span class="results-count">
+          @if (showMarkedStudents()) {
+            Mostrando <strong>{{ filteredPatients().length }}</strong> de <strong>{{ stats.total }}</strong> aluno(s)
+          } @else {
+            <strong>{{ filteredPatients().length }}</strong> aluno(s) pendente(s)
+          }
+        </span>
+      </div>
+      
+      <div class="patients-list">
+        @for (patient of filteredPatients(); track patient.id) {
+          <div 
+            class="patient-item"
+            [class.has-status]="patient.todayStatus">
+            <div class="patient-info-section">
+              <div 
+                class="patient-avatar"
+                [style.background]="getAvatarColor(patient.nome)">
+                {{ getInitials(patient.nome) }}
+              </div>
+              
+              <div class="patient-details">
+                <h4>{{ patient.nome }}</h4>
+                <div class="patient-meta">
+                  <span>
+                    <i class="pi pi-user"></i>
+                    {{ getProfessionalName(patient.profissional_id) }}
+                  </span>
+                  <span>
+                    <i class="pi pi-dollar"></i>
+                    {{ patient.valor | currency:'BRL' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="patient-actions">
+              @if (patient.todayStatus) {
+                <div class="current-status">
+                  <span class="status-label">Status atual:</span>
+                  <div 
+                    class="status-badge"
+                    [class]="patient.todayStatus">
+                    <i [class]="attendanceConfig[patient.todayStatus].icon"></i>
+                    {{ attendanceConfig[patient.todayStatus].label }}
+                  </div>
+                </div>
+                
+                <p-button
+                  icon="pi pi-times"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="clearAttendance(patient)"
+                  pTooltip="Limpar registro">
+                </p-button>
+              }
+              
+              <div class="action-buttons">
+                <button
+                  class="action-btn present"
+                  [class.active]="patient.todayStatus === 'present'"
+                  (click)="markAttendance(patient, 'present')"
+                  [disabled]="saving()">
+                  <i class="pi pi-check"></i>
+                  <span>Presente</span>
+                </button>
+                
+                <button
+                  class="action-btn absent"
+                  [class.active]="patient.todayStatus === 'absent'"
+                  (click)="markAttendance(patient, 'absent')"
+                  [disabled]="saving()">
+                  <i class="pi pi-times"></i>
+                  <span>Falta</span>
+                </button>
+                
+                <button
+                  class="action-btn makeup"
+                  [class.active]="patient.todayStatus === 'makeup'"
+                  (click)="markAttendance(patient, 'makeup')"
+                  [disabled]="saving()">
+                  <i class="pi pi-replay"></i>
+                  <span>Reposição</span>
+                </button>
+              </div>
+              
+              <p-button
+                icon="pi pi-eye"
+                severity="info"
+                [text]="true"
+                [rounded]="true"
+                [routerLink]="['/patients', patient.id]"
+                pTooltip="Ver detalhes">
+              </p-button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </p-card>
+  
+  <!-- Info Footer -->
+  <div class="info-footer">
+    <div class="info-item">
+      <i class="pi pi-info-circle"></i>
+      <span>Use o toggle "Pendentes/Todos" para alternar entre ver apenas alunos sem frequência ou todos os alunos do dia</span>
+    </div>
+    <div class="info-item">
+      <i class="pi pi-clock"></i>
+      <span>Os registros podem ser editados clicando novamente no botão de status</span>
+    </div>
+  </div>
+</div>

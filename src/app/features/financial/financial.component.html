@@ -1,0 +1,182 @@
+<!-- src/app/features/financial/financial.component.html -->
+<div class="financial-container">
+  <div class="financial-header">
+    <div class="header-left">
+      <h1>Financeiro</h1>
+      <p class="subtitle">Visão completa dos ganhos e receitas</p>
+    </div>
+    
+    <div class="header-actions">
+      <p-select
+        [options]="professionalsOptions()"
+        [(ngModel)]="selectedProfessional"
+        (onChange)="onProfessionalChange($event.value)"
+        placeholder="Filtrar profissional"
+        [showClear]="false"
+        styleClass="filter-dropdown">
+      </p-select>
+      
+      <p-button
+        label="Exportar Excel"
+        icon="pi pi-file-excel"
+        severity="success"
+        (onClick)="exportToExcel()">
+      </p-button>
+    </div>
+  </div>
+  
+  <!-- Cards de Resumo Financeiro -->
+  @let statsData = stats();
+  <div class="fin-grid">
+    <p-card styleClass="fin-card">
+      <div class="f-label">Total de Pacientes</div>
+      <div class="f-value">{{ statsData.totalPatients }}</div>
+      <div class="f-sub">cadastrados</div>
+    </p-card>
+    
+    <p-card styleClass="fin-card green">
+      <div class="f-label">Total dos Pacotes</div>
+      <div class="f-value">{{ statsData.totalPackages | currency:'BRL' }}</div>
+      <div class="f-sub">valor bruto</div>
+    </p-card>
+    
+    <p-card styleClass="fin-card gray">
+      <div class="f-label">Pacotes × {{ TAX_RATE }}</div>
+      <div class="f-value">{{ statsData.totalBase | currency:'BRL' }}</div>
+      <div class="f-sub">após 15% imposto</div>
+    </p-card>
+    
+    <p-card styleClass="fin-card orange">
+      <div class="f-label">Meu Líquido Total</div>
+      <div class="f-value">{{ statsData.totalLiquid | currency:'BRL' }}</div>
+      <div class="f-sub">o que você recebe</div>
+    </p-card>
+  </div>
+  
+  <!-- Fórmula Explicativa -->
+  <p-card styleClass="formula-card">
+    <div class="formula-content">
+      <div class="formula-item">
+        <strong>📐 Fórmula:</strong>
+        <code class="formula-code">
+          Meu Líquido = (Pacote × {{ TAX_RATE }}) × % minha
+        </code>
+      </div>
+      <div class="formula-note">
+        Idêntico ao Excel: =(mensalidade*{{ TAX_RATE }})*%
+      </div>
+    </div>
+  </p-card>
+  
+  <!-- Breakdown por Dia da Semana -->
+  <div class="section-title">
+    <h2>Por Dia da Semana</h2>
+  </div>
+  
+  <div class="day-breakdown">
+    @for (day of dayStats(); track day.day) {
+      <p-card 
+        styleClass="day-card"
+        [class.empty]="day.patients === 0">
+        <div class="dc-day">{{ day.dayLabel }}</div>
+        <div class="dc-patients">{{ day.patients }}</div>
+        <div class="dc-sub">
+          paciente{{ day.patients !== 1 ? 's' : '' }}
+        </div>
+        @if (day.patients > 0) {
+          <div class="dc-liquid">{{ day.liquid | currency:'BRL' }}</div>
+          <div class="dc-sub">líquido</div>
+        }
+      </p-card>
+    }
+  </div>
+  
+  <!-- Detalhamento por Paciente -->
+  <div class="section-title">
+    <h2>Detalhamento por Paciente</h2>
+  </div>
+  
+  <p-card>
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Carregando dados financeiros...</p>
+      </div>
+    } @else if (sortedPatients().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-wallet"></i>
+        <h3>Nenhum paciente cadastrado</h3>
+        <p>Cadastre alunos para visualizar o detalhamento financeiro</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="patient-fin-table">
+          <thead>
+            <tr>
+              <th>Paciente</th>
+              <th>Pacote (R$)</th>
+              <th>× {{ TAX_RATE }} (R$)</th>
+              <th>Minha %</th>
+              <th>Meu Líquido (R$)</th>
+              <th>Dias</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (patient of sortedPatients(); track patient.id) {
+              <tr>
+                <td>
+                  <strong>{{ patient.nome }}</strong>
+                </td>
+                <td>{{ patient.valor | currency:'BRL' }}</td>
+                <td>{{ patient.base | currency:'BRL' }}</td>
+                <td>{{ patient.porcentagem }}%</td>
+                <td class="earn-cell">{{ patient.ganho | currency:'BRL' }}</td>
+                <td>
+                  <div class="days-pills">
+                    @for (dia of patient.dias; track dia) {
+                      <span class="day-pill">{{ dia.toUpperCase() }}</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+            
+            <!-- Linha de Total -->
+            <tr class="total-row">
+              <td>
+                <strong>TOTAL ({{ statsData.totalPatients }} pacientes)</strong>
+              </td>
+              <td>{{ statsData.totalPackages | currency:'BRL' }}</td>
+              <td>{{ statsData.totalBase | currency:'BRL' }}</td>
+              <td>—</td>
+              <td class="earn-cell">{{ statsData.totalLiquid | currency:'BRL' }}</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+  </p-card>
+  
+  <!-- Info Footer -->
+  <div class="info-footer">
+    <div class="info-item">
+      <i class="pi pi-info-circle"></i>
+      <span>
+        <strong>Imposto:</strong> O sistema considera automaticamente 15% de imposto sobre o valor do pacote
+      </span>
+    </div>
+    <div class="info-item">
+      <i class="pi pi-calculator"></i>
+      <span>
+        <strong>Cálculo:</strong> O ganho líquido é calculado como: (Valor do Pacote × 0,85) × Sua Porcentagem
+      </span>
+    </div>
+    <div class="info-item">
+      <i class="pi pi-chart-line"></i>
+      <span>
+        <strong>Filtros:</strong> Use o filtro por profissional para visualizar ganhos específicos
+      </span>
+    </div>
+  </div>
+</div>

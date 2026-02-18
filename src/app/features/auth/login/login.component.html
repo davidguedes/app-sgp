@@ -1,0 +1,68 @@
+<div class="login-page">
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <img src="assets/logo.png" alt="Logo SGP"/>
+      </div>
+      <h1>Studio Pilates</h1>
+      <p>Sistema de Gerenciamento</p>
+    </div>
+    
+    @if (errorMessage()) {
+      <p-message 
+        severity="error" 
+        styleClass="login-error">
+        {{errorMessage()!}}
+      </p-message>
+    }
+    
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          pInputText
+          id="email"
+          type="email"
+          [value]="credentials().email"
+          (input)="updateEmail($any($event.target).value)"
+          placeholder="seu@email.com"
+          autocomplete="email"
+          class="w-full"
+        />
+      </div>
+      
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <p-password
+          inputId="senha"
+          [(ngModel)]="credentials().senha"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="updateSenha($any($event.target).value)"
+          placeholder="••••••••"
+          [toggleMask]="true"
+          [feedback]="false"
+          autocomplete="current-password"
+          inputStyleClass="w-full"
+          [style]="{ width: '100%' }">
+        </p-password>
+      </div>
+      
+      <p-button
+        type="submit"
+        label="Entrar"
+        [loading]="loading()"
+        styleClass="w-full login-btn">
+      </p-button>
+    </form>
+    
+    <div class="login-demo" style="display: none;">
+      <strong>Credenciais de demonstração:</strong>
+      <div>
+        <strong>Gestor:</strong> <code>gestor@studio.com</code> / <code>gestor123</code>
+      </div>
+      <div>
+        <strong>Profissional:</strong> <code>prof@studio.com</code> / <code>prof123</code>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,860 @@
+.patient-details-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: var(--warm-white, #fdfcfa);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border, #e8e3dc);
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .patient-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  
+  .patient-info {
+    h1 {
+      margin: 0;
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--sage-dark, #4e6e52);
+      line-height: 1.2;
+    }
+    
+    .patient-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+      
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted, #8a8580);
+        font-size: 0.9rem;
+        
+        i {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.details-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-card {
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+  }
+  
+  .card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+    
+    &.valor {
+      background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55);
+    }
+    
+    &.ganho {
+      background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
+    }
+    
+    &.taxa {
+      background: linear-gradient(135deg, var(--warning, #d4a574), #c49261);
+    }
+    
+    &.presenca {
+      background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
+    }
+  }
+  
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted, #8a8580);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--charcoal, #2c2c2c);
+  }
+}
+
+.days-display {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  
+  .day-badge {
+    background: rgba(122, 158, 126, 0.12);
+    color: var(--sage-dark, #4e6e52);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(122, 158, 126, 0.3);
+  }
+}
+
+.card-header {
+  padding: 1.5rem;
+  
+  h3 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    color: var(--sage-dark, #4e6e52);
+    font-size: 1.2rem;
+  }
+}
+
+.details-tabs {
+  ::ng-deep {
+    .p-tabview-nav {
+      background: transparent;
+      border-bottom: 2px solid var(--border, #e8e3dc);
+      
+      .p-tabview-nav-link {
+        background: transparent;
+        border: none;
+        font-weight: 600;
+        color: var(--muted, #8a8580);
+        
+        &:focus {
+          box-shadow: none;
+        }
+      }
+      
+      .p-highlight .p-tabview-nav-link {
+        background: transparent;
+        color: var(--sage-dark, #4e6e52);
+        border-bottom: 3px solid var(--sage, #7a9e7e);
+      }
+    }
+    
+    .p-tabview-panels {
+      background: transparent;
+      padding: 2rem 0;
+    }
+  }
+}
+
+.tab-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.attendance-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+  
+  .attendance-chart {
+    background: var(--warm-white, #fdfcfa);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border, #e8e3dc);
+    
+    h4 {
+      margin: 0 0 1rem 0;
+      font-family: 'DM Serif Display', serif;
+      color: var(--sage-dark, #4e6e52);
+    }
+  }
+  
+  .attendance-list {
+    h4 {
+      margin: 0 0 1.5rem 0;
+      font-family: 'DM Serif Display', serif;
+      color: var(--sage-dark, #4e6e52);
+    }
+  }
+}
+
+.attendance-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    .label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted, #8a8580);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--charcoal, #2c2c2c);
+      
+      &.success {
+        color: var(--success, #5a8f5a);
+      }
+      
+      &.danger {
+        color: var(--danger, #c06060);
+      }
+      
+      &.warning {
+        color: var(--warning, #d4a574);
+      }
+    }
+  }
+}
+
+.attendance-timeline {
+  ::ng-deep {
+    .p-timeline-event-content {
+      width: 100%;
+    }
+  }
+}
+
+.timeline-item {
+  background: var(--warm-white, #fdfcfa);
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid var(--border, #e8e3dc);
+  
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .timeline-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted, #8a8580);
+  }
+  
+  .timeline-actions {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .timeline-notes {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--charcoal, #2c2c2c);
+    line-height: 1.5;
+  }
+}
+
+.evolutions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.evolution-card {
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+  }
+  
+  .evolution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin: 0;
+      font-family: 'DM Serif Display', serif;
+      color: var(--sage-dark, #4e6e52);
+      font-size: 1.1rem;
+    }
+    
+    .evolution-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted, #8a8580);
+        font-size: 0.8rem;
+        
+        i {
+          font-size: 0.75rem;
+        }
+      }
+    }
+    
+    .evolution-actions {
+      display: flex;
+      gap: 4px;
+    }
+  }
+  
+  .evolution-content {
+    font-size: 0.9rem;
+    color: var(--charcoal, #2c2c2c);
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted, #8a8580);
+  
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 0.95rem;
+  }
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1rem 0;
+  
+  .form-group {
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted, #8a8580);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .attendance-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .details-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    
+    .header-left {
+      flex-wrap: wrap;
+    }
+    
+    .header-actions {
+      width: 100%;
+      
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .patient-details-container {
+    padding: 1rem;
+  }
+  
+  .details-header {
+    padding: 1.5rem;
+    
+    .patient-avatar-large {
+      width: 60px;
+      height: 60px;
+      font-size: 1.3rem;
+    }
+    
+    .patient-info h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .attendance-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ============================================
+// ESTILOS ADICIONAIS PARA EVOLUÇÕES
+// ============================================
+
+.evolution-card {
+  .evolution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+
+    .evolution-info {
+      flex: 1;
+
+      .evolution-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+
+        .evolution-date,
+        .evolution-author,
+        .evolution-eva {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: var(--text-color-secondary);
+
+          i {
+            font-size: 1rem;
+          }
+        }
+
+        .evolution-eva {
+          color: var(--primary-color);
+          font-weight: 600;
+        }
+      }
+    }
+
+    .evolution-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  .evolution-notes {
+    background: var(--surface-50);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+
+    h5 {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        font-size: 1rem;
+        color: var(--primary-color);
+      }
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-color);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+  }
+
+  .evolution-exercises {
+    h5 {
+      margin: 0 0 1rem 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        font-size: 1rem;
+        color: var(--primary-color);
+      }
+    }
+
+    .exercises-grid {
+      display: grid;
+      gap: 1rem;
+
+      .exercise-group {
+        .group-title {
+          display: block;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--text-color-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 0.5rem;
+        }
+
+        .exercise-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Dialog de Evolução
+.evolution-dialog {
+  .dialog-form {
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .exercises-section {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--surface-border);
+
+      h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .exercise-tabs {
+        .exercise-selector {
+          padding: 1rem 0;
+        }
+      }
+    }
+  }
+}
+
+// Atualização para os dias da semana com horários
+.days-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  .day-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+    min-width: 80px;
+
+    .day-label {
+      font-size: 0.875rem;
+      letter-spacing: 0.5px;
+    }
+
+    .day-time {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .evolution-card {
+    .evolution-header {
+      flex-direction: column;
+      gap: 1rem;
+
+      .evolution-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .evolution-exercises {
+      .exercises-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .evolution-dialog {
+    .dialog-form {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
+
+// ============================================
+// EVA Rating - Input Component
+// ============================================
+
+.eva-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.eva-image-rating {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.eva-level-button {
+  background: none;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-color, #3b82f6);
+    background-color: rgba(59, 130, 246, 0.05);
+
+    .eva-level-image {
+      transform: scale(1.1);
+    }
+  }
+
+  &.selected {
+    border-color: var(--primary-color, #3b82f6);
+    background-color: rgba(59, 130, 246, 0.1);
+    transform: scale(1.05);
+  }
+}
+
+.eva-level-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.eva-level-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+}
+
+.eva-description {
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: var(--surface-ground, #f9fafb);
+}
+
+.eva-hint {
+  color: var(--text-color-secondary, #6b7280);
+  font-style: italic;
+}
+
+// ============================================
+// EVA Rating - Readonly Display Component
+// ============================================
+
+.evolution-eva-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--surface-card, #ffffff);
+  border-radius: 8px;
+  border: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.eva-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  font-size: 0.95rem;
+
+  i {
+    color: var(--primary-color, #3b82f6);
+  }
+}
+
+.eva-rating-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.eva-readonly-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.eva-readonly-image {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.eva-readonly-value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+// ============================================
+// Shared Severity Classes
+// ============================================
+
+.eva-value-display,
+.eva-readonly-value {
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.eva-none {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.eva-mild {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.eva-moderate {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.eva-severe {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.eva-extreme {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+}
+
+// ============================================
+// Responsive Design
+// ============================================
+
+@media (max-width: 640px) {
+  .eva-image-rating {
+    gap: 0.5rem;
+  }
+  
+  .eva-level-image {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .eva-level-button {
+    padding: 0.375rem;
+  }
+
+  .eva-readonly-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .eva-readonly-image {
+    width: 45px;
+    height: 45px;
+  }
+}

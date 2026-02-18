@@ -1,0 +1,240 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <div class="header-left">
+      <h1>Calendário de Aulas</h1>
+      <p-badge 
+        [value]="getTotalClasses() + ' aulas'"
+        severity="success">
+      </p-badge>
+    </div>
+    
+    <div class="header-filters">
+      <p-select
+        [options]="professionalsOptions()"
+        [(ngModel)]="selectedProfessional"
+        (onChange)="onProfessionalChange($event.value)"
+        placeholder="Filtrar profissional"
+        [showClear]="false"
+        styleClass="filter-dropdown">
+      </p-select>
+    </div>
+  </div>
+  
+  <p-card styleClass="calendar-card">
+    <div class="calendar-toolbar">
+      <div class="toolbar-left">
+        <p-button
+          icon="pi pi-chevron-left"
+          [text]="true"
+          (onClick)="previousPeriod()">
+        </p-button>
+        
+        <span class="period-label">{{ getPeriodLabel() }}</span>
+        
+        <p-button
+          icon="pi pi-chevron-right"
+          [text]="true"
+          (onClick)="nextPeriod()">
+        </p-button>
+        
+        <p-button
+          label="Hoje"
+          [text]="true"
+          (onClick)="goToToday()">
+        </p-button>
+      </div>
+      
+      <div class="toolbar-right">
+        <div class="view-toggle">
+          @for (mode of viewModes; track mode.value) {
+            <button
+              class="view-btn"
+              [class.active]="viewMode() === mode.value"
+              (click)="onViewModeChange(mode.value)">
+              <i [class]="mode.icon"></i>
+              <span>{{ mode.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modo Mês (Estilo Google Agenda) -->
+    @if (viewMode() === 'month') {
+      <div class="month-view-google">
+        <!-- Cabeçalho dos dias da semana -->
+        <div class="month-header">
+          @for (day of daysOfWeek.slice(0, 7); track day.key) {
+            <div class="month-weekday">{{ day.short }}</div>
+          }
+        </div>
+        
+        <!-- Grade de dias -->
+        <div class="month-grid">
+          @for (day of monthDays(); track day.date.getTime()) {
+            <div 
+              class="month-day-cell"
+              [class.other-month]="!day.isCurrentMonth"
+              [class.today]="day.isToday"
+              [class.has-events]="day.patients.length > 0"
+              (click)="onMonthDayClick(day)">
+              
+              <div class="day-number">
+                {{ day.date.getDate() }}
+              </div>
+              
+              <div class="day-events">
+                @for (patient of day.patients.slice(0, 3); track patient.id) {
+                  <div 
+                    class="event-item"
+                    [style.background]="getAvatarColor(patient.nome)"
+                    [routerLink]="['/patients', patient.id]"
+                    (click)="$event.stopPropagation()">
+                    <span class="event-time">{{ patient.displayTime }}</span>
+                    <span class="event-name">{{ patient.nome }}</span>
+                  </div>
+                }
+                
+                @if (day.patients.length > 3) {
+                  <div class="more-events">
+                    +{{ day.patients.length - 3 }} mais
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    
+    <!-- Modo Semana -->
+    @if (viewMode() === 'week') {
+      <div class="week-view">
+        @for (event of calendarEvents(); track event.date) {
+          <div 
+            class="day-column"
+            [class.today]="isToday(event.date)">
+            <div class="day-header">
+              <span class="day-name">{{ getDayShortLabel(event.dayOfWeek) }}</span>
+              <span class="day-date">{{ event.date.getDate() }}</span>
+              @if (event.patients.length > 0) {
+                <p-badge 
+                  [value]="event.patients.length.toString()"
+                  severity="info"
+                  styleClass="day-badge">
+                </p-badge>
+              }
+            </div>
+            
+            <div class="day-content">
+              @if (event.patients.length > 0) {
+                @for (patient of event.patients; track patient.id) {
+                  <div 
+                    class="class-card"
+                    [routerLink]="['/patients', patient.id]">
+                    <div class="class-time">
+                      <i class="pi pi-clock"></i>
+                      <span>{{ patient.displayTime || '--:--' }}</span>
+                    </div>
+                    <div class="class-main">
+                      <div 
+                        class="class-avatar"
+                        [style.background]="getAvatarColor(patient.nome)">
+                        {{ getInitials(patient.nome) }}
+                      </div>
+                      <div class="class-info">
+                        <span class="class-name">{{ patient.nome }}</span>
+                        <span class="class-value">{{ patient.valor | currency:'BRL' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="no-classes">
+                  <i class="pi pi-calendar-times"></i>
+                  <span>Sem aulas</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    
+    <!-- Modo Dia -->
+    @if (viewMode() === 'day') {
+      <div class="day-view">
+        @for (event of calendarEvents(); track event.date) {
+          <div class="day-detail">
+            <div class="day-detail-header">
+              <h3>{{ getDayFullLabel(event.dayOfWeek) }}</h3>
+              <p-badge 
+                [value]="event.patients.length + ' aulas'"
+                severity="info">
+              </p-badge>
+            </div>
+            
+            @if (event.patients.length > 0) {
+              <div class="patients-timeline">
+                @for (patient of event.patients; track patient.id) {
+                  <div class="timeline-item">
+                    <div class="timeline-time">
+                      <i class="pi pi-clock"></i>
+                      <span>{{ patient.displayTime || '--:--' }}</span>
+                    </div>
+                    
+                    <div class="timeline-content">
+                      <p-card styleClass="patient-detail-card">
+                        <div class="patient-card-content">
+                          <div class="patient-header">
+                            <div 
+                              class="patient-avatar"
+                              [style.background]="getAvatarColor(patient.nome)">
+                              {{ getInitials(patient.nome) }}
+                            </div>
+                            <div class="patient-info">
+                              <h4>{{ patient.nome }}</h4>
+                              <span class="patient-meta">
+                                <i class="pi pi-user"></i>
+                                {{ getProfessionalName(patient.profissional_id) }}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div class="patient-details">
+                            <div class="detail-item">
+                              <span class="label">Valor Pacote</span>
+                              <span class="value">{{ patient.valor | currency:'BRL' }}</span>
+                            </div>
+                            <div class="detail-item">
+                              <span class="label">Ganho Líquido</span>
+                              <span class="value success">{{ patient.ganho | currency:'BRL' }}</span>
+                            </div>
+                          </div>
+                          
+                          <p-button
+                            label="Ver Detalhes"
+                            icon="pi pi-arrow-right"
+                            [text]="true"
+                            styleClass="w-full"
+                            [routerLink]="['/patients', patient.id]">
+                          </p-button>
+                        </div>
+                      </p-card>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-state">
+                <i class="pi pi-calendar-times"></i>
+                <h3>Nenhuma aula agendada</h3>
+                <p>Não há alunos agendados para este dia</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </p-card>
+</div>

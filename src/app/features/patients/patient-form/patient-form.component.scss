@@ -1,0 +1,438 @@
+// ESTILOS MELHORADOS - patient-form.component.scss
+
+.patient-form-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  
+  h2 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--sage-dark, #4e6e52);
+  }
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.form-card {
+  ::ng-deep .p-card-body {
+    padding: 2rem;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEÇÕES DO FORMULÁRIO
+// ═══════════════════════════════════════════════════════════════════════════
+
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border, #e8e3dc);
+  
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  color: var(--sage-dark, #4e6e52);
+  margin: 0 0 1.5rem 0;
+  padding-left: 12px;
+  border-left: 4px solid var(--sage, #7a9e7e);
+}
+
+.section-description {
+  font-size: 0.9rem;
+  color: var(--muted, #8a8580);
+  margin-bottom: 1.5rem;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM CONTROLS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.form-group {
+  margin-bottom: 1.5rem;
+  
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted, #8a8580);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 8px;
+  }
+  
+  ::ng-deep {
+    .p-inputtext,
+    .p-dropdown,
+    .p-calendar input,
+    .p-inputnumber input {
+      width: 100%;
+      border: 1.5px solid var(--border, #e8e3dc);
+      border-radius: 10px;
+      background: var(--cream, #f8f5f0);
+      transition: all 0.2s;
+      
+      &:focus,
+      &:focus-visible {
+        border-color: var(--sage, #7a9e7e);
+        box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.15);
+        background: white;
+      }
+    }
+  }
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--muted, #8a8580);
+  font-style: italic;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INFO BOX
+// ═══════════════════════════════════════════════════════════════════════════
+
+.info-box {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(122, 158, 126, 0.08);
+  border: 1px solid rgba(122, 158, 126, 0.25);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--sage-dark, #4e6e52);
+  margin-top: 1rem;
+  
+  i {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  strong {
+    font-weight: 600;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DIAS E HORÁRIOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.days-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.day-schedule-card {
+  background: var(--cream, #f8f5f0);
+  border: 1.5px solid var(--border, #e8e3dc);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: var(--sage-light, #a8c5ab);
+  }
+  
+  &.selected {
+    background: rgba(122, 158, 126, 0.08);
+    border-color: var(--sage, #7a9e7e);
+    box-shadow: 0 2px 8px rgba(122, 158, 126, 0.15);
+  }
+}
+
+.day-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  
+  .day-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--charcoal, #2c2c2c);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+  
+  ::ng-deep .p-checkbox {
+    .p-checkbox-box {
+      border-color: var(--sage, #7a9e7e);
+      
+      &.p-highlight {
+        background: var(--sage, #7a9e7e);
+        border-color: var(--sage, #7a9e7e);
+      }
+    }
+  }
+}
+
+.horario-select {
+  ::ng-deep .p-dropdown {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESUMO DOS DIAS SELECIONADOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.selected-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  background: var(--warm-white, #fdfcfa);
+  border: 1px solid var(--border, #e8e3dc);
+  border-radius: 10px;
+  
+  strong {
+    font-size: 0.85rem;
+    color: var(--sage-dark, #4e6e52);
+  }
+  
+  .text-muted {
+    font-size: 0.85rem;
+    color: var(--muted, #8a8580);
+    font-style: italic;
+  }
+}
+
+.schedule-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(122, 158, 126, 0.12);
+  color: var(--sage-dark, #4e6e52);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(122, 158, 126, 0.3);
+  
+  .horario-badge {
+    background: var(--sage, #7a9e7e);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VALORES CALCULADOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.computed-badge {
+  background: var(--accent-light, #f0e4d7);
+  border: 1px solid rgba(196, 149, 106, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.computed-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  .cb-label {
+    font-size: 0.75rem;
+    color: var(--muted, #8a8580);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .cb-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--charcoal, #2c2c2c);
+  }
+  
+  .cb-net {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--sage-dark, #4e6e52);
+    font-weight: 500;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM ACTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border, #e8e3dc);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INFO PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+.info-panel {
+  position: sticky;
+  top: 90px;
+  
+  ::ng-deep .p-card {
+    background: rgba(122, 158, 126, 0.05);
+    border: 1px solid rgba(122, 158, 126, 0.2);
+  }
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  
+  i {
+    font-size: 1.5rem;
+    color: var(--sage, #7a9e7e);
+  }
+  
+  h3 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    color: var(--sage-dark, #4e6e52);
+    font-size: 1.2rem;
+  }
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  strong {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--charcoal, #2c2c2c);
+    margin-bottom: 4px;
+  }
+  
+  p {
+    font-size: 0.8rem;
+    color: var(--muted, #8a8580);
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.info-tip {
+  padding: 12px;
+  background: rgba(196, 149, 106, 0.1);
+  border: 1px solid rgba(196, 149, 106, 0.3);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--accent, #c4956a);
+  display: flex;
+  gap: 10px;
+  
+  i {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  strong {
+    font-weight: 600;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESPONSIVIDADE
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 1024px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-panel {
+    position: static;
+  }
+  
+  .days-schedule-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .patient-form-container {
+    padding: 1rem;
+  }
+  
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .computed-badge {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .days-schedule-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    
+    ::ng-deep .p-button {
+      width: 100%;
+    }
+  }
+}

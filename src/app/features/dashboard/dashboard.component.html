@@ -1,0 +1,138 @@
+<!-- src/app/features/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div>
+      <h1>Bem-vindo, {{ userName() }}!</h1>
+      <p class="subtitle">{{ userRole() }} - Visão Geral do Sistema</p>
+    </div>
+    <p-button
+      label="Novo Aluno"
+      severity="info"
+      icon="pi pi-plus"
+      routerLink="/patients/new">
+    </p-button>
+  </div>
+  
+  <div class="stats-grid">
+    <p-card styleClass="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon total">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total de Alunos</span>
+          <span class="stat-value">{{ stats().totalAlunos }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon ganho">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Ganho Total</span>
+          <span class="stat-value">{{ stats().ganhoTotal | currency:'BRL' }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon presenca">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Presenças</span>
+          <span class="stat-value">{{ stats().presencas }}</span>
+        </div>
+      </div>
+    </p-card>
+    
+    <p-card styleClass="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon falta">
+          <i class="pi pi-times-circle"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Faltas</span>
+          <span class="stat-value">{{ stats().faltas }}</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+  
+  <div class="charts-grid">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-header">
+          <h3>Taxa de Frequência</h3>
+          <p-tag 
+            [value]="stats().taxaPresenca.toFixed(1) + '%'"
+            [severity]="getSeverity(stats().taxaPresenca)">
+          </p-tag>
+        </div>
+      </ng-template>
+      
+      <div class="chart-container">
+        @if (attendanceChartData) {
+          <p-chart 
+            type="doughnut" 
+            [data]="attendanceChartData" 
+            [options]="attendanceChartOptions"
+            [style]="{ width: '100%', height: '300px' }">
+          </p-chart>
+        } @else {
+          <div class="chart-empty">
+            <i class="pi pi-chart-pie"></i>
+            <p>Nenhum dado de frequência disponível</p>
+          </div>
+        }
+      </div>
+    </p-card>
+    
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-header">
+          <h3>Ações Rápidas</h3>
+        </div>
+      </ng-template>
+      
+      <div class="quick-actions">
+        <button class="action-btn" routerLink="/patients">
+          <div class="action-icon">
+            <i class="pi pi-users"></i>
+          </div>
+          <div class="action-text">
+            <strong>Gerenciar Alunos</strong>
+            <span>Ver lista completa</span>
+          </div>
+          <i class="pi pi-angle-right"></i>
+        </button>
+        
+        <button class="action-btn" routerLink="/attendance">
+          <div class="action-icon">
+            <i class="pi pi-check-square"></i>
+          </div>
+          <div class="action-text">
+            <strong>Registrar Frequência</strong>
+            <span>Marcar presença/falta</span>
+          </div>
+          <i class="pi pi-angle-right"></i>
+        </button>
+        
+        <button class="action-btn" routerLink="/calendar">
+          <div class="action-icon">
+            <i class="pi pi-calendar"></i>
+          </div>
+          <div class="action-text">
+            <strong>Ver Calendário</strong>
+            <span>Aulas agendadas</span>
+          </div>
+          <i class="pi pi-angle-right"></i>
+        </button>
+      </div>
+    </p-card>
+  </div>
+</div>

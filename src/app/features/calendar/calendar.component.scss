@@ -1,0 +1,719 @@
+.calendar-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+    }
+
+    .header-filters {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+  }
+
+  .calendar-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+  }
+
+  .calendar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .period-label {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-color);
+        min-width: 200px;
+        text-align: center;
+      }
+    }
+
+    .toolbar-right {
+      .view-toggle {
+        display: flex;
+        gap: 0.25rem;
+        background: var(--surface-ground);
+        padding: 0.25rem;
+        border-radius: 8px;
+
+        .view-btn {
+          padding: 0.5rem 1rem;
+          border: none;
+          background: transparent;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: var(--text-color-secondary);
+          transition: all 0.2s;
+          font-size: 0.875rem;
+
+          i {
+            font-size: 1rem;
+          }
+
+          &:hover {
+            background: var(--surface-hover);
+            color: var(--text-color);
+          }
+
+          &.active {
+            background: var(--primary-color);
+            color: white;
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // MODO MÊS - ESTILO GOOGLE AGENDA
+  // ============================================
+  .month-view-google {
+    .month-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--surface-50);
+      border-radius: 8px 8px 0 0;
+      border: 1px solid var(--surface-border);
+      border-bottom: none;
+
+      .month-weekday {
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border: 1px solid var(--surface-border);
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+
+      .month-day-cell {
+        min-height: 120px;
+        border-right: 1px solid var(--surface-border);
+        border-bottom: 1px solid var(--surface-border);
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        background: white;
+        position: relative;
+
+        &:nth-child(7n) {
+          border-right: none;
+        }
+
+        &:hover {
+          background: var(--surface-hover);
+        }
+
+        &.other-month {
+          background: var(--surface-50);
+          
+          .day-number {
+            color: var(--text-color-secondary);
+            opacity: 0.5;
+          }
+
+          .event-item {
+            opacity: 0.6;
+          }
+        }
+
+        &.today {
+          background: #e3f2fd;
+
+          .day-number {
+            background: var(--primary-color);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+          }
+        }
+
+        &.has-events {
+          cursor: pointer;
+
+          &:hover {
+            background: var(--surface-100);
+          }
+        }
+
+        .day-number {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--text-color);
+          margin-bottom: 0.5rem;
+          display: inline-block;
+        }
+
+        .day-events {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .event-item {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .event-time {
+              font-weight: 600;
+              font-size: 0.7rem;
+              opacity: 0.95;
+              min-width: 35px;
+            }
+
+            .event-name {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              flex: 1;
+            }
+          }
+
+          .more-events {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-color-secondary);
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+
+            &:hover {
+              background: var(--surface-100);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // MODO SEMANA
+  // ============================================
+  .week-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+
+    .day-column {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      &.today {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+      }
+
+      .day-header {
+        background: var(--surface-50);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--surface-border);
+
+        .day-name {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--text-color-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .day-date {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--text-color);
+        }
+      }
+
+      .day-content {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-height: 200px;
+
+        .class-card {
+          background: white;
+          border: 1px solid var(--surface-border);
+          border-radius: 8px;
+          padding: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          &:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(2px);
+          }
+
+          .class-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            font-size: 0.875rem;
+            font-weight: 600;
+
+            i {
+              font-size: 1rem;
+            }
+          }
+
+          .class-main {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            .class-avatar {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              color: white;
+              font-size: 0.875rem;
+              flex-shrink: 0;
+            }
+
+            .class-info {
+              flex: 1;
+              min-width: 0;
+
+              .class-name {
+                display: block;
+                font-weight: 600;
+                color: var(--text-color);
+                font-size: 0.875rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+
+              .class-value {
+                display: block;
+                font-size: 0.75rem;
+                color: var(--text-color-secondary);
+                margin-top: 0.25rem;
+              }
+            }
+          }
+        }
+
+        .no-classes {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 2rem 1rem;
+          color: var(--text-color-secondary);
+          text-align: center;
+
+          i {
+            font-size: 2rem;
+            opacity: 0.5;
+          }
+
+          span {
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // MODO DIA
+  // ============================================
+  .day-view {
+    .day-detail {
+      .day-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--surface-border);
+
+        h3 {
+          margin: 0;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: var(--text-color);
+          text-transform: capitalize;
+        }
+      }
+
+      .patients-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+
+        .timeline-item {
+          display: grid;
+          grid-template-columns: 100px 1fr;
+          gap: 1.5rem;
+          align-items: start;
+
+          .timeline-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1rem;
+            padding-top: 1rem;
+
+            i {
+              font-size: 1.25rem;
+            }
+          }
+
+          .timeline-content {
+            .patient-detail-card {
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+              border: 1px solid var(--surface-border);
+              transition: all 0.2s;
+
+              &:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+                transform: translateY(-2px);
+              }
+
+              .patient-card-content {
+                .patient-header {
+                  display: flex;
+                  align-items: center;
+                  gap: 1rem;
+                  margin-bottom: 1.5rem;
+
+                  .patient-avatar {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    color: white;
+                    font-size: 1.25rem;
+                    flex-shrink: 0;
+                  }
+
+                  .patient-info {
+                    flex: 1;
+
+                    h4 {
+                      margin: 0 0 0.5rem 0;
+                      font-size: 1.125rem;
+                      font-weight: 600;
+                      color: var(--text-color);
+                    }
+
+                    .patient-meta {
+                      display: flex;
+                      align-items: center;
+                      gap: 0.5rem;
+                      color: var(--text-color-secondary);
+                      font-size: 0.875rem;
+
+                      i {
+                        font-size: 1rem;
+                      }
+                    }
+                  }
+                }
+
+                .patient-details {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 1rem;
+                  padding: 1rem;
+                  background: var(--surface-50);
+                  border-radius: 8px;
+                  margin-bottom: 1rem;
+
+                  .detail-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+
+                    .label {
+                      font-size: 0.75rem;
+                      color: var(--text-color-secondary);
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      font-weight: 600;
+                    }
+
+                    .value {
+                      font-size: 1rem;
+                      font-weight: 700;
+                      color: var(--text-color);
+
+                      &.success {
+                        color: var(--green-600);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        text-align: center;
+        color: var(--text-color-secondary);
+
+        i {
+          font-size: 4rem;
+          opacity: 0.3;
+          margin-bottom: 1rem;
+        }
+
+        h3 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+
+        p {
+          margin: 0;
+          font-size: 0.875rem;
+        }
+
+        &.small {
+          padding: 2rem;
+
+          i {
+            font-size: 2rem;
+          }
+
+          h3 {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// RESPONSIVIDADE
+// ============================================
+@media (max-width: 1024px) {
+  .calendar-container {
+    padding: 1rem;
+
+    .calendar-header {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .week-view {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .month-view-google {
+      .month-grid {
+        .month-day-cell {
+          min-height: 100px;
+
+          .day-events {
+            .event-item {
+              font-size: 0.7rem;
+
+              .event-time {
+                font-size: 0.65rem;
+                min-width: 30px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-container {
+    .calendar-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+
+      .toolbar-left,
+      .toolbar-right {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .week-view {
+      grid-template-columns: 1fr;
+    }
+
+    .day-view {
+      .day-detail {
+        .patients-timeline {
+          .timeline-item {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+
+            .timeline-time {
+              padding-top: 0;
+            }
+          }
+        }
+      }
+    }
+
+    .month-view-google {
+      .month-header {
+        .month-weekday {
+          padding: 0.5rem;
+          font-size: 0.75rem;
+        }
+      }
+
+      .month-grid {
+        .month-day-cell {
+          min-height: 80px;
+          padding: 0.25rem;
+
+          .day-number {
+            font-size: 0.75rem;
+          }
+
+          .day-events {
+            .event-item {
+              padding: 0.2rem 0.4rem;
+              font-size: 0.65rem;
+
+              .event-time {
+                display: none; // Esconder horário em mobile para economizar espaço
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    .calendar-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      .header-left,
+      .header-filters {
+        width: 100%;
+      }
+    }
+
+    .month-view-google {
+      .month-grid {
+        .month-day-cell {
+          min-height: 60px;
+
+          .day-events {
+            .event-item {
+              .event-name {
+                display: none; // Mostrar apenas bolinhas coloridas em telas muito pequenas
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

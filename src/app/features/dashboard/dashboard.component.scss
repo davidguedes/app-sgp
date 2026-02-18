@@ -1,0 +1,231 @@
+// src/app/features/dashboard/dashboard.component.scss
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  
+  h1 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--sage-dark, #4e6e52);
+    line-height: 1.2;
+  }
+  
+  .subtitle {
+    margin: 0.5rem 0 0 0;
+    color: var(--muted, #8a8580);
+    font-size: 0.95rem;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+  }
+  
+  .stat-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    
+    &.total {
+      background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
+    }
+    
+    &.ganho {
+      background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55);
+    }
+    
+    &.presenca {
+      background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
+    }
+    
+    &.falta {
+      background: linear-gradient(135deg, var(--danger, #c06060), #a85050);
+    }
+  }
+  
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted, #8a8580);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    //color: var(--charcoal, #2c2c2c);
+    line-height: 1;
+  }
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.card-header {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  h3 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    color: var(--sage-dark, #4e6e52);
+    font-size: 1.2rem;
+  }
+}
+
+.chart-container {
+  padding: 1.5rem;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-empty {
+  text-align: center;
+  color: var(--muted, #8a8580);
+  
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 0.9rem;
+  }
+}
+
+.quick-actions {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: var(--cream, #f8f5f0);
+  border: 1.5px solid var(--border, #e8e3dc);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  
+  &:hover {
+    background: white;
+    border-color: var(--sage-light, #a8c5ab);
+    transform: translateX(4px);
+  }
+  
+  .action-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(122, 158, 126, 0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sage-dark, #4e6e52);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  
+  .action-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    strong {
+      font-size: 0.95rem;
+      color: var(--charcoal, #2c2c2c);
+    }
+    
+    span {
+      font-size: 0.8rem;
+      color: var(--muted, #8a8580);
+    }
+  }
+  
+  > i:last-child {
+    color: var(--muted, #8a8580);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem !important;
+  }
+}

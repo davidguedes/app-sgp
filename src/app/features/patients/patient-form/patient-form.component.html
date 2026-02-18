@@ -1,0 +1,282 @@
+<!-- TEMPLATE HTML MELHORADO - patient-form.component.html -->
+
+<div class="patient-form-container">
+  <p-toast />
+  
+  <div class="form-header">
+    <h2>{{ isEditMode() ? 'Editar Aluno' : 'Novo Aluno' }}</h2>
+    <p-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      [text]="true"
+      (onClick)="cancel()">
+    </p-button>
+  </div>
+  
+  <div class="form-layout">
+    <div class="main-form">
+      <p-card styleClass="form-card">
+        <form (ngSubmit)="onSubmit()">
+          
+          <!-- DADOS BÁSICOS -->
+          <div class="form-section">
+            <h3 class="section-title">Dados Básicos</h3>
+            
+            <div class="form-group">
+              <label for="nome">Nome do Aluno *</label>
+              <input 
+                pInputText
+                id="nome"
+                type="text"
+                [(ngModel)]="formData().nome"
+                name="nome"
+                placeholder="Digite o nome completo"
+                class="w-full"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="profissional">Profissional Responsável *</label>
+              <p-select
+                inputId="profissional"
+                [options]="professionals"
+                [(ngModel)]="formData().profissional"
+                name="profissional"
+                optionValue="id"
+                optionLabel="nome"
+                placeholder="Selecione o profissional"
+                [showClear]="false"
+                styleClass="w-full">
+              </p-select>
+            </div>
+          </div>
+          
+          <!-- PERÍODO DE AULAS -->
+          <div class="form-section">
+            <h3 class="section-title">Período de Aulas</h3>
+            
+            <div class="input-row">
+              <div class="form-group">
+                <label for="data_inicio">Data de Início *</label>
+                <p-datepicker
+                  inputId="data_inicio"
+                  [(ngModel)]="formData().data_inicio"
+                  name="data_inicio"
+                  dateFormat="dd/mm/yy"
+                  [showIcon]="true"
+                  
+                  placeholder="Quando o aluno inicia"
+                  styleClass="w-full">
+                </p-datepicker>
+                <small class="field-hint">Data em que o aluno começa as aulas</small>
+              </div>
+              
+              <div class="form-group">
+                <label for="data_fim">Data de Término (Opcional)</label>
+                <p-datepicker
+                  inputId="data_fim"
+                  [(ngModel)]="formData().data_fim"
+                  name="data_fim"
+                  dateFormat="dd/mm/yy"
+                  [showIcon]="true"
+                  [showClear]="true"
+                  placeholder="Deixe vazio se ainda ativo"
+                  styleClass="w-full">
+                </p-datepicker>
+                <small class="field-hint">Deixe vazio se o aluno ainda está ativo</small>
+              </div>
+            </div>
+            
+            <div class="info-box">
+              <i class="pi pi-info-circle"></i>
+              <div>
+                <strong>Importante:</strong> O aluno só aparecerá no calendário e na listagem de frequência durante o período informado. Use a data de término quando o aluno parar as aulas.
+              </div>
+            </div>
+          </div>
+          
+          <!-- DIAS E HORÁRIOS -->
+          <div class="form-section">
+            <h3 class="section-title">Dias e Horários das Aulas</h3>
+            
+            <p class="section-description">
+              Selecione os dias da semana e defina o horário de cada aula
+            </p>
+            
+            <div class="days-schedule-grid">
+              @for (day of daysWithSchedule; track day.key) {
+                <div class="day-schedule-card" [class.selected]="day.selected">
+                  <div class="day-checkbox">
+                    <p-checkbox
+                      [(ngModel)]="day.selected"
+                      [name]="'day-' + day.key"
+                      [binary]="true"
+                      (onChange)="onDayToggle(day)"
+                      [inputId]="'day-' + day.key">
+                    </p-checkbox>
+                    <label [for]="'day-' + day.key" class="day-label">
+                      {{ day.label }}
+                    </label>
+                  </div>
+                  
+                  @if (day.selected) {
+                    <div class="horario-select">
+                      <p-select
+                        [options]="horarioOptions"
+                        [(ngModel)]="day.horario"
+                        [name]="'horario-' + day.key"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Horário"
+                        [showClear]="true"
+                        class="w-full"
+                        (onChange)="onHorarioChange(day, $event.value)">
+                      </p-select>
+                      <!-- <p-datepicker
+                        [(ngModel)]="day.horario"
+                        [name]="'horario-' + day.key"
+                        placeholder="Horário"
+                        timeOnly="true"
+                        hourFormat="24"
+                        [showClear]="true"
+                        class="w-full"
+                        (onSelect)="onHorarioChangeDtepcker(day, day.horario)">
+                      </p-datepicker> -->
+                      <!-- <p-datepicker
+                        [options]="horarioOptions"
+                        [(ngModel)]="day.horario"
+                        [name]="'horario-' + day.key"
+                        (onChange)="onHorarioChange(day, $event.value)"
+                        placeholder="Horário"
+                        [showClear]="true"
+                        styleClass="w-full">
+                      </p-datepicker> -->
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+            
+            <div class="selected-summary">
+              <strong>Resumo:</strong>
+              @if (formData().dias.length === 0) {
+                <span class="text-muted">Nenhum dia selecionado</span>
+              } @else {
+                @for (dia of formData().dias; track dia) {
+                  <span class="schedule-pill">
+                    {{ dia.toUpperCase() }}
+                    @if (formData().horarios?.[dia]) {
+                      <span class="horario-badge">{{ formData().horarios?.[dia] }}</span>
+                    }
+                  </span>
+                }
+              }
+            </div>
+          </div>
+          
+          <!-- VALORES -->
+          <div class="form-section">
+            <h3 class="section-title">Valores e Pagamento</h3>
+            
+            <div class="input-row">
+              <div class="form-group">
+                <label for="valor">Valor do Pacote *</label>
+                <p-inputNumber
+                  inputId="valor"
+                  [(ngModel)]="formData().valor"
+                  name="valor"
+                  mode="currency"
+                  currency="BRL"
+                  locale="pt-BR"
+                  [minFractionDigits]="2"
+                  (onInput)="onValorChange($any($event.value))"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+              
+              <div class="form-group">
+                <label for="porcentagem">Base do Estúdio (%) *</label>
+                <p-inputNumber
+                  inputId="porcentagem"
+                  [(ngModel)]="formData().porcentagem"
+                  name="porcentagem"
+                  [min]="0"
+                  [max]="100"
+                  suffix="%"
+                  (onInput)="onPorcentagemChange($any($event.value))"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+            
+            <div class="computed-badge">
+              <div class="computed-item">
+                <span class="cb-label">Base do Estúdio</span>
+                <div class="cb-value">{{ calculatedValues().base | currency:'BRL' }}</div>
+              </div>
+              <div class="computed-item">
+                <span class="cb-label">Ganho Líquido</span>
+                <div class="cb-net">{{ calculatedValues().ganho | currency:'BRL' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AÇÕES -->
+          <div class="form-actions">
+            <p-button
+              label="Cancelar"
+              severity="secondary"
+              [text]="true"
+              type="button"
+              (onClick)="cancel()">
+            </p-button>
+            
+            <p-button
+              [label]="isEditMode() ? 'Atualizar Aluno' : 'Cadastrar Aluno'"
+              icon="pi pi-check"
+              type="submit"
+              [loading]="loading()">
+            </p-button>
+          </div>
+        </form>
+      </p-card>
+    </div>
+    
+    <!-- PAINEL DE INFORMAÇÕES -->
+    <div class="info-panel">
+      <p-card>
+        <div class="info-header">
+          <i class="pi pi-info-circle"></i>
+          <h3>Informações</h3>
+        </div>
+        
+        <div class="info-content">
+          <div class="info-item">
+            <strong>📅 Período de Aulas</strong>
+            <p>Defina quando o aluno inicia e, se aplicável, quando termina. O sistema só mostrará o aluno no calendário durante este período.</p>
+          </div>
+          
+          <div class="info-item">
+            <strong>⏰ Horários</strong>
+            <p>Configure horários específicos para cada dia. Isso ajuda na organização da agenda e evita conflitos.</p>
+          </div>
+          
+          <div class="info-item">
+            <strong>💰 Cálculo Financeiro</strong>
+            <p>O ganho líquido é calculado automaticamente: Valor - (Valor × Base%).</p>
+          </div>
+          
+          <div class="info-item">
+            <strong>✏️ Edição</strong>
+            <p>Você pode editar qualquer informação do aluno a qualquer momento, incluindo estender ou ajustar o período de aulas.</p>
+          </div>
+        </div>
+        
+        <div class="info-tip">
+          <i class="pi pi-lightbulb"></i>
+          <strong>Dica:</strong> Alunos inativos (com data de término) não aparecem no calendário, mas seus dados históricos são mantidos.
+        </div>
+      </p-card>
+    </div>
+  </div>
+</div>

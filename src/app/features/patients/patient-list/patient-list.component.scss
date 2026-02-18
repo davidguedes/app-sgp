@@ -1,0 +1,176 @@
+// src/app/features/patients/patient-list/patient-list.component.scss
+.patient-list-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.patients-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    h2 {
+      margin: 0;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--sage-dark, #4e6e52);
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  
+  .search-input {
+    flex: 1;
+    min-width: 250px;
+    
+    input {
+      width: 100%;
+    }
+  }
+  
+  ::ng-deep .filter-dropdown {
+    min-width: 250px;
+  }
+}
+
+.patient-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  
+  .patient-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+  }
+}
+
+.days-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  
+  .day-pill {
+    background: rgba(122, 158, 126, 0.12);
+    color: var(--sage-dark, #4e6e52);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+}
+
+.attendance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  .attendance-details {
+    font-size: 0.75rem;
+    color: var(--muted, #8a8580);
+  }
+}
+
+.ganho-value {
+  color: var(--sage-dark, #4e6e52);
+  font-size: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  
+  h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--charcoal, #2c2c2c);
+  }
+  
+  p {
+    color: var(--muted, #8a8580);
+    margin-bottom: 1.5rem;
+  }
+}
+
+::ng-deep {
+  .p-datatable {
+    .p-datatable-thead > tr > th {
+      background: var(--cream, #f8f5f0);
+      color: var(--muted, #8a8580);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border, #e8e3dc);
+    }
+    
+    .p-datatable-tbody > tr {
+      &:hover {
+        background: rgba(122, 158, 126, 0.04);
+      }
+      
+      > td {
+        border-bottom: 1px solid rgba(232, 227, 220, 0.6);
+        padding: 1rem 0.75rem;
+      }
+    }
+  }
+  
+  .p-paginator {
+    background: transparent;
+    border: none;
+    padding: 1rem 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .patients-header {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .header-actions {
+      flex-direction: column;
+    }
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+    
+    .search-input,
+    ::ng-deep .filter-dropdown {
+      width: 100%;
+    }
+  }
+}

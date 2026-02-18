@@ -1,1 +1,423 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import "primeicons/primeicons.css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VARIÁVEIS CSS CUSTOMIZADAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Cores principais */
+  --sage: #7a9e7e;
+  --sage-light: #a8c5ab;
+  --sage-dark: #4e6e52;
+  
+  /* Cores de fundo */
+  --cream: #f8f5f0;
+  --warm-white: #fdfcfa;
+  
+  /* Cores de texto */
+  --charcoal: #2c2c2c;
+  --muted: #8a8580;
+  
+  /* Bordas e separadores */
+  --border: #e8e3dc;
+  
+  /* Cores de destaque */
+  --accent: #c4956a;
+  --accent-light: #f0e4d7;
+  
+  /* Estados */
+  --danger: #c06060;
+  --success: #5a8f5a;
+  --warning: #d4a574;
+  
+  /* Sombras */
+  --card-shadow: 0 2px 20px rgba(44, 44, 44, 0.07);
+  
+  /* Override PrimeNG colors */
+  --primary-color: var(--sage-dark);
+  --primary-color-text: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESET E CONFIGURAÇÕES BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'DM Serif Display', serif;
+  line-height: 1.2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CUSTOMIZAÇÃO PRIMENG
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Botões */
+.p-button {
+  background: var(--sage-dark);
+  border-color: var(--sage-dark);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: var(--sage);
+    border-color: var(--sage);
+    transform: translateY(-1px);
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.25);
+  }
+  
+  &.p-button-success {
+    background: var(--success);
+    border-color: var(--success);
+    
+    &:hover {
+      background: #4d7a4d;
+      border-color: #4d7a4d;
+    }
+  }
+  
+  &.p-button-danger {
+    background: var(--danger);
+    border-color: var(--danger);
+    
+    &:hover {
+      background: #a85050;
+      border-color: #a85050;
+    }
+  }
+  
+  &.p-button-warning {
+    background: var(--warning);
+    border-color: var(--warning);
+    
+    &:hover {
+      background: #c49261;
+      border-color: #c49261;
+    }
+  }
+}
+
+/* Inputs */
+.p-inputtext {
+  font-family: 'DM Sans', sans-serif;
+  border-color: var(--border);
+  transition: all 0.2s;
+  
+  &:enabled:focus {
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.15);
+  }
+}
+
+/* Dropdowns */
+.p-select {
+  border-color: var(--border);
+  
+  &:not(.p-disabled):hover {
+    border-color: var(--sage-light);
+  }
+  
+  &:not(.p-disabled).p-focus {
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.15);
+  }
+  
+  .p-select-label {
+    font-family: 'DM Sans', sans-serif;
+  }
+}
+
+.p-select-panel {
+  .p-select-items {
+    .p-select-item {
+      font-family: 'DM Sans', sans-serif;
+      
+      &.p-highlight {
+        background: rgba(122, 158, 126, 0.1);
+        color: var(--sage-dark);
+      }
+      
+      &:not(.p-highlight):not(.p-disabled):hover {
+        background: rgba(122, 158, 126, 0.05);
+      }
+    }
+  }
+}
+
+/* Calendar */
+.p-datepicker {
+  .p-inputtext {
+    font-family: 'DM Sans', sans-serif;
+  }
+}
+
+.p-datepicker {
+  .p-datepicker-header {
+    background: var(--sage-dark);
+    color: white;
+    
+    .p-datepicker-prev,
+    .p-datepicker-next {
+      color: white;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+  
+  table {
+    td {
+      span {
+        &.p-highlight {
+          background: var(--sage);
+          color: white;
+        }
+        
+        &:not(.p-highlight):hover {
+          background: rgba(122, 158, 126, 0.1);
+        }
+      }
+    }
+  }
+}
+
+/* Tables */
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: var(--cream);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-color: var(--border);
+  }
+  
+  .p-datatable-tbody > tr {
+    &:hover {
+      background: rgba(122, 158, 126, 0.04);
+    }
+    
+    > td {
+      border-color: rgba(232, 227, 220, 0.6);
+    }
+  }
+}
+
+/* Toast */
+.p-toast {
+  .p-toast-message-text {
+    .p-toast-detail {
+      color: var(--muted);
+    }
+  }
+  .p-toast-message {
+    background: white;
+    border: 1px solid var(--border);
+    box-shadow: var(--card-shadow);
+    border-radius: 12px;
+    
+    &.p-toast-message-success {
+      border-left: 4px solid var(--success);
+      
+      .p-toast-message-icon {
+        color: var(--success);
+      }
+    }
+    
+    &.p-toast-message-error {
+      border-left: 4px solid var(--danger);
+      
+      .p-toast-message-icon {
+        color: var(--danger);
+      }
+    }
+    
+    &.p-toast-message-warn {
+      border-left: 4px solid var(--warning);
+      
+      .p-toast-message-icon {
+        color: var(--warning);
+      }
+    }
+    
+    &.p-toast-message-info {
+      border-left: 4px solid var(--sage);
+      
+      .p-toast-message-icon {
+        color: var(--sage);
+      }
+    }
+  }
+}
+
+/* Dialog */
+.p-dialog {
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(44, 44, 44, 0.2);
+  
+  .p-dialog-header {
+    background: var(--warm-white);
+    border-bottom: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    padding: 1.5rem;
+    
+    .p-dialog-title {
+      font-family: 'DM Serif Display', serif;
+      color: var(--sage-dark);
+      font-size: 1.3rem;
+    }
+  }
+  
+  .p-dialog-content {
+    background: var(--warm-white);
+    padding: 1.5rem;
+    color: #2c2c2c;
+
+    .p-confirmdialog-icon {
+      &::before {
+        color: #2c2c2c;
+      }
+    }
+  }
+  
+  .p-dialog-footer {
+    background: var(--warm-white);
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 16px 16px;
+    padding: 1.5rem;
+  }
+}
+
+/* Confirm Dialog */
+.p-confirm-dialog {
+  .p-confirm-dialog-icon {
+    color: var(--warning);
+  }
+}
+
+/* Tags */
+.p-tag {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  
+  &.p-tag-success {
+    background: rgba(90, 143, 90, 0.12);
+    color: var(--success);
+    border: 1px solid rgba(90, 143, 90, 0.25);
+  }
+  
+  &.p-tag-danger {
+    background: rgba(192, 96, 96, 0.12);
+    color: var(--danger);
+    border: 1px solid rgba(192, 96, 96, 0.25);
+  }
+  
+  &.p-tag-warning {
+    background: rgba(212, 165, 116, 0.12);
+    color: var(--warning);
+    border: 1px solid rgba(212, 165, 116, 0.25);
+  }
+}
+
+/* Badge */
+.p-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  
+  &.p-badge-success {
+    background: var(--sage);
+  }
+}
+
+/* Cards */
+.p-card {
+  background: var(--warm-white);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border);
+  
+  .p-card-title {
+    font-family: 'DM Serif Display', serif;
+    color: var(--sage-dark);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLASSES UTILITÁRIAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.w-full {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVIDADE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 0.9rem;
+  }
+  
+  .p-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .p-datatable {
+    font-size: 0.85rem;
+  }
+}

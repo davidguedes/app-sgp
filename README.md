@@ -1,59 +1,191 @@
-# Sgp
+# Sistema de Gerenciamento Pilates - Angular 21 + PrimeNG
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+## 📋 Visão Geral
+Sistema completo para gerenciamento de estúdio de Pilates com controle de alunos, frequência, evoluções e relatórios.
 
-## Development server
+## 🚀 Instalação
 
-To start a local development server, run:
-
+### 1. Criar o projeto Angular 21
 ```bash
+npm install -g @angular/cli@21
+ng new pilates-system --standalone
+cd pilates-system
+```
+
+### 2. Instalar dependências
+```bash
+# PrimeNG e PrimeIcons
+npm install primeng primeicons
+
+# Xlsx para exportação Excel
+npm install xlsx
+npm install --save-dev @types/node
+
+# Angular animations
+npm install @angular/animations
+```
+
+### 3. Configurar angular.json
+Adicione os estilos do PrimeNG no arquivo `angular.json`:
+
+```json
+"styles": [
+  "src/styles.scss",
+  "node_modules/primeng/resources/themes/lara-light-teal/theme.css",
+  "node_modules/primeng/resources/primeng.min.css",
+  "node_modules/primeicons/primeicons.css"
+]
+```
+
+### 4. Configurar tsconfig.json
+Adicione em `compilerOptions`:
+
+```json
+"types": ["node"],
+"resolveJsonModule": true
+```
+
+### 5. Estrutura de pastas
+```
+src/
+├── app/
+│   ├── core/
+│   │   ├── models/
+│   │   │   ├── user.model.ts
+│   │   │   ├── patient.model.ts
+│   │   │   ├── attendance.model.ts
+│   │   │   └── evolution.model.ts
+│   │   ├── services/
+│   │   │   ├── auth.service.ts
+│   │   │   ├── patient.service.ts
+│   │   │   ├── storage.service.ts
+│   │   │   └── export.service.ts
+│   │   └── guards/
+│   │       └── auth.guard.ts
+│   ├── features/
+│   │   ├── auth/
+│   │   │   └── login/
+│   │   ├── dashboard/
+│   │   ├── patients/
+│   │   │   ├── patient-list/
+│   │   │   ├── patient-form/
+│   │   │   └── patient-details/
+│   │   ├── calendar/
+│   │   └── attendance/
+│   ├── shared/
+│   │   └── components/
+│   └── app.routes.ts
+```
+
+## 🎨 Customização de Tema
+O sistema usa cores personalizadas. Adicione ao `src/styles.scss`:
+
+```scss
+:root {
+  --sage: #7a9e7e;
+  --sage-light: #a8c5ab;
+  --sage-dark: #4e6e52;
+  --cream: #f8f5f0;
+  --warm-white: #fdfcfa;
+  --charcoal: #2c2c2c;
+  --muted: #8a8580;
+  --border: #e8e3dc;
+  --accent: #c4956a;
+  --accent-light: #f0e4d7;
+}
+
+// Sobrescrever cores do PrimeNG
+.p-component {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.p-button {
+  background-color: var(--sage-dark);
+  border-color: var(--sage-dark);
+  
+  &:hover {
+    background-color: var(--sage);
+    border-color: var(--sage);
+  }
+}
+```
+
+## 🔧 Backend (Node.js + Express)
+O backend deve fornecer as seguintes rotas:
+
+### Autenticação
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Obter usuário atual
+
+### Alunos (Patients)
+- `GET /api/patients` - Listar alunos
+- `GET /api/patients/:id` - Obter aluno
+- `POST /api/patients` - Criar aluno
+- `PUT /api/patients/:id` - Atualizar aluno
+- `DELETE /api/patients/:id` - Excluir aluno
+
+### Frequência
+- `POST /api/patients/:id/attendance` - Registrar presença
+- `PUT /api/patients/:id/attendance/:attendanceId` - Atualizar presença
+- `DELETE /api/patients/:id/attendance/:attendanceId` - Remover registro
+
+### Evoluções
+- `GET /api/patients/:id/evolutions` - Listar evoluções
+- `POST /api/patients/:id/evolutions` - Adicionar evolução
+- `PUT /api/patients/:id/evolutions/:evolutionId` - Atualizar evolução
+- `DELETE /api/patients/:id/evolutions/:evolutionId` - Remover evolução
+
+### Profissionais
+- `GET /api/professionals` - Listar profissionais
+
+## 📦 Componentes PrimeNG Utilizados
+- Table (p-table)
+- Dialog (p-dialog)
+- Calendar (p-calendar)
+- Button (p-button)
+- InputText (p-inputText)
+- Dropdown (p-select)
+- Toast (p-toast)
+- Card (p-card)
+- Toolbar (p-toolbar)
+- Badge (p-badge)
+- Tag (p-tag)
+- Chart (p-chart)
+- Menu (p-menu)
+
+## 🏃 Executar o projeto
+```bash
+# Desenvolvimento
 ng serve
+
+# Build para produção
+ng build --configuration production
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 📝 Credenciais de Teste
+**Gestor:**
+- Email: gestor@studio.com
+- Senha: gestor123
 
-## Code scaffolding
+**Profissional:**
+- Email: prof@studio.com
+- Senha: prof123
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🔐 Segurança
+- Implementar JWT para autenticação
+- Validação de permissões no backend
+- Sanitização de inputs
+- CORS configurado corretamente
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 📊 Funcionalidades
+✅ Login com níveis de acesso (Gestor/Profissional)
+✅ CRUD completo de alunos
+✅ Controle de frequência (presença/falta/reposição)
+✅ Sistema de evoluções com histórico
+✅ Calendário de aulas
+✅ Dashboard com estatísticas
+✅ Exportação para Excel
+✅ Cálculo automático de ganhos
+✅ Filtros e busca avançada
+✅ Design responsivo

@@ -1,0 +1,173 @@
+<!-- src/app/features/patients/patient-list/patient-list.component.html -->
+<div class="patient-list-container">
+  <p-toast />
+  <p-confirmDialog />
+  
+  <div class="patients-header">
+    <div class="header-left">
+      <h2>Alunos</h2>
+      <p-badge 
+        [value]="filteredPatients().length.toString()" 
+        severity="success">
+      </p-badge>
+    </div>
+    
+    <div class="header-actions">
+      <p-button
+        label="Exportar Excel"
+        icon="pi pi-file-excel"
+        severity="success"
+        (onClick)="exportToExcel()"
+        [disabled]="filteredPatients().length === 0">
+      </p-button>
+      
+      <p-button
+        label="Novo Aluno"
+        icon="pi pi-plus"
+        routerLink="/patients/new">
+      </p-button>
+    </div>
+  </div>
+  
+  <div class="filters-bar">
+    <p-iconfield class="search-input">
+      <p-inputicon class="pi pi-search" />
+      <input
+        type="text"
+        pInputText
+        placeholder="Buscar por nome..."
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+    </p-iconfield>
+
+    <p-select
+      [options]="professionalsOptions()"
+      [(ngModel)]="selectedProfessional"
+      (onChange)="onProfessionalChange($event.value)"
+      placeholder="Filtrar por profissional"
+      [showClear]="true"
+      optionLabel="label"
+      optionValue="value"
+      styleClass="filter-dropdown">
+    </p-select>
+  </div>
+  
+  <p-table 
+    [value]="filteredPatients()" 
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-sm"
+    [globalFilterFields]="['nome']">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Aluno</th>
+        <th>Profissional</th>
+        <th>Dias</th>
+        <!-- <th>Frequência</th> -->
+        <th>Pacote</th>
+        <th>Líquido</th>
+        <th style="width: 150px;">Ações</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-patient>
+      <tr>
+        <td>
+          <div class="patient-name">
+            <div 
+              class="patient-avatar"
+              [style.background]="getAvatarColor(patient.nome)">
+              {{ getInitials(patient.nome) }}
+            </div>
+            <span>{{ patient.nome }}</span>
+          </div>
+        </td>
+        
+        <td>
+          {{ getProfessionalName(patient.profissional_id) }}
+        </td>
+        
+        <td>
+          <div class="days-pills">
+            @for (dia of patient.dias; track dia) {
+              <span class="day-pill">{{ dia.toUpperCase() }}</span>
+            }
+          </div>
+        </td>
+        
+        <!-- <td>
+          @let stats = getAttendanceStats(patient);
+          <div class="attendance-info">
+            <p-tag 
+              [value]="stats.rate.toFixed(0) + '%'"
+              [severity]="getSeverity(stats.rate)">
+            </p-tag>
+            <span class="attendance-details">
+              {{ stats.present }}P / {{ stats.absent }}F
+            </span>
+          </div>
+        </td> -->
+        
+        <td>
+          <strong>{{ patient.valor | currency:'BRL' }}</strong>
+        </td>
+        
+        <td>
+          <strong class="ganho-value">{{ patient.ganho | currency:'BRL' }}</strong>
+        </td>
+        
+        <td>
+          <div class="action-buttons">
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              [routerLink]="['/patients', patient.id]"
+              pTooltip="Ver detalhes">
+            </p-button>
+            
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="warn"
+              [routerLink]="['/patients', patient.id, 'edit']"
+              pTooltip="Editar">
+            </p-button>
+            
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (onClick)="deletePatient(patient)"
+              pTooltip="Excluir">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="empty-message">
+          <div class="empty-state">
+            <i class="pi pi-users" style="font-size: 3rem; color: var(--muted);"></i>
+            <h3>Nenhum aluno encontrado</h3>
+            <p>Comece adicionando um novo aluno ao sistema</p>
+            <p-button
+              label="Adicionar Aluno"
+              icon="pi pi-plus"
+              routerLink="/patients/new">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

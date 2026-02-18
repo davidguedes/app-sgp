@@ -1,0 +1,555 @@
+<!-- src/app/features/patients/patient-details/patient-details.component.html -->
+<div class="patient-details-container">
+  <p-toast />
+  <p-confirmDialog />
+  
+  @if (patient(); as p) {
+    <div class="details-header">
+      <div class="header-left">
+        <p-button
+          icon="pi pi-arrow-left"
+          [text]="true"
+          routerLink="/patients"
+          pTooltip="Voltar">
+        </p-button>
+        
+        <div 
+          class="patient-avatar-large"
+          [style.background]="getAvatarColor(p.nome)">
+          {{ getInitials(p.nome) }}
+        </div>
+        
+        <div class="patient-info">
+          <h1>{{ p.nome }}</h1>
+          <div class="patient-meta">
+            <span>
+              <i class="pi pi-user"></i>
+              {{ professionalsMap()[p.profissional_id] }}
+            </span>
+            <span>
+              <i class="pi pi-calendar"></i>
+              {{ p.dias.length }} aulas/semana
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <p-button
+          label="Exportar"
+          icon="pi pi-file-excel"
+          severity="success"
+          [text]="true"
+          (onClick)="exportPatient()">
+        </p-button>
+        
+        <p-button
+          label="Editar"
+          icon="pi pi-pencil"
+          [routerLink]="['/patients', p.id, 'edit']">
+        </p-button>
+      </div>
+    </div>
+    
+    <div class="details-grid">
+      <!-- Cards de Informações -->
+      <div class="info-cards">
+        <p-card styleClass="info-card">
+          <div class="card-content">
+            <div class="card-icon valor">
+              <i class="pi pi-dollar"></i>
+            </div>
+            <div class="card-info">
+              <span class="card-label">Valor Pacote</span>
+              <span class="card-value">{{ p.valor | currency:'BRL' }}</span>
+            </div>
+          </div>
+        </p-card>
+        
+        <p-card styleClass="info-card">
+          <div class="card-content">
+            <div class="card-icon ganho">
+              <i class="pi pi-wallet"></i>
+            </div>
+            <div class="card-info">
+              <span class="card-label">Ganho Líquido</span>
+              <span class="card-value">{{ p.ganho | currency:'BRL' }}</span>
+            </div>
+          </div>
+        </p-card>
+        
+        <p-card styleClass="info-card">
+          <div class="card-content">
+            <div class="card-icon taxa">
+              <i class="pi pi-percentage"></i>
+            </div>
+            <div class="card-info">
+              <span class="card-label">Base Estúdio</span>
+              <span class="card-value">{{ p.porcentagem }}%</span>
+            </div>
+          </div>
+        </p-card>
+        
+        <p-card styleClass="info-card">
+          <div class="card-content">
+            <div class="card-icon presenca">
+              <i class="pi pi-check-circle"></i>
+            </div>
+            <div class="card-info">
+              <span class="card-label">Taxa Frequência</span>
+              @let stats = getAttendanceStats();
+              <p-tag 
+                [value]="stats.rate.toFixed(0) + '%'"
+                [severity]="getSeverity(stats.rate)"
+                styleClass="card-value">
+              </p-tag>
+            </div>
+          </div>
+        </p-card>
+      </div>
+      
+      <!-- Dias da Semana -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3>Dias de Aula</h3>
+          </div>
+        </ng-template>
+        
+        <div class="days-display">
+          @for (dia of p.dias; track dia) {
+            <div class="day-badge">
+              <span class="day-label">{{ dia.toUpperCase() }}</span>
+              @if (p.horarios && p.horarios[dia]) {
+                <span class="day-time">{{ p.horarios[dia] }}</span>
+              }
+            </div>
+          }
+        </div>
+      </p-card>
+    </div>
+    
+    <!-- Tabs de Conteúdo -->
+    <p-tabs styleClass="details-tabs">
+      <!-- Tab Frequência -->
+      <p-tabs header="Frequência" leftIcon="pi pi-check-square">
+        <div class="tab-header">
+          <p-button
+            label="Registrar Frequência"
+            icon="pi pi-plus"
+            (onClick)="openAttendanceDialog()">
+          </p-button>
+        </div>
+        
+        <div class="attendance-grid">
+          <div class="attendance-chart">
+            <h4>Estatísticas</h4>
+            @if (attendanceChartData) {
+              <p-chart 
+                type="doughnut" 
+                [data]="attendanceChartData" 
+                [options]="attendanceChartOptions"
+                [style]="{ width: '100%', height: '250px' }">
+              </p-chart>
+            }
+            
+            @let attendanceStats = getAttendanceStats();
+            <div class="attendance-summary">
+              <div class="summary-item">
+                <span class="label">Total de Aulas</span>
+                <span class="value">{{ attendanceStats.total }}</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Presenças</span>
+                <span class="value success">{{ attendanceStats.present }}</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Faltas</span>
+                <span class="value danger">{{ attendanceStats.absent }}</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Reposições</span>
+                <span class="value warning">{{ attendanceStats.makeup }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="attendance-list">
+            <h4>Histórico</h4>
+            @if (p.attendance && p.attendance.length > 0) {
+              <p-timeline 
+                [value]="p.attendance" 
+                align="left"
+                styleClass="attendance-timeline">
+                <ng-template pTemplate="content" let-att>
+                  <div class="timeline-item">
+                    <div class="timeline-header">
+                      <span class="timeline-date">
+                        {{ att.date | date:'dd/MM/yyyy' }}
+                      </span>
+                      <div class="timeline-actions">
+                        <p-button
+                          icon="pi pi-pencil"
+                          [rounded]="true"
+                          [text]="true"
+                          size="small"
+                          (onClick)="editAttendance(att)">
+                        </p-button>
+                        <p-button
+                          icon="pi pi-trash"
+                          [rounded]="true"
+                          [text]="true"
+                          severity="danger"
+                          size="small"
+                          (onClick)="deleteAttendance(att)">
+                        </p-button>
+                      </div>
+                    </div>
+                    <p-tag 
+                      [value]="getAttendanceStatus(att.status).label"
+                      [severity]="att.status === 'present' ? 'success' : att.status === 'absent' ? 'danger' : 'warn'">
+                    </p-tag>
+                    @if (att.notes) {
+                      <p class="timeline-notes">{{ att.notes }}</p>
+                    }
+                  </div>
+                </ng-template>
+              </p-timeline>
+            } @else {
+              <div class="empty-state">
+                <i class="pi pi-calendar"></i>
+                <p>Nenhum registro de frequência</p>
+              </div>
+            }
+          </div>
+        </div>
+      </p-tabs>
+      
+      <!-- Tab Evoluções -->
+      <p-tabs header="Evoluções" leftIcon="pi pi-file-edit">
+        <div class="tab-header">
+          <p-button
+            label="Nova Evolução"
+            icon="pi pi-plus"
+            (onClick)="openEvolutionDialog()">
+          </p-button>
+        </div>
+        
+        @if (p.evolutions && p.evolutions.length > 0) {
+          <div class="evolutions-list">
+            @for (evo of p.evolutions; track evo.id) {
+              <p-card styleClass="evolution-card">
+                <div class="evolution-header">
+                  <div class="evolution-info">
+                    <div class="evolution-meta">
+                      <span class="evolution-date">
+                        <i class="pi pi-calendar"></i>
+                        {{ evo.date | date:'dd/MM/yyyy' }}
+                      </span>
+                      <span class="evolution-author">
+                        <i class="pi pi-user"></i>
+                        {{ evo.author }}
+                      </span>
+                    </div>
+                    
+                    <!-- Escala EVA com Rating -->
+                    @if (evo.eva !== undefined && evo.eva !== null) {
+                      <div class="evolution-eva-display">
+                        <span class="eva-label">
+                          <i class="pi pi-heartbeat"></i>
+                          Nível de Dor (EVA):
+                        </span>
+                        <div class="eva-rating-wrapper">
+                          <div class="eva-readonly-display">
+                            <img 
+                              [src]="getEvaImage(evo.eva)" 
+                              [alt]="getEvaDescription(evo.eva)"
+                              class="eva-readonly-image">
+                            <span class="eva-readonly-value" [class]="getEvaSeverityClass(evo.eva)">
+                              {{ evo.eva }}/10 - {{ getEvaDescription(evo.eva) }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  <div class="evolution-actions">
+                    <p-button
+                      icon="pi pi-pencil"
+                      [rounded]="true"
+                      [text]="true"
+                      (onClick)="editEvolution(evo)">
+                    </p-button>
+                    <p-button
+                      icon="pi pi-trash"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="danger"
+                      (onClick)="deleteEvolution(evo)">
+                    </p-button>
+                  </div>
+                </div>
+                
+                <!-- Observações -->
+                @if (evo.notes) {
+                  <div class="evolution-notes">
+                    <h5><i class="pi pi-comment"></i> Observações</h5>
+                    <p>{{ evo.notes }}</p>
+                  </div>
+                }
+                
+                <!-- Exercícios por Aparelho -->
+                @if (evo.exercises && hasExercises(evo.exercises)) {
+                  <div class="evolution-exercises">
+                    <h5><i class="pi pi-list"></i> Exercícios Realizados</h5>
+                    <div class="exercises-grid">
+                      @if (evo.exercises.reformer && evo.exercises.reformer.length > 0) {
+                        <div class="exercise-group">
+                          <span class="group-title">Reformer</span>
+                          <div class="exercise-tags">
+                            @for (ex of evo.exercises.reformer; track ex) {
+                              <p-tag [value]="ex" severity="info"></p-tag>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      @if (evo.exercises.cadillac && evo.exercises.cadillac.length > 0) {
+                        <div class="exercise-group">
+                          <span class="group-title">Cadillac</span>
+                          <div class="exercise-tags">
+                            @for (ex of evo.exercises.cadillac; track ex) {
+                              <p-tag [value]="ex" severity="success"></p-tag>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      @if (evo.exercises.chair && evo.exercises.chair.length > 0) {
+                        <div class="exercise-group">
+                          <span class="group-title">Chair</span>
+                          <div class="exercise-tags">
+                            @for (ex of evo.exercises.chair; track ex) {
+                              <p-tag [value]="ex" severity="warn"></p-tag>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      @if (evo.exercises.barrel && evo.exercises.barrel.length > 0) {
+                        <div class="exercise-group">
+                          <span class="group-title">Barrel</span>
+                          <div class="exercise-tags">
+                            @for (ex of evo.exercises.barrel; track ex) {
+                              <p-tag [value]="ex" severity="secondary"></p-tag>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      @if (evo.exercises.solo && evo.exercises.solo.length > 0) {
+                        <div class="exercise-group">
+                          <span class="group-title">Solo/Mat</span>
+                          <div class="exercise-tags">
+                            @for (ex of evo.exercises.solo; track ex) {
+                              <p-tag [value]="ex"></p-tag>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </p-card>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="pi pi-file-edit"></i>
+            <p>Nenhuma evolução registrada</p>
+          </div>
+        }
+      </p-tabs>
+    </p-tabs>
+  }
+  
+  <!-- Dialog Frequência -->
+  <p-dialog 
+    [(visible)]="showAttendanceDialog"
+    [header]="editingAttendance() ? 'Editar Frequência' : 'Registrar Frequência'"
+    [modal]="true"
+    [style]="{ width: '500px' }">
+    
+    <div class="dialog-form">
+      <div class="form-group">
+        <label for="attDate">Data *</label>
+        <p-datepicker
+          inputId="attDate"
+          [(ngModel)]="attendanceForm().date"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          styleClass="w-full">
+        </p-datepicker>
+      </div>
+      
+      <div class="form-group">
+        <label for="attStatus">Status *</label>
+        <p-select
+          inputId="attStatus"
+          [options]="statusOptions"
+          [(ngModel)]="attendanceForm().status"
+          placeholder="Selecione o status"
+          styleClass="w-full">
+        </p-select>
+      </div>
+      
+      <div class="form-group">
+        <label for="attNotes">Observações</label>
+        <textarea
+          pInputTextarea
+          id="attNotes"
+          [(ngModel)]="attendanceForm().notes"
+          rows="3"
+          placeholder="Observações opcionais..."
+          class="w-full">
+        </textarea>
+      </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="showAttendanceDialog.set(false)">
+      </p-button>
+      <p-button
+        label="Salvar"
+        icon="pi pi-check"
+        (onClick)="saveAttendance()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+  
+  <!-- Dialog Evolução -->
+  <p-dialog 
+    [(visible)]="showEvolutionDialog"
+    [header]="editingEvolution() ? 'Editar Evolução' : 'Nova Evolução'"
+    [modal]="true"
+    [style]="{ width: '700px' }"
+    styleClass="evolution-dialog">
+    
+    <div class="dialog-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="evoDate">Data da Aula</label>
+          <p-datepicker
+            inputId="evoDate"
+            [(ngModel)]="evolutionForm().date"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            styleClass="w-full">
+          </p-datepicker>
+        </div>
+      </div>
+      
+      <!-- Escala EVA no Dialog -->
+      <div class="form-group eva-form-group">
+        <label for="evoEva">
+          <i class="pi pi-heartbeat"></i>
+          Escala Visual Analógica (EVA) - Nível de Dor
+        </label>
+        <div class="eva-input-wrapper">
+        <div class="eva-image-rating">
+          @for (level of evaLevels; track level.value) {
+            <button 
+              type="button"
+              class="eva-level-button"
+              [class.selected]="evolutionForm().eva === level.value"
+              (click)="setEvaLevel(level.value)"
+              [attr.aria-label]="level.description">
+              <img 
+                [src]="level.image" 
+                [alt]="level.description"
+                class="eva-level-image">
+              <span class="eva-level-label">{{ level.value }}</span>
+            </button>
+          }
+        </div>
+        
+        <div class="eva-description">
+          @if (evolutionForm().eva !== undefined && evolutionForm().eva !== null && evolutionForm().eva! > 0) {
+            <span class="eva-value-display" [class]="getEvaSeverityClass(evolutionForm().eva!)">
+              {{ evolutionForm().eva }}/10 - {{ getEvaDescription(evolutionForm().eva!) }}
+            </span>
+          } @else {
+            <span class="eva-hint">Clique em uma imagem para avaliar o nível de dor</span>
+          }
+        </div>
+      </div>
+        <small class="eva-help">
+          0 = Sem dor | 1-3 = Dor leve | 4-6 = Dor moderada | 7-9 = Dor intensa | 10 = Pior dor possível
+        </small>
+      </div>
+      
+      <div class="form-group">
+        <label for="evoNotes">Observações da Aula *</label>
+        <textarea
+          pInputTextarea
+          id="evoNotes"
+          [(ngModel)]="evolutionForm().notes"
+          rows="4"
+          placeholder="Descreva como foi a aula, progressos, dificuldades..."
+          class="w-full">
+        </textarea>
+      </div>
+      
+      <!-- Seleção de Exercícios -->
+      <div class="exercises-section">
+        <h4>Exercícios Realizados</h4>
+        <p-tabs styleClass="exercise-tabs">
+            <p-tablist>
+              @for (equipment of exerciseEquipments; track equipment.key) {
+                <p-tab [value]="equipment.key">{{ equipment.label }}</p-tab>
+              }
+            </p-tablist>
+            <p-tabpanels>
+              @for (equipment of exerciseEquipments; track equipment.key) {
+                <p-tabpanel [value]="equipment.key">
+                  <div class="exercise-selector">
+                    <p-multiSelect
+                      [options]="equipment.exercises"
+                      [(ngModel)]="evolutionForm().exercises![equipment.key]"
+                      [placeholder]="'Selecione exercícios do ' + equipment.label"
+                      [filter]="true"
+                      filterBy="label"
+                      styleClass="w-full"
+                      [showToggleAll]="false"
+                      display="chip">
+                    </p-multiSelect>
+                  </div>
+                </p-tabpanel>
+              }
+            </p-tabpanels>
+        </p-tabs>
+      </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="showEvolutionDialog.set(false)">
+      </p-button>
+      <p-button
+        label="Salvar"
+        icon="pi pi-check"
+        (onClick)="saveEvolution()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+</div>
