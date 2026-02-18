@@ -49,7 +49,7 @@ export class PatientFormComponent implements OnInit {
   patientId = signal<string | null>(null);
   loading = signal(false);
   
-  formData = signal<PatientFormData>({
+  formData: PatientFormData = {
     nome: '',
     profissional: 0,
     dias: [],
@@ -58,7 +58,7 @@ export class PatientFormComponent implements OnInit {
     porcentagem: 0,
     data_inicio: new Date(),
     data_fim: undefined
-  });
+  };
   
   // Dias com horários
   daysWithSchedule: DayWithSchedule[] = DAYS_OF_WEEK.map(day => ({
@@ -88,10 +88,7 @@ export class PatientFormComponent implements OnInit {
   
   professionals = this.authService.professionalsData();
   
-  calculatedValues = signal<{ base: number; ganho: number }>({
-    base: 0,
-    ganho: 0
-  });
+  calculatedValues = signal<{ base: number; ganho: number }>({ base: 0, ganho: 0 });
   
   constructor(
     private patientService: PatientService,
@@ -117,7 +114,7 @@ export class PatientFormComponent implements OnInit {
       next: (patient) => {
         if (patient) {
           console.log('Paciente carregado:', patient);
-          this.formData.set({
+          this.formData = {
             nome: patient.nome,
             profissional: patient.profissional_id,
             dias: [...patient.dias],
@@ -125,10 +122,8 @@ export class PatientFormComponent implements OnInit {
             valor: patient.valor,
             porcentagem: patient.porcentagem,
             data_inicio: new Date(patient.data_inicio),
-            data_fim: patient.data_fim
-              ? new Date(patient.data_fim)
-              : undefined
-          });
+            data_fim: patient.data_fim ? new Date(patient.data_fim) : undefined
+          };
           console.log('Paciente new Date(patient.data_inicio):', new Date(patient.data_inicio));
           console.log('Paciente new Date(patient.data_inicio):', patient.data_inicio);
                     
@@ -154,8 +149,7 @@ export class PatientFormComponent implements OnInit {
     });
   }
   
-  onDayToggle(day: DayWithSchedule): void {
-    day.selected = !day.selected;
+  onDayToggle(): void {
     this.updateFormDays();
   }
   
@@ -174,44 +168,36 @@ export class PatientFormComponent implements OnInit {
   // }
 
   updateFormDays(): void {
-    const selectedDays = this.daysWithSchedule
+    this.formData.dias = this.daysWithSchedule
       .filter(d => d.selected)
       .map(d => d.key);
-    
-    const horarios: { [key: string]: string } = {};
+
+    this.formData.horarios = {};
     this.daysWithSchedule.forEach(d => {
-      if (d.selected && d.horario) {
-        horarios[d.key] = d.horario;
+      if (d.selected && d.horario && this.formData.horarios) {
+        this.formData.horarios[d.key] = d.horario;
       }
     });
-    
-    this.formData.update(data => ({
-      ...data,
-      dias: selectedDays,
-      horarios
-    }));
   }
   
   calculateValues(): void {
-    const { valor, porcentagem } = this.formData();
-    const base = (valor * porcentagem) / 100;
-    const ganho = valor - base;
-    
+    const base = (this.formData.valor * this.formData.porcentagem) / 100;
+    const ganho = this.formData.valor - base;
     this.calculatedValues.set({ base, ganho });
   }
-  
+
   onValorChange(value: number): void {
-    this.formData.update(data => ({ ...data, valor: value }));
+    this.formData.valor = value;
     this.calculateValues();
   }
-  
+
   onPorcentagemChange(value: number): void {
-    this.formData.update(data => ({ ...data, porcentagem: value }));
+    this.formData.porcentagem = value;
     this.calculateValues();
   }
   
   onSubmit(): void {
-    const data = this.formData();
+    const data: PatientFormData = this.formData;
     
     // Validações
     if (!data.nome.trim()) {
