@@ -1,6 +1,6 @@
 {
-  "name": "sgp",
-  "short_name": "sgp",
+  "name": "SGP",
+  "short_name": "SGP",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
