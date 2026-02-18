@@ -3,7 +3,7 @@
   "index": "/index.html",
   "assetGroups": [
     {
-      "name": "SGP",
+      "name": "app",
       "installMode": "prefetch",
       "resources": {
         "files": [
