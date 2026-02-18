@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, tap, catchError, of } from 'rxjs';
 import { User, LoginCredentials, AuthResponse, ProfessionalsHttpResponse, Professional } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:3000/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'pilates_token';
   private readonly USER_KEY = 'pilates_user';
   

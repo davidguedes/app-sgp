@@ -4,12 +4,13 @@ import { Observable, BehaviorSubject, tap, map, forkJoin } from 'rxjs';
 import { Patient, PatientFormData, PatientHttpResponse, PatientsHttpResponse, PatientStats } from '../models/patient.model';
 import { Attendance, AttendanceFormData, AttendanceHttpResponse } from '../models/attendance.model';
 import { Evolution, EvolutionFormData, EvolutionHttpResponse } from '../models/evolution.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
-  private readonly API_URL = 'http://localhost:3000/api';
+  private readonly API_URL = environment.apiUrl;
   
   private patientsSubject = new BehaviorSubject<Patient[]>([]);
   public patients$ = this.patientsSubject.asObservable();
