@@ -1,45 +1,57 @@
 @if (showHeader && currentUser) {
   <header class="app-header">
-    <div class="logo">
-      <div class="logo-icon"><img src="assets/logo.png" alt="Logo SGP"/></div>
-      <div class="logo-text">
-        <h1>Studio Pilates</h1>
-        <span>Gerenciamento</span>
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-icon"><img src="assets/logo.png" alt="Logo SGP"/></div>
+        <div class="logo-text">
+          <h1>Studio Pilates</h1>
+          <span>Gerenciamento</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="user-badge">
+          <div class="user-avatar">
+            {{ getInitials(currentUser.nome) }}
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ currentUser.nome }}</span>
+            <span class="user-role">{{ getRoleLabel(currentUser.role) }}</span>
+          </div>
+        </div>
+
+        <p-button
+          label="Sair"
+          icon="pi pi-sign-out"
+          (onClick)="logout()"
+          styleClass="btn-logout"
+          [text]="true">
+        </p-button>
+
+        <button class="hamburger" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen" aria-label="Abrir menu">
+          <i [class]="mobileMenuOpen ? 'pi pi-times' : 'pi pi-bars'"></i>
+        </button>
       </div>
     </div>
-    
-    <nav class="nav-tabs">
+
+    <nav class="nav-tabs" [class.open]="mobileMenuOpen">
       @for (item of menuItems; track item.label) {
         <button
           class="nav-tab"
           [class.active]="isRouteActive(item.routerLink!)"
-          [routerLink]="item.routerLink">
+          [routerLink]="item.routerLink"
+          (click)="closeMobileMenu()">
           <i [class]="item.icon"></i>
-          {{ item.label }}
+          <span>{{ item.label }}</span>
         </button>
       }
     </nav>
-    
-    <div class="header-right">
-      <div class="user-badge">
-        <div class="user-avatar">
-          {{ getInitials(currentUser.nome) }}
-        </div>
-        <div class="user-info">
-          <span class="user-name">{{ currentUser.nome }}</span>
-          <span class="user-role">{{ getRoleLabel(currentUser.role) }}</span>
-        </div>
-      </div>
-      
-      <p-button
-        label="Sair"
-        icon="pi pi-sign-out"
-        (onClick)="logout()"
-        styleClass="btn-logout"
-        [text]="true">
-      </p-button>
-    </div>
   </header>
+
+  <!-- Overlay para fechar o menu ao clicar fora -->
+  @if (mobileMenuOpen) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+  }
 }
 
 <main class="app-content">

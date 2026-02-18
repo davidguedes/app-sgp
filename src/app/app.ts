@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -26,7 +26,8 @@ export class App implements OnInit {
   currentUser: User | null = null;
   showHeader = false;
   activeRoute = '';
-  
+  mobileMenuOpen = false;
+
   menuItems: MenuItem[] = [
     {
       label: 'Dashboard',
@@ -54,27 +55,43 @@ export class App implements OnInit {
       routerLink: '/financial'
     }
   ];
-  
+
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
-  
+
   ngOnInit(): void {
-    // Observar mudanças de autenticação
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
-    
-    // Observar mudanças de rota para controlar exibição do header
+
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       this.showHeader = !event.url.includes('/login');
       this.activeRoute = event.url;
+      this.mobileMenuOpen = false; // fecha menu ao navegar
     });
   }
-  
+
+  // Fecha o menu ao redimensionar para desktop
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event): void {
+    const width = (event.target as Window).innerWidth;
+    if (width > 768 && this.mobileMenuOpen) {
+      this.mobileMenuOpen = false;
+    }
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
+  }
+
   getInitials(name: string): string {
     return name
       .split(' ')
@@ -83,15 +100,15 @@ export class App implements OnInit {
       .toUpperCase()
       .substring(0, 2);
   }
-  
+
   getRoleLabel(role: string): string {
     return role === 'gestor' ? 'Gestor' : 'Profissional';
   }
-  
+
   logout(): void {
     this.authService.logout();
   }
-  
+
   isRouteActive(route: string): boolean {
     return this.activeRoute.includes(route);
   }

@@ -1,23 +1,29 @@
+// ─── Desktop: header em linha única ───────────────────────────────────────────
 .app-header {
   background: var(--sage-dark, #4e6e52);
   color: white;
   padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 20px rgba(44, 44, 44, 0.15);
+}
+
+.header-top {
   height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 20px rgba(44, 44, 44, 0.15);
   gap: 2rem;
 }
 
+// ─── Logo ──────────────────────────────────────────────────────────────────────
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  
+  flex-shrink: 0;
+
   .logo-icon {
     width: 36px;
     height: 36px;
@@ -35,7 +41,7 @@
       object-fit: contain;
     }
   }
-  
+
   .logo-text {
     h1 {
       font-family: 'DM Serif Display', serif;
@@ -44,7 +50,7 @@
       margin: 0;
       line-height: 1;
     }
-    
+
     span {
       font-size: 0.75rem;
       opacity: 0.65;
@@ -53,13 +59,14 @@
   }
 }
 
+// ─── Nav tabs ─────────────────────────────────────────────────────────────────
 .nav-tabs {
   display: flex;
   gap: 4px;
   background: rgba(255, 255, 255, 0.1);
   padding: 4px;
   border-radius: 12px;
-  
+
   .nav-tab {
     padding: 8px 20px;
     border: none;
@@ -74,16 +81,17 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    
+    white-space: nowrap;
+
     i {
       font-size: 0.9rem;
     }
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.15);
       color: white;
     }
-    
+
     &.active {
       background: white;
       color: var(--sage-dark, #4e6e52);
@@ -91,11 +99,13 @@
   }
 }
 
+// ─── Header right ─────────────────────────────────────────────────────────────
 .header-right {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  
+  flex-shrink: 0;
+
   .user-badge {
     display: flex;
     align-items: center;
@@ -103,7 +113,7 @@
     background: rgba(255, 255, 255, 0.12);
     padding: 8px 14px;
     border-radius: 12px;
-    
+
     .user-avatar {
       width: 32px;
       height: 32px;
@@ -115,18 +125,19 @@
       font-size: 0.85rem;
       font-weight: 700;
       color: white;
+      flex-shrink: 0;
     }
-    
+
     .user-info {
       display: flex;
       flex-direction: column;
       line-height: 1.2;
-      
+
       .user-name {
         font-size: 0.85rem;
         font-weight: 600;
       }
-      
+
       .user-role {
         font-size: 0.65rem;
         opacity: 0.7;
@@ -135,7 +146,7 @@
       }
     }
   }
-  
+
   ::ng-deep .btn-logout {
     .p-button {
       background: rgba(255, 255, 255, 0.1);
@@ -146,7 +157,7 @@
       font-size: 0.8rem;
       font-weight: 600;
       transition: all 0.2s;
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.18);
       }
@@ -154,17 +165,57 @@
   }
 }
 
+// ─── Hamburger (oculto no desktop) ────────────────────────────────────────────
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  i {
+    font-size: 1.1rem;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// ─── Overlay mobile ───────────────────────────────────────────────────────────
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 150;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ─── App content ──────────────────────────────────────────────────────────────
 .app-content {
   min-height: calc(100vh - 70px);
   background: var(--cream, #f8f5f0);
   position: relative;
-  
+
   &::before {
     content: '';
     position: fixed;
     inset: 0;
     top: 70px;
-    background-image: 
+    background-image:
       radial-gradient(circle at 20% 20%, rgba(122, 158, 126, 0.08) 0%, transparent 50%),
       radial-gradient(circle at 80% 80%, rgba(196, 149, 106, 0.06) 0%, transparent 50%);
     pointer-events: none;
@@ -172,43 +223,113 @@
   }
 }
 
+// ─── Tablet (1024px) ──────────────────────────────────────────────────────────
+// Tabs ficam menores mas ainda visíveis com ícone + label
 @media (max-width: 1024px) {
   .app-header {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 1rem;
-    gap: 1rem;
+    padding: 0 1.25rem;
   }
-  
-  .nav-tabs {
-    order: 3;
-    width: 100%;
-    
-    .nav-tab {
-      flex: 1;
-      justify-content: center;
-      
-      span {
-        display: none;
-      }
-    }
+
+  .nav-tabs .nav-tab {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  .header-right {
+    gap: 0.75rem;
   }
 }
 
+// ─── Mobile (768px) — hamburger menu ──────────────────────────────────────────
 @media (max-width: 768px) {
-  .header-right {
-    gap: 0.5rem;
-    
-    .user-badge {
-      padding: 6px 10px;
-      
-      .user-info {
-        display: none;
+  .app-header {
+    padding: 0 1rem;
+  }
+
+  // Esconde a nav por padrão; abre com a classe .open
+  .nav-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--sage-dark, #4e6e52);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.75rem 1rem;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    z-index: 199;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 24px rgba(44, 44, 44, 0.2);
+
+    // Animação de entrada
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+
+    &.open {
+      max-height: 400px;
+      opacity: 1;
+      pointer-events: auto;
+      padding: 0.75rem 1rem;
+    }
+
+    .nav-tab {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      gap: 10px;
+
+      span {
+        display: inline; // garante que o label aparece no mobile
+      }
+
+      &.active {
+        background: white;
+        color: var(--sage-dark, #4e6e52);
       }
     }
   }
-  
+
+  // Mostra o hamburger
+  .hamburger {
+    display: flex;
+  }
+
+  // Mostra o overlay quando o menu está aberto
+  .mobile-overlay {
+    display: block;
+  }
+
+  // Esconde texto de usuário e label "Sair" para economizar espaço
+  .header-right {
+    gap: 0.5rem;
+
+    .user-info {
+      display: none;
+    }
+
+    ::ng-deep .btn-logout .p-button-label {
+      display: none;
+    }
+
+    ::ng-deep .btn-logout .p-button {
+      padding: 8px 10px;
+    }
+  }
+
   .logo-text span {
     display: none;
+  }
+}
+
+// ─── Mobile pequeno (480px) ───────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .logo-text h1 {
+    font-size: 1.1rem;
   }
 }
