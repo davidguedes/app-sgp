@@ -7,7 +7,7 @@ import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeuix/themes/lara';
 import { httpAuthInterceptor } from './core/interceptors/auth.interceptor';
 import pt from 'primelocale/pt.json';
-import { provideServiceWorker } from '@angular/service-worker'; // Importe o JSON de tradução
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,6 +26,6 @@ export const appConfig: ApplicationConfig = {
     }), provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
             registrationStrategy: 'registerWhenStable:30000'
-          }),
+          })
   ]
 };
