@@ -54,6 +54,7 @@ html, body {
 }
 
 body {
+  font-size: clamp(14px, 3vw, 16px);
   font-family: 'DM Sans', sans-serif;
   background: var(--cream);
   color: var(--charcoal);
