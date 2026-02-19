@@ -1,3 +1,20 @@
+// Configuração base para ocupar toda a tela
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth; /* Scroll suave */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
 // ─── Previne scroll horizontal global causado pelo menu mobile ────────────────
 // O dropdown .nav-tabs usa position absolute e pode ultrapassar o viewport
 // em alguns browsers mobile. overflow-x: hidden no :host bloqueia isso.
@@ -255,10 +272,8 @@
 @media (max-width: 768px) {
   .app-header {
     padding: 0 1rem;
-    // position: sticky já cria um containing block, mas declarar
-    // position explícita garante que o absolute do .nav-tabs se ancore aqui.
     position: sticky;
-    overflow: visible; // necessário para o dropdown aparecer fora do header
+    overflow: visible;
   }
 
   // Esconde a nav por padrão; abre com a classe .open
@@ -273,8 +288,8 @@
     top: 70px;
     // Compensar o padding lateral do .app-header (1rem = 16px):
     // left/right: 0 seria relativo ao pai com padding, criando overflow.
-    left: -1rem;
-    right: -1rem;
+    left: 0rem;
+    right: 0rem;
     z-index: 199;
     border-radius: 0 0 16px 16px;
     box-shadow: 0 8px 24px rgba(44, 44, 44, 0.2);
