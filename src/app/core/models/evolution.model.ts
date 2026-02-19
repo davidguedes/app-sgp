@@ -1,4 +1,3 @@
-// src/app/core/models/evolution.model.ts
 export interface Evolution {
   id: string;
   date: Date;
@@ -11,6 +10,11 @@ export interface Evolution {
 }
 
 export interface EvolutionHttpResponse {
+  data: Evolution;
+  success: boolean;
+}
+
+export interface EvolutionsHttpResponse {
   data: Evolution[];
   success: boolean;
 }

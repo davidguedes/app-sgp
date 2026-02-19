@@ -22,19 +22,9 @@ import { InputIconModule } from 'primeng/inputicon';
   selector: 'app-patient-list',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    InputTextModule,
-    SelectModule,
-    TagModule,
-    BadgeModule,
-    ToastModule,
-    ConfirmDialogModule,
-    IconFieldModule,
-    InputIconModule,
-    RouterLink
+    CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule,
+    SelectModule, TagModule, BadgeModule, ToastModule, ConfirmDialogModule,
+    IconFieldModule, InputIconModule, RouterLink
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './patient-list.component.html',
@@ -48,12 +38,9 @@ export class PatientListComponent implements OnInit {
   searchQuery = signal('');
   selectedProfessional = signal<number | null>(null);
   loading = signal(false);
-    
+
   professionalsOptions = computed(() =>
-    this.authService.professionals().map(p => ({
-      label: p.nome,
-      value: p.id
-    }))
+    this.authService.professionals().map(p => ({ label: p.nome, value: p.id }))
   );
 
   constructor(
@@ -62,95 +49,61 @@ export class PatientListComponent implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {}
-  
+
   ngOnInit(): void {
     this.authService.loadProfessionals();
-    this.loadPatients();
-  }
-  
-  loadPatients(): void {
     this.loading.set(true);
+    // Garante que os dados estão carregados antes de subscrever
+    this.patientService.loadPatients();
     this.patientService.getPatients().subscribe({
       next: (patients) => {
         this.patients.set(patients);
         this.applyFilters();
         this.loading.set(false);
       },
-      error: (error) => {
-        console.error('Erro ao carregar pacientes:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Não foi possível carregar a lista de alunos'
-        });
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar a lista de alunos' });
         this.loading.set(false);
       }
     });
   }
-  
+
   applyFilters(): void {
     let filtered = [...this.patients()];
-    
-    // Filtro por busca
     if (this.searchQuery()) {
-      const query = this.searchQuery().toLowerCase();
-      filtered = filtered.filter(p => 
-        p.nome.toLowerCase().includes(query)
-      );
+      const q = this.searchQuery().toLowerCase();
+      filtered = filtered.filter(p => p.nome.toLowerCase().includes(q));
     }
-    
-    // Filtro por profissional
     if (this.selectedProfessional()) {
-      filtered = filtered.filter(p => 
-        p.profissional_id === this.selectedProfessional()
-      );
+      filtered = filtered.filter(p => p.profissional_id === this.selectedProfessional());
     }
-    
     this.filteredPatients.set(filtered);
   }
-  
-  onSearchChange(value: string): void {
-    this.searchQuery.set(value);
-    this.applyFilters();
+
+  onSearchChange(value: string): void { this.searchQuery.set(value); this.applyFilters(); }
+  onProfessionalChange(value: number | null): void { this.selectedProfessional.set(value); this.applyFilters(); }
+
+  // attendance já não existe no Patient leve — usa total_attendance para exibir badge
+  getAttendanceRate(patient: Patient): number {
+    // taxa não está disponível na listagem leve; redirecione para o detalhe
+    return 0;
   }
-  
-  onProfessionalChange(value: number | null): void {
-    this.selectedProfessional.set(value);
-    this.applyFilters();
-  }
-  
-  getAttendanceStats(patient: Patient): { present: number; absent: number; rate: number } {
-    const attendance = patient.attendance || [];
-    console.log('Attendance:', attendance);
-    const present = attendance.filter(a => a.status === 'present').length;
-    const absent = attendance.filter(a => a.status === 'absent').length;
-    const total = present + absent;
-    const rate = total > 0 ? (present / total) * 100 : 0;
-    
-    return { present, absent, rate };
-  }
-  
+
   getSeverity(rate: number): 'success' | 'warn' | 'danger' {
     if (rate >= 80) return 'success';
     if (rate >= 60) return 'warn';
     return 'danger';
   }
-  
+
   getInitials(name: string): string {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   }
-  
+
   getAvatarColor(name: string): string {
     const colors = ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
+    return colors[name.charCodeAt(0) % colors.length];
   }
-  
+
   deletePatient(patient: Patient): void {
     this.confirmationService.confirm({
       message: `Tem certeza que deseja excluir ${patient.nome}? Todos os dados serão perdidos permanentemente.`,
@@ -162,54 +115,30 @@ export class PatientListComponent implements OnInit {
       accept: () => {
         this.patientService.deletePatient(patient.id).subscribe({
           next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Sucesso',
-              detail: 'Aluno excluído com sucesso'
-            });
-            this.loadPatients();
+            // state já atualizado localmente no service
+            this.patients.set(this.patientService.patientsSignal());
+            this.applyFilters();
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Aluno excluído com sucesso' });
           },
-          error: (error) => {
-            console.error('Erro ao excluir paciente:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erro',
-              detail: 'Não foi possível excluir o aluno'
-            });
+          error: () => {
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível excluir o aluno' });
           }
         });
       }
     });
   }
-  
+
   exportToExcel(): void {
     const user = this.authService.getCurrentUser();
     if (!user) return;
-    
     const patients = this.filteredPatients();
-    if (patients.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Nenhum aluno para exportar'
-      });
+    if (!patients.length) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Nenhum aluno para exportar' });
       return;
     }
-    
-    this.exportService.exportPatientsToExcel(
-      patients,
-      user.nome,
-      user.role
-    );
-    
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Relatório exportado com sucesso'
-    });
+    this.exportService.exportPatientsToExcel(patients, user.nome, user.role);
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Relatório exportado com sucesso' });
   }
 
-  getProfessionalName(id: number): string {
-    return this.authService.getProfessionalName(id);
-  }
+  getProfessionalName(id: number): string { return this.authService.getProfessionalName(id); }
 }

@@ -99,6 +99,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  // Garante que nenhuma coluna estoure o viewport
+  min-width: 0;
+  
+  > * {
+    min-width: 0;
+    overflow: hidden;
+  }
 }
 
 .card-header {
@@ -121,6 +128,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  // Impede que o canvas do Chart.js estoure lateralmente
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  // Força o p-chart e seu canvas interno a respeitarem o container
+  ::ng-deep p-chart,
+  ::ng-deep canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+  }
 }
 
 .chart-empty {
@@ -222,10 +242,24 @@
   }
   
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
   
   .stat-value {
     font-size: 1.5rem !important;
+  }
+
+  .chart-container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    padding: 0.75rem;
   }
 }

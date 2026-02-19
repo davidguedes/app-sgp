@@ -1,88 +1,55 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, map, forkJoin } from 'rxjs';
-import { Patient, PatientFormData, PatientHttpResponse, PatientsHttpResponse, PatientStats } from '../models/patient.model';
-import { Attendance, AttendanceFormData, AttendanceHttpResponse } from '../models/attendance.model';
-import { Evolution, EvolutionFormData, EvolutionHttpResponse } from '../models/evolution.model';
+import { Observable, BehaviorSubject, forkJoin, map, tap } from 'rxjs';
+import {
+  Patient,
+  PatientDetail,
+  PatientFormData,
+  PatientHttpResponse,
+  PatientsHttpResponse,
+  PatientStats,
+  PatientStatsHttpResponse
+} from '../models/patient.model';
+import { Attendance, AttendanceFormData, AttendanceHttpResponse, AttendancesHttpResponse  } from '../models/attendance.model';
+import { Evolution, EvolutionFormData, EvolutionHttpResponse, EvolutionsHttpResponse } from '../models/evolution.model';
 import { environment } from '../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PatientService {
   private readonly API_URL = environment.apiUrl;
-  
+
   private patientsSubject = new BehaviorSubject<Patient[]>([]);
   public patients$ = this.patientsSubject.asObservable();
-  
-  // Signal para estado reativo
   public patientsSignal = signal<Patient[]>([]);
 
-  private attendanceSubject = new BehaviorSubject<Attendance[]>([]);
-  public attendance$ = this.attendanceSubject.asObservable();
-  public attendanceSignal = signal<Attendance[]>([]);
-
-  private evolutionsSubject = new BehaviorSubject<Evolution[]>([]);
-  public evolutions$ = this.evolutionsSubject.asObservable();
-  public evolutionsSignal = signal<Evolution[]>([]);
-  
   constructor(private http: HttpClient) {
-    this.loadPatients();
+    // NÃO carrega no construtor — chamado explicitamente pelo componente que precisar
   }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────
   // PACIENTES
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  /**
-   * Carrega todos os pacientes
-   */
+  // ─────────────────────────────────────────────
+
   loadPatients(): void {
     this.http.get<PatientsHttpResponse>(`${this.API_URL}/patients`).subscribe({
-      next: (patients) => {
-        this.patientsSubject.next(patients.data);
-        this.patientsSignal.set(patients.data);
+      next: ({ data }) => {
+        this.patientsSubject.next(data);
+        this.patientsSignal.set(data);
       },
-      error: (error) => console.error('Erro ao carregar pacientes:', error)
-    });
-  }
-  
-  loadEvolutionByPatient(patient: string): void {
-    this.http.get<EvolutionHttpResponse>(`${this.API_URL}/patients/${patient}/evolutions`).subscribe({
-      next: (response) => {
-        this.evolutionsSubject.next(response.data);
-        this.evolutionsSignal.set(response.data);
-      },
-      error: (error) => console.error('Erro ao carregar evoluções:', error)
+      error: (err) => console.error('Erro ao carregar pacientes:', err)
     });
   }
 
-  loadAttendanceByPatient(patient: string): void {
-    this.http.get<AttendanceHttpResponse>(`${this.API_URL}/patients/${patient}/attendance`).subscribe({
-      next: (response) => {
-        this.attendanceSubject.next(response.data);
-        this.attendanceSignal.set(response.data);
-      },
-      error: (error) => console.error('Erro ao carregar frequências:', error)
-    });
-  }
-
-  /**
-   * Obtém todos os pacientes
-   */
   getPatients(): Observable<Patient[]> {
     return this.patients$;
   }
-  
-  /**
-   * Obtém paciente por ID
-   */
-  getPatientById(id: string): Observable<Patient> {
-    // forkJoin garante que os 3 requests terminam antes de montar o objeto
+
+  /** Carrega paciente com attendance e evolutions — usar apenas na tela de detalhes */
+  getPatientById(id: string): Observable<PatientDetail> {
     return forkJoin({
       patient:    this.http.get<PatientHttpResponse>(`${this.API_URL}/patients/${id}`),
-      attendance: this.http.get<AttendanceHttpResponse>(`${this.API_URL}/patients/${id}/attendance`),
-      evolutions: this.http.get<EvolutionHttpResponse>(`${this.API_URL}/patients/${id}/evolutions`)
+      attendance: this.http.get<AttendancesHttpResponse>(`${this.API_URL}/attendance/${id}/attendance`),
+      evolutions: this.http.get<EvolutionsHttpResponse>(`${this.API_URL}/evolution/${id}/evolutions`)
     }).pipe(
       map(({ patient, attendance, evolutions }) => ({
         ...patient.data,
@@ -91,172 +58,134 @@ export class PatientService {
       }))
     );
   }
-  
-  /**
-   * Cria novo paciente
-   */
+
   createPatient(formData: PatientFormData): Observable<Patient> {
-    const { base, ganho } = this.calcularLiquido(formData.valor, formData.porcentagem);
-    return this.http.post<Patient>(`${this.API_URL}/patients`, { ...formData, base, ganho, attendance: [], evolutions: [] }).pipe(
-      tap(() => this.loadPatients())
+    return this.http.post<PatientHttpResponse>(`${this.API_URL}/patients`, formData)
+    .pipe(
+      tap(({ data }) => this._addToState(data)),
+      map(({ data }) => data)
     );
   }
-  
-  /**
-   * Atualiza paciente
-   */
+
   updatePatient(id: string, formData: PatientFormData): Observable<Patient> {
-    const { base, ganho } = this.calcularLiquido(formData.valor, formData.porcentagem);
-    return this.http.put<Patient>(`${this.API_URL}/patients/${id}`, { ...formData, base, ganho }).pipe(
-      tap(() => this.loadPatients())
-    );
+    return this.http
+      .put<PatientHttpResponse>(`${this.API_URL}/patients/${id}`, formData)
+      .pipe(
+        tap(({ data }) => this._updateInState(data)),
+        map(({ data }) => data)
+      );
   }
-  
-  /**
-   * Exclui paciente
-   */
+
   deletePatient(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/patients/${id}`).pipe(
-      tap(() => this.loadPatients())
+      tap(() => this._removeFromState(id))
     );
   }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────
   // FREQUÊNCIA
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  /**
-   * Adiciona registro de frequência
-   */
+  // ─────────────────────────────────────────────
+
   addAttendance(patientId: string, data: AttendanceFormData): Observable<Attendance> {
-    return this.http.post<Attendance>(`${this.API_URL}/patients/${patientId}/attendance`, data).pipe(
-      tap(() => this.loadPatients())
+    return this.http.post<AttendanceHttpResponse>(`${this.API_URL}/attendance/${patientId}/attendance`, data).pipe(
+      map(({ data }) => data)
     );
   }
-  
-  /**
-   * Atualiza registro de frequência
-   */
+
   updateAttendance(patientId: string, attendanceId: string, data: AttendanceFormData): Observable<Attendance> {
-    return this.http.put<Attendance>(`${this.API_URL}/patients/${patientId}/attendance/${attendanceId}`, data).pipe(
-      tap(() => this.loadPatients())
+    return this.http.put<AttendanceHttpResponse>(`${this.API_URL}/attendance/${patientId}/attendance/${attendanceId}`, data).pipe(
+      map(({ data }) => data)
     );
   }
-  
-  /**
-   * Remove registro de frequência
-   */
+
   deleteAttendance(patientId: string, attendanceId: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/patients/${patientId}/attendance/${attendanceId}`).pipe(
-      tap(() => this.loadPatients())
+    return this.http.delete<void>(`${this.API_URL}/attendance/${patientId}/attendance/${attendanceId}`);
+  }
+
+  getAttendanceByPatient(patientId: string): Observable<Attendance[]> {
+    return this.http.get<AttendancesHttpResponse>(`${this.API_URL}/attendance/${patientId}/attendance`).pipe(
+      map(r => r.data)
     );
   }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  getAttendanceByDate(date: string): Observable<Attendance[]> {
+    return this.http.get<AttendancesHttpResponse>(`${this.API_URL}/attendance?date=${date}`).pipe(
+      map(r => r.data)
+    );
+  }
+
+  // ─────────────────────────────────────────────
   // EVOLUÇÕES
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  /**
-   * Adiciona evolução
-   */
+  // ─────────────────────────────────────────────
+
   addEvolution(patientId: string, data: EvolutionFormData): Observable<Evolution> {
-    return this.http.post<Evolution>(`${this.API_URL}/patients/${patientId}/evolutions`, data).pipe(
-      tap(() => this.loadPatients())
-    );
+    return this.http.post<EvolutionHttpResponse>(`${this.API_URL}/evolution/${patientId}/evolutions`, data).pipe(
+      map(({ data }) => data));
   }
-  
-  /**
-   * Atualiza evolução
-   */
+
   updateEvolution(patientId: string, evolutionId: string, data: EvolutionFormData): Observable<Evolution> {
-    return this.http.put<Evolution>(
-      `${this.API_URL}/patients/${patientId}/evolutions/${evolutionId}`,
-      data
-    ).pipe(
-      tap(() => this.loadPatients())
+    return this.http.put<EvolutionHttpResponse>(`${this.API_URL}/evolution/${patientId}/evolutions/${evolutionId}`, data).pipe(
+      map(({ data }) => data)
     );
   }
-  
-  /**
-   * Remove evolução
-   */
+
   deleteEvolution(patientId: string, evolutionId: string): Observable<void> {
-    return this.http.delete<void>(
-      `${this.API_URL}/patients/${patientId}/evolutions/${evolutionId}`
-    ).pipe(
-      tap(() => this.loadPatients())
-    );
+    return this.http.delete<void>(`${this.API_URL}/evolution/${patientId}/evolutions/${evolutionId}`);
   }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CÁLCULOS E ESTATÍSTICAS
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  /**
-   * Calcula valor líquido baseado no valor e porcentagem
-   */
-  private calcularLiquido(valor: number, porcentagem: number): { base: number; ganho: number } {
-    const base = (valor * porcentagem) / 100;
-    const ganho = valor - base;
-    return { base, ganho };
-  }
-  
-  /**
-   * Obtém estatísticas gerais
-   */
+
+  // ─────────────────────────────────────────────
+  // STATS — calculado no backend
+  // ─────────────────────────────────────────────
+
   getStats(): Observable<PatientStats> {
-    return this.patients$.pipe(
-      map(patients => {
-        const totalAlunos = patients.length;
-        const ganhoTotal = patients.reduce((sum, p) => sum + p.ganho, 0);
-        let presencas = 0;
-        let faltas = 0;
-        patients.forEach(p => {
-          if (p.attendance) {
-            presencas += p.attendance.filter(a => a.status === 'present').length;
-            faltas += p.attendance.filter(a => a.status === 'absent').length;
-          }
-        });
-        const total = presencas + faltas;
-        const taxaPresenca = total > 0 ? (presencas / total) * 100 : 0;
-        return { totalAlunos, ganhoTotal, presencas, faltas, taxaPresenca };
-      })
+    return this.http.get<PatientStatsHttpResponse>(`${this.API_URL}/patients/stats`).pipe(
+      map(r => r.data)
     );
   }
-  
-  /**
-   * Filtra pacientes por profissional
-   */
+
+  // ─────────────────────────────────────────────
+  // FILTROS
+  // ─────────────────────────────────────────────
+
   filterByProfessional(professionalId: string): Observable<Patient[]> {
     return this.patients$.pipe(
       map(patients => patients.filter(p => p.profissional_id.toString() === professionalId))
     );
   }
-  
-  /**
-   * Filtra pacientes por dia da semana
-   */
+
   filterByDay(day: string): Observable<Patient[]> {
     return this.patients$.pipe(
       map(patients => patients.filter(p => p.dias.includes(day)))
     );
   }
-  
-  /**
-   * Busca pacientes por nome
-   */
+
   searchByName(query: string): Observable<Patient[]> {
     const lowerQuery = query.toLowerCase();
     return this.patients$.pipe(
-      map(patients => patients.filter(p => 
-        p.nome.toLowerCase().includes(lowerQuery)
-      ))
+      map(patients => patients.filter(p => p.nome.toLowerCase().includes(lowerQuery)))
     );
   }
 
-  getAttendanceByPatient(patientId: string): Observable<Attendance[]> {
-    return this.http.get<AttendanceHttpResponse>(`${this.API_URL}/patients/${patientId}/attendance`).pipe(
-      map(r => r.data)
-    );
+  // ─────────────────────────────────────────────
+  // STATE LOCAL — evita reload total
+  // ─────────────────────────────────────────────
+
+  private _addToState(patient: Patient): void {
+    const current = this.patientsSubject.getValue();
+    const updated = [patient, ...current];
+    this.patientsSubject.next(updated);
+    this.patientsSignal.set(updated);
+  }
+
+  private _updateInState(patient: Patient): void {
+    const updated = this.patientsSubject.getValue().map(p => p.id === patient.id ? patient : p);
+    this.patientsSubject.next(updated);
+    this.patientsSignal.set(updated);
+  }
+
+  private _removeFromState(id: string): void {
+    const updated = this.patientsSubject.getValue().filter(p => p.id !== id);
+    this.patientsSubject.next(updated);
+    this.patientsSignal.set(updated);
   }
 }

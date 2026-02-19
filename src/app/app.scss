@@ -1,3 +1,11 @@
+// ─── Previne scroll horizontal global causado pelo menu mobile ────────────────
+// O dropdown .nav-tabs usa position absolute e pode ultrapassar o viewport
+// em alguns browsers mobile. overflow-x: hidden no :host bloqueia isso.
+:host {
+  display: block;
+  overflow-x: hidden;
+}
+
 // ─── Desktop: header em linha única ───────────────────────────────────────────
 .app-header {
   background: var(--sage-dark, #4e6e52);
@@ -7,6 +15,9 @@
   top: 0;
   z-index: 200;
   box-shadow: 0 2px 20px rgba(44, 44, 44, 0.15);
+  // Necessário para ancorar corretamente o .nav-tabs absolute no mobile.
+  // Sem isso o dropdown se ancora em outro elemento e gera scroll horizontal.
+  isolation: isolate;
 }
 
 .header-top {
@@ -244,6 +255,10 @@
 @media (max-width: 768px) {
   .app-header {
     padding: 0 1rem;
+    // position: sticky já cria um containing block, mas declarar
+    // position explícita garante que o absolute do .nav-tabs se ancore aqui.
+    position: sticky;
+    overflow: visible; // necessário para o dropdown aparecer fora do header
   }
 
   // Esconde a nav por padrão; abre com a classe .open
@@ -256,8 +271,10 @@
     padding: 0.75rem 1rem;
     position: absolute;
     top: 70px;
-    left: 0;
-    right: 0;
+    // Compensar o padding lateral do .app-header (1rem = 16px):
+    // left/right: 0 seria relativo ao pai com padding, criando overflow.
+    left: -1rem;
+    right: -1rem;
     z-index: 199;
     border-radius: 0 0 16px 16px;
     box-shadow: 0 8px 24px rgba(44, 44, 44, 0.2);

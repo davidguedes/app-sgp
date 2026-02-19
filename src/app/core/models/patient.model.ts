@@ -1,27 +1,39 @@
 import { Attendance } from './attendance.model';
 import { Evolution } from './evolution.model';
 
+// Usado na listagem — sem dados aninhados
 export interface Patient {
   id: string;
   nome: string;
   profissional_id: number;
   profissional_nome: string;
-  dias: string[]; // ['seg', 'qua', 'sex']
-  horarios?: { [key: string]: string }; // { 'seg': '09:00', 'qua': '14:00' }
+  dias: string[];
+  horarios?: { [key: string]: string };
   valor: number;
   porcentagem: number;
   base: number;
   ganho: number;
-  data_inicio: Date; // Data de início das aulas
-  data_fim?: Date; // Data de término (opcional - null se ainda ativo)
-  attendance: Attendance[];
-  evolutions: Evolution[];
+  data_inicio: Date;
+  data_fim?: Date;
+  total_attendance?: number;  // contagem vinda do backend
+  total_evolutions?: number;  // contagem vinda do backend
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+// Usado na tela de detalhes — carregado sob demanda
+export interface PatientDetail extends Patient {
+  attendance: Attendance[];
+  evolutions: Evolution[];
+}
+
 export interface PatientHttpResponse {
   data: Patient;
+  success: boolean;
+}
+
+export interface PatientDetailHttpResponse {
+  data: PatientDetail;
   success: boolean;
 }
 
@@ -47,6 +59,11 @@ export interface PatientStats {
   presencas: number;
   faltas: number;
   taxaPresenca: number;
+}
+
+export interface PatientStatsHttpResponse {
+  data: PatientStats;
+  success: boolean;
 }
 
 export interface DayOfWeek {

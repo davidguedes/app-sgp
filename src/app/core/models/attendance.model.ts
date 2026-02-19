@@ -1,13 +1,19 @@
 export interface Attendance {
   id: string;
+  patient_id: string;
   date: Date;
   status: 'present' | 'absent' | 'makeup';
   notes?: string;
   createdAt?: Date;
 }
 
-export interface AttendanceHttpResponse {
+export interface AttendancesHttpResponse {
   data: Attendance[];
+  success: boolean;
+}
+
+export interface AttendanceHttpResponse {
+  data: Attendance;
   success: boolean;
 }
 
