@@ -266,6 +266,10 @@ html, body {
   .header-right {
     gap: 0.75rem;
   }
+
+  .logo-text {
+    display: none;
+  }
 }
 
 // ─── Mobile (768px) — hamburger menu ──────────────────────────────────────────
@@ -361,7 +365,7 @@ html, body {
 
 // ─── Mobile pequeno (480px) ───────────────────────────────────────────────────
 @media (max-width: 480px) {
-  .logo-text h1 {
-    font-size: 1.1rem;
+  .logo-text {
+    display: none;
   }
 }
