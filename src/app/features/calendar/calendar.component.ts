@@ -12,17 +12,25 @@ import { DividerModule } from 'primeng/divider';
 import { PatientService } from '../../core/services/patient.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
+import { Attendance } from '../../core/models/attendance.model';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
-interface CalendarEvent { date: Date; patients: PatientWithTime[]; dayOfWeek: string; }
-interface MonthDay { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; }
-interface PatientWithTime extends Patient { displayTime?: string; }
+interface CalendarEvent  { date: Date; patients: PatientWithTime[]; dayOfWeek: string; }
+interface MonthDay       { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; }
+
+interface PatientWithTime extends Patient {
+  displayTime?: string;
+  isNew?: boolean;                // iniciou nos últimos 7 dias
+  lastAttendanceStatus?: 'present' | 'absent' | 'makeup' | null;
+  makeupPending?: boolean;        // tem falta sem reposição registrada
+}
 
 interface ProfessionalSummary {
-  id: number;
+  id: string;
   nome: string;
   totalAlunos: number;
-  totalAulas: number; // aulas na semana atual
+  totalAulas: number;
   receitaBruta: number;
   receitaLiquida: number;
   diasAtivos: string[];
@@ -40,17 +48,22 @@ interface ProfessionalSummary {
   styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent implements OnInit {
-  selectedDate = signal<Date>(new Date());
+  selectedDate         = signal<Date>(new Date());
   selectedProfessional = signal<number | null>(null);
-  viewMode = signal<'month' | 'week' | 'day'>('week');
+  // gestor abre na semana; profissional abre no dia de hoje
+  viewMode             = signal<'month' | 'week' | 'day'>('week');
 
-  patients = signal<Patient[]>([]);
+  patients       = signal<Patient[]>([]);
+  attendances    = signal<Attendance[]>([]);
   calendarEvents = signal<CalendarEvent[]>([]);
-  monthDays = signal<MonthDay[]>([]);
+  monthDays      = signal<MonthDay[]>([]);
 
-  // Gestor: visão por profissional
-  gestorViewMode = signal<'overview' | 'detail'>('overview');
+  // Gestor
+  gestorViewMode    = signal<'overview' | 'detail'>('overview');
   profissionalStats = signal<ProfessionalSummary[]>([]);
+
+  // Semana: dias vazios podem ser expandidos manualmente
+  expandedDays = signal<Set<string>>(new Set());
 
   professionalsOptions = computed(() => [
     { label: 'Todos', value: null },
@@ -58,77 +71,123 @@ export class CalendarComponent implements OnInit {
   ]);
 
   viewModes: { label: string; value: 'month' | 'week' | 'day'; icon: string }[] = [
-    { label: 'Mês', value: 'month', icon: 'pi pi-calendar' },
-    { label: 'Semana', value: 'week', icon: 'pi pi-list' },
-    { label: 'Dia', value: 'day', icon: 'pi pi-clock' }
+    { label: 'Mês',    value: 'month', icon: 'pi pi-calendar' },
+    { label: 'Semana', value: 'week',  icon: 'pi pi-list'     },
+    { label: 'Dia',    value: 'day',   icon: 'pi pi-clock'    }
   ];
 
   daysOfWeek = [
     { key: 'seg', label: 'Segunda', full: 'Segunda-feira', short: 'Seg' },
-    { key: 'ter', label: 'Terça', full: 'Terça-feira', short: 'Ter' },
-    { key: 'qua', label: 'Quarta', full: 'Quarta-feira', short: 'Qua' },
-    { key: 'qui', label: 'Quinta', full: 'Quinta-feira', short: 'Qui' },
-    { key: 'sex', label: 'Sexta', full: 'Sexta-feira', short: 'Sex' },
-    { key: 'sab', label: 'Sábado', full: 'Sábado', short: 'Sáb' },
-    { key: 'dom', label: 'Domingo', full: 'Domingo', short: 'Dom' }
+    { key: 'ter', label: 'Terça',   full: 'Terça-feira',   short: 'Ter' },
+    { key: 'qua', label: 'Quarta',  full: 'Quarta-feira',  short: 'Qua' },
+    { key: 'qui', label: 'Quinta',  full: 'Quinta-feira',  short: 'Qui' },
+    { key: 'sex', label: 'Sexta',   full: 'Sexta-feira',   short: 'Sex' },
+    { key: 'sab', label: 'Sábado',  full: 'Sábado',        short: 'Sáb' },
+    { key: 'dom', label: 'Domingo', full: 'Domingo',       short: 'Dom' }
   ];
 
   constructor(private patientService: PatientService, public authService: AuthService) {}
 
   ngOnInit(): void {
+    if (!this.authService.isGestor()) {
+      this.viewMode.set('day');
+    }
+
     this.patientService.loadPatients();
     this.authService.loadProfessionals();
+
     this.patientService.getPatients().subscribe({
       next: (patients) => {
         this.patients.set(patients);
-        this.generateCalendarEvents();
-        if (this.authService.isGestor()) this.computeProfissionalStats();
+        this.loadAttendances(patients);
       },
       error: (err) => console.error('Erro ao carregar pacientes:', err)
     });
   }
 
+  private loadAttendances(patients: Patient[]): void {
+    const relevantPatients = this.authService.isGestor()
+      ? patients.filter(p => this.isPatientCurrentlyActive(p))
+      : patients.filter(p =>
+          this.isPatientCurrentlyActive(p) &&
+          p.profissional_id === Number(this.authService.getCurrentUser()?.id)
+        );
+
+    if (relevantPatients.length === 0) {
+      this.generateCalendarEvents();
+      if (this.authService.isGestor()) this.computeProfissionalStats();
+      return;
+    }
+
+    // Limita a 20 pacientes para não sobrecarregar
+    const requests = relevantPatients.slice(0, 20)
+      .map(p => this.patientService.getAttendanceByPatient(p.id));
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        this.attendances.set(results.flat());
+        this.generateCalendarEvents();
+        if (this.authService.isGestor()) this.computeProfissionalStats();
+      },
+      error: () => {
+        this.generateCalendarEvents();
+        if (this.authService.isGestor()) this.computeProfissionalStats();
+      }
+    });
+  }
+
   // ─────────────────────────────────────────────
-  // GESTOR: STATS POR PROFISSIONAL
+  // ENRIQUECIMENTO DO PACIENTE
+  // ─────────────────────────────────────────────
+
+  private enrichPatient(p: Patient, dayKey: string): PatientWithTime {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(today.getDate() - 7);
+    const inicio = new Date(p.data_inicio); inicio.setHours(0, 0, 0, 0);
+
+    const patientAttendances = this.attendances()
+      .filter(a => a.patient_id === p.id)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const lastAttendanceStatus = patientAttendances[0]?.status ?? null;
+
+    const lastAbsent = patientAttendances.find(a => a.status === 'absent');
+    const lastMakeup = patientAttendances.find(a => a.status === 'makeup');
+    const makeupPending = !!lastAbsent && (
+      !lastMakeup || new Date(lastAbsent.date) > new Date(lastMakeup.date)
+    );
+
+    return {
+      ...p,
+      displayTime: p.horarios?.[dayKey] || '',
+      isNew: inicio >= sevenDaysAgo,
+      lastAttendanceStatus,
+      makeupPending
+    };
+  }
+
+  // ─────────────────────────────────────────────
+  // GESTOR: STATS
   // ─────────────────────────────────────────────
 
   computeProfissionalStats(): void {
-    const professionals = this.authService.professionals();
-    const allPatients = this.patients();
     const weekDays = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+    const stats: ProfessionalSummary[] = this.authService.professionals().map(prof => {
+      const active = this.patients()
+        .filter(p => p.profissional_id === Number(prof.id) && this.isPatientCurrentlyActive(p));
 
-    const stats: ProfessionalSummary[] = professionals.map(prof => {
-      const profPatients = allPatients.filter(p => p.profissional_id === Number(prof.id));
-      const activePatients = profPatients.filter(p => this.isPatientCurrentlyActive(p));
-
-      const totalAulas = weekDays.reduce((sum, day) => {
-        return sum + activePatients.filter(p => p.dias.includes(day)).length;
-      }, 0);
-
-      const diasAtivos = weekDays.filter(day =>
-        activePatients.some(p => p.dias.includes(day))
-      );
-
-      const receitaBruta = activePatients.reduce((s, p) => s + (p.valor || 0), 0);
-      const receitaLiquida = activePatients.reduce((s, p) => s + (p.ganho || 0), 0);
-
-      const patientsWithTime: PatientWithTime[] = activePatients.map(p => ({
-        ...p,
-        displayTime: p.horarios?.['seg'] || ''
-      }));
+      const totalAulas    = weekDays.reduce((s, d) => s + active.filter(p => p.dias.includes(d)).length, 0);
+      const diasAtivos    = weekDays.filter(d => active.some(p => p.dias.includes(d)));
+      const receitaBruta  = active.reduce((s, p) => s + (p.valor || 0), 0);
+      const receitaLiquida = active.reduce((s, p) => s + (p.ganho || 0), 0);
 
       return {
-        id: Number(prof.id),
-        nome: prof.nome,
-        totalAlunos: activePatients.length,
-        totalAulas,
-        receitaBruta,
-        receitaLiquida,
+        id: prof.id, nome: prof.nome,
+        totalAlunos: active.length, totalAulas, receitaBruta, receitaLiquida,
         diasAtivos,
-        patients: patientsWithTime
+        patients: active.map(p => this.enrichPatient(p, 'seg'))
       };
     });
-
     this.profissionalStats.set(stats.sort((a, b) => b.totalAulas - a.totalAulas));
   }
 
@@ -143,50 +202,34 @@ export class CalendarComponent implements OnInit {
     return true;
   }
 
-  // Totais consolidados para cards do gestor
-  totalAlunosGeral = computed(() => {
-    return this.patients().filter(p => this.isPatientCurrentlyActive(p)).length;
-  });
-
-  totalAulasSemanais = computed(() => {
-    return this.profissionalStats().reduce((s, p) => s + p.totalAulas, 0);
-  });
-
-  receitaBrutaGeral = computed(() => {
-    return this.profissionalStats().reduce((s, p) => s + p.receitaBruta, 0);
-  });
-
-  receitaLiquidaGeral = computed(() => {
-    return this.profissionalStats().reduce((s, p) => s + p.receitaLiquida, 0);
-  });
+  totalAlunosGeral  = computed(() => this.patients().filter(p => this.isPatientCurrentlyActive(p)).length);
+  totalAulasSemanais = computed(() => this.profissionalStats().reduce((s, p) => s + p.totalAulas, 0));
+  receitaBrutaGeral  = computed(() => this.profissionalStats().reduce((s, p) => s + p.receitaBruta, 0));
+  receitaLiquidaGeral = computed(() => this.profissionalStats().reduce((s, p) => s + p.receitaLiquida, 0));
 
   getOcupacaoPercent(prof: ProfessionalSummary): number {
-    // Considera máximo 30 aulas/semana como 100%
     return Math.min(Math.round((prof.totalAulas / 30) * 100), 100);
   }
-
   getOcupacaoSeverity(pct: number): string {
     if (pct >= 80) return 'success';
     if (pct >= 40) return 'warning';
     return 'danger';
   }
 
-  getPatientsForProfissionalOnDay(profId: number, dayKey: string): PatientWithTime[] {
+  getPatientsForProfissionalOnDay(profId: string, dayKey: string): PatientWithTime[] {
     return this.getPatientsForDayWithTime(dayKey).filter(p => p.profissional_id === Number(profId));
   }
 
-  drillDownProfissional(profId: number): void {
-    this.selectedProfessional.set(profId);
+  drillDownProfissional(profId: string): void {
+    this.selectedProfessional.set(Number(profId));
     this.gestorViewMode.set('detail');
     this.generateCalendarEvents();
   }
-
   backToOverview(): void {
     this.selectedProfessional.set(null);
     this.gestorViewMode.set('overview');
     this.generateCalendarEvents();
   }
-
   getSelectedProfNome(): string {
     const id = this.selectedProfessional();
     if (!id) return '';
@@ -194,35 +237,77 @@ export class CalendarComponent implements OnInit {
   }
 
   // ─────────────────────────────────────────────
+  // PROFISSIONAL: MÉTRICAS RÁPIDAS
+  // ─────────────────────────────────────────────
+
+  getTodayPatients(): PatientWithTime[] {
+    return this.getPatientsForDayWithTime(this.getDayKey(new Date()));
+  }
+
+  getMakeupPendingCount(): number {
+    const seen = new Set<string>();
+    let count = 0;
+    for (const day of ['seg', 'ter', 'qua', 'qui', 'sex', 'sab']) {
+      for (const p of this.getPatientsForDayWithTime(day)) {
+        if (p.makeupPending && !seen.has(p.id)) { seen.add(p.id); count++; }
+      }
+    }
+    return count;
+  }
+
+  getUnmarkedTodayCount(): number {
+    const todayPatients = this.getTodayPatients();
+    if (!todayPatients.length) return 0;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const markedToday = new Set(
+      this.attendances()
+        .filter(a => { const d = new Date(a.date); d.setHours(0,0,0,0); return d.getTime() === today.getTime(); })
+        .map(a => a.patient_id)
+    );
+    return todayPatients.filter(p => !markedToday.has(p.id)).length;
+  }
+
+  // ─────────────────────────────────────────────
+  // SEMANA: COLAPSO DE DIAS VAZIOS
+  // ─────────────────────────────────────────────
+
+  isDayExpanded(dayKey: string, hasPatients: boolean): boolean {
+    return hasPatients || this.expandedDays().has(dayKey);
+  }
+  toggleDay(dayKey: string): void {
+    const s = new Set(this.expandedDays());
+    if (s.has(dayKey)) s.delete(dayKey); else s.add(dayKey);
+    this.expandedDays.set(s);
+  }
+
+  // ─────────────────────────────────────────────
   // CALENDAR EVENTS
   // ─────────────────────────────────────────────
 
   generateCalendarEvents(): void {
-    if (this.viewMode() === 'month') this.generateMonthView();
+    if (this.viewMode() === 'month')     this.generateMonthView();
     else if (this.viewMode() === 'week') this.generateWeekView();
-    else this.generateDayView();
+    else                                 this.generateDayView();
   }
 
   generateMonthView(): void {
     const days: MonthDay[] = [];
-    const selectedDate = this.selectedDate();
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
+    const d = this.selectedDate();
+    const year = d.getFullYear(), month = d.getMonth();
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const lastDay  = new Date(year, month + 1, 0);
     let startDay = firstDay.getDay();
     startDay = startDay === 0 ? 6 : startDay - 1;
-    const prevMonthLastDay = new Date(year, month, 0);
+    const prevLast = new Date(year, month, 0);
     for (let i = startDay - 1; i >= 0; i--) {
-      const date = new Date(year, month - 1, prevMonthLastDay.getDate() - i);
+      const date = new Date(year, month - 1, prevLast.getDate() - i);
       days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
     }
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(year, month, day);
       days.push({ date, isCurrentMonth: true, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
     }
-    const remainingDays = 42 - days.length;
-    for (let day = 1; day <= remainingDays; day++) {
+    for (let day = 1; day <= 42 - days.length; day++) {
       const date = new Date(year, month + 1, day);
       days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
     }
@@ -231,10 +316,9 @@ export class CalendarComponent implements OnInit {
 
   generateWeekView(): void {
     const events: CalendarEvent[] = [];
-    const weekStart = this.getWeekStart(this.selectedDate());
+    const ws = this.getWeekStart(this.selectedDate());
     for (let i = 0; i < 6; i++) {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + i);
+      const date = new Date(ws); date.setDate(ws.getDate() + i);
       const dayOfWeek = this.getDayKey(date);
       events.push({ date, patients: this.getPatientsForDayWithTime(dayOfWeek), dayOfWeek });
     }
@@ -250,56 +334,54 @@ export class CalendarComponent implements OnInit {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     let patients = this.patients().filter(p => {
       if (!p.dias.includes(dayKey)) return false;
-      const data_inicio = new Date(p.data_inicio); data_inicio.setHours(0, 0, 0, 0);
-      if (data_inicio > today) return false;
-      if (p.data_fim) { const data_fim = new Date(p.data_fim); data_fim.setHours(0, 0, 0, 0); if (data_fim < today) return false; }
+      const inicio = new Date(p.data_inicio); inicio.setHours(0, 0, 0, 0);
+      if (inicio > today) return false;
+      if (p.data_fim) { const fim = new Date(p.data_fim); fim.setHours(0,0,0,0); if (fim < today) return false; }
       return true;
     });
-    if (this.selectedProfessional()) patients = patients.filter(p => p.profissional_id === this.selectedProfessional());
+    if (this.selectedProfessional())
+      patients = patients.filter(p => p.profissional_id === this.selectedProfessional());
     return patients;
   }
 
   getPatientsForDayWithTime(dayKey: string): PatientWithTime[] {
     return this.getPatientsForDay(dayKey)
-      .map(p => ({ ...p, displayTime: p.horarios?.[dayKey] || '' }))
+      .map(p => this.enrichPatient(p, dayKey))
       .sort((a, b) => (a.displayTime || '23:59').localeCompare(b.displayTime || '23:59'));
   }
 
   getDayKey(date: Date): string {
-    return ({ 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab', 0: 'dom' } as Record<number, string>)[date.getDay()] || '';
+    return ({ 1:'seg', 2:'ter', 3:'qua', 4:'qui', 5:'sex', 6:'sab', 0:'dom' } as Record<number,string>)[date.getDay()] || '';
   }
 
-  getDayLabel(k: string): string { return this.daysOfWeek.find(d => d.key === k)?.label ?? k.toUpperCase(); }
+  getDayLabel(k: string):      string { return this.daysOfWeek.find(d => d.key === k)?.label ?? k.toUpperCase(); }
   getDayShortLabel(k: string): string { return this.daysOfWeek.find(d => d.key === k)?.short ?? k.toUpperCase(); }
-  getDayFullLabel(k: string): string { return this.daysOfWeek.find(d => d.key === k)?.full ?? k.toUpperCase(); }
+  getDayFullLabel(k: string):  string { return this.daysOfWeek.find(d => d.key === k)?.full  ?? k.toUpperCase(); }
 
   getWeekStart(date: Date): Date {
-    const d = new Date(date);
-    const day = d.getDay();
+    const d = new Date(date), day = d.getDay();
     d.setDate(d.getDate() - day + (day === 0 ? -6 : 1));
     return d;
   }
 
-  onDateSelect(date: Date): void { this.selectedDate.set(date); this.generateCalendarEvents(); }
-  onProfessionalChange(value: number | null): void { this.selectedProfessional.set(value); this.generateCalendarEvents(); }
-  onViewModeChange(mode: 'month' | 'week' | 'day'): void { this.viewMode.set(mode); this.generateCalendarEvents(); }
+  onDateSelect(d: Date):                    void { this.selectedDate.set(d);          this.generateCalendarEvents(); }
+  onProfessionalChange(v: number | null):   void { this.selectedProfessional.set(v);  this.generateCalendarEvents(); }
+  onViewModeChange(m: 'month'|'week'|'day'): void { this.viewMode.set(m);             this.generateCalendarEvents(); }
 
   previousPeriod(): void {
     const d = new Date(this.selectedDate());
-    if (this.viewMode() === 'week') d.setDate(d.getDate() - 7);
-    else if (this.viewMode() === 'day') d.setDate(d.getDate() - 1);
-    else d.setMonth(d.getMonth() - 1);
+    if      (this.viewMode() === 'week') d.setDate(d.getDate() - 7);
+    else if (this.viewMode() === 'day')  d.setDate(d.getDate() - 1);
+    else                                 d.setMonth(d.getMonth() - 1);
     this.selectedDate.set(d); this.generateCalendarEvents();
   }
-
   nextPeriod(): void {
     const d = new Date(this.selectedDate());
-    if (this.viewMode() === 'week') d.setDate(d.getDate() + 7);
-    else if (this.viewMode() === 'day') d.setDate(d.getDate() + 1);
-    else d.setMonth(d.getMonth() + 1);
+    if      (this.viewMode() === 'week') d.setDate(d.getDate() + 7);
+    else if (this.viewMode() === 'day')  d.setDate(d.getDate() + 1);
+    else                                 d.setMonth(d.getMonth() + 1);
     this.selectedDate.set(d); this.generateCalendarEvents();
   }
-
   goToToday(): void { this.selectedDate.set(new Date()); this.generateCalendarEvents(); }
 
   getPeriodLabel(): string {
@@ -313,7 +395,8 @@ export class CalendarComponent implements OnInit {
         ? `${ws.getDate()}-${we.getDate()} de ${sm} ${ws.getFullYear()}`
         : `${ws.getDate()} ${sm} - ${we.getDate()} ${em} ${ws.getFullYear()}`;
     }
-    if (this.viewMode() === 'day') return date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    if (this.viewMode() === 'day')
+      return date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     return date.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
   }
 
@@ -327,14 +410,39 @@ export class CalendarComponent implements OnInit {
     return date.getDate() === t.getDate() && date.getMonth() === t.getMonth() && date.getFullYear() === t.getFullYear();
   }
 
-  getInitials(name: string): string { return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2); }
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  }
   getAvatarColor(name: string): string {
     const colors = ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'];
     return colors[name.charCodeAt(0) % colors.length];
   }
 
+  getAttendanceIcon(status: 'present' | 'absent' | 'makeup' | null | undefined): string {
+    if (status === 'present') return 'pi pi-check-circle';
+    if (status === 'absent')  return 'pi pi-times-circle';
+    if (status === 'makeup')  return 'pi pi-replay';
+    return 'pi pi-minus-circle';
+  }
+  getAttendanceClass(status: 'present' | 'absent' | 'makeup' | null | undefined): string {
+    if (status === 'present') return 'att-present';
+    if (status === 'absent')  return 'att-absent';
+    if (status === 'makeup')  return 'att-makeup';
+    return 'att-none';
+  }
+  getAttendanceLabel(status: 'present' | 'absent' | 'makeup' | null | undefined): string {
+    if (status === 'present') return 'Presente na última aula';
+    if (status === 'absent')  return 'Faltou na última aula';
+    if (status === 'makeup')  return 'Última foi reposição';
+    return 'Sem registros';
+  }
+
   onMonthDayClick(day: MonthDay): void {
-    if (day.patients.length > 0) { this.selectedDate.set(day.date); this.viewMode.set('day'); this.generateCalendarEvents(); }
+    if (day.patients.length > 0) {
+      this.selectedDate.set(day.date);
+      this.viewMode.set('day');
+      this.generateCalendarEvents();
+    }
   }
 
   getProfessionalName(id: number): string { return this.authService.getProfessionalName(id); }

@@ -5,27 +5,18 @@
         @if (authService.isGestor() && gestorViewMode() === 'overview') {
           Visão Gerencial
         } @else if (authService.isGestor() && gestorViewMode() === 'detail') {
-          <p-button
-            icon="pi pi-arrow-left"
-            [text]="true"
-            severity="secondary"
-            (onClick)="backToOverview()"
-            pTooltip="Voltar para visão geral">
+          <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary"
+            (onClick)="backToOverview()" pTooltip="Voltar para visão geral">
           </p-button>
           {{ getSelectedProfNome() }}
         } @else {
-          Calendário de Aulas
+          Minhas Aulas
         }
       </h1>
       @if (authService.isGestor() && gestorViewMode() === 'overview') {
-        <span class="role-badge gestor-badge">
-          <i class="pi pi-chart-bar"></i> Gestor
-        </span>
+        <span class="role-badge gestor-badge"><i class="pi pi-chart-bar"></i> Gestor</span>
       } @else {
-        <p-badge
-          [value]="getTotalClasses() + ' aulas'"
-          severity="success">
-        </p-badge>
+        <p-badge [value]="getTotalClasses() + ' aulas'" severity="success"></p-badge>
       }
     </div>
 
@@ -43,13 +34,36 @@
     </div>
   </div>
 
-  <!-- ================================================ -->
-  <!-- VISÃO GERENCIAL (apenas gestor, overview) -->
-  <!-- ================================================ -->
+  <!-- ================================================================ -->
+  <!-- BARRA DE STATUS RÁPIDO — só para profissional                     -->
+  <!-- ================================================================ -->
+  @if (!authService.isGestor()) {
+    <div class="prof-status-bar">
+      <div class="status-pill today-pill">
+        <i class="pi pi-sun"></i>
+        <span><strong>{{ getTodayPatients().length }}</strong> aulas hoje</span>
+      </div>
+      @if (getUnmarkedTodayCount() > 0) {
+        <div class="status-pill warn-pill">
+          <i class="pi pi-exclamation-circle"></i>
+          <span><strong>{{ getUnmarkedTodayCount() }}</strong> sem registro</span>
+        </div>
+      }
+      @if (getMakeupPendingCount() > 0) {
+        <div class="status-pill makeup-pill">
+          <i class="pi pi-replay"></i>
+          <span><strong>{{ getMakeupPendingCount() }}</strong> reposição pendente</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ================================================================ -->
+  <!-- VISÃO GERENCIAL (gestor, overview)                                -->
+  <!-- ================================================================ -->
   @if (authService.isGestor() && gestorViewMode() === 'overview') {
     <div class="gestor-overview">
 
-      <!-- KPI Cards -->
       <div class="kpi-grid">
         <div class="kpi-card primary">
           <div class="kpi-icon"><i class="pi pi-users"></i></div>
@@ -81,7 +95,6 @@
         </div>
       </div>
 
-      <!-- Cards por profissional -->
       <div class="section-title">
         <i class="pi pi-id-card"></i>
         <h2>Profissionais</h2>
@@ -92,12 +105,8 @@
         @for (prof of profissionalStats(); track prof.id) {
           <p-card styleClass="prof-card">
             <div class="prof-card-content">
-
-              <!-- Header do profissional -->
               <div class="prof-header">
-                <div class="prof-avatar" [style.background]="getAvatarColor(prof.nome)">
-                  {{ getInitials(prof.nome) }}
-                </div>
+                <div class="prof-avatar" [style.background]="getAvatarColor(prof.nome)">{{ getInitials(prof.nome) }}</div>
                 <div class="prof-identity">
                   <h3>{{ prof.nome }}</h3>
                   <div class="prof-tags">
@@ -106,19 +115,13 @@
                     }
                   </div>
                 </div>
-                <p-button
-                  icon="pi pi-calendar"
-                  label="Ver agenda"
-                  [text]="true"
-                  size="small"
-                  (onClick)="drillDownProfissional(prof.id)"
-                  pTooltip="Ver agenda detalhada">
+                <p-button icon="pi pi-calendar" label="Ver agenda" [text]="true" size="small"
+                  (onClick)="drillDownProfissional(prof.id)" pTooltip="Ver agenda detalhada">
                 </p-button>
               </div>
 
               <p-divider></p-divider>
 
-              <!-- Métricas do profissional -->
               <div class="prof-metrics">
                 <div class="metric">
                   <span class="metric-label">Alunos</span>
@@ -138,42 +141,33 @@
                 </div>
               </div>
 
-              <!-- Barra de ocupação -->
               <div class="ocupacao-bar-wrapper">
                 <div class="ocupacao-header">
-                  <span class="ocupacao-label">
-                    <i class="pi pi-chart-line"></i> Ocupação semanal
-                  </span>
+                  <span class="ocupacao-label"><i class="pi pi-chart-line"></i> Ocupação semanal</span>
                   <span class="ocupacao-pct" [class]="'pct-' + getOcupacaoSeverity(getOcupacaoPercent(prof))">
                     {{ getOcupacaoPercent(prof) }}%
                   </span>
                 </div>
                 <div class="ocupacao-track">
-                  <div
-                    class="ocupacao-fill"
+                  <div class="ocupacao-fill"
                     [class]="'fill-' + getOcupacaoSeverity(getOcupacaoPercent(prof))"
                     [style.width.%]="getOcupacaoPercent(prof)">
                   </div>
                 </div>
               </div>
 
-              <!-- Mini agenda semanal -->
               <div class="mini-week">
                 @for (day of daysOfWeek.slice(0, 6); track day.key) {
-                  <div
-                    class="mini-day"
+                  <div class="mini-day"
                     [class.has-patients]="getPatientsForProfissionalOnDay(prof.id, day.key).length > 0"
                     [class.inactive]="!prof.diasAtivos.includes(day.key)"
-                    [pTooltip]="getPatientsForProfissionalOnDay(prof.id, day.key).length + ' aluno(s) - ' + day.full"
+                    [pTooltip]="getPatientsForProfissionalOnDay(prof.id, day.key).length + ' aluno(s) — ' + day.full"
                     tooltipPosition="top">
                     <span class="mini-day-label">{{ day.short.charAt(0) }}</span>
-                    <span class="mini-day-count">
-                      {{ getPatientsForProfissionalOnDay(prof.id, day.key).length || '' }}
-                    </span>
+                    <span class="mini-day-count">{{ getPatientsForProfissionalOnDay(prof.id, day.key).length || '' }}</span>
                   </div>
                 }
               </div>
-
             </div>
           </p-card>
         }
@@ -182,12 +176,10 @@
           <div class="empty-state">
             <i class="pi pi-users"></i>
             <h3>Nenhum profissional cadastrado</h3>
-            <p>Cadastre profissionais para ver a visão gerencial</p>
           </div>
         }
       </div>
 
-      <!-- Tabela comparativa por dia -->
       <div class="section-title" style="margin-top: 2rem;">
         <i class="pi pi-table"></i>
         <h2>Distribuição Semanal</h2>
@@ -195,7 +187,6 @@
 
       <p-card styleClass="week-table-card">
         <div class="week-distribution-table">
-          <!-- Cabeçalho -->
           <div class="wdt-header">
             <div class="wdt-cell wdt-prof-col">Profissional</div>
             @for (day of daysOfWeek.slice(0, 6); track day.key) {
@@ -203,15 +194,11 @@
             }
             <div class="wdt-cell wdt-total-col">Total</div>
           </div>
-
-          <!-- Linhas por profissional -->
           @for (prof of profissionalStats(); track prof.id) {
             <div class="wdt-row" (click)="drillDownProfissional(prof.id)">
               <div class="wdt-cell wdt-prof-col">
                 <div class="wdt-prof-name">
-                  <div class="wdt-avatar" [style.background]="getAvatarColor(prof.nome)">
-                    {{ getInitials(prof.nome) }}
-                  </div>
+                  <div class="wdt-avatar" [style.background]="getAvatarColor(prof.nome)">{{ getInitials(prof.nome) }}</div>
                   <span>{{ prof.nome }}</span>
                 </div>
               </div>
@@ -219,72 +206,43 @@
                 <div class="wdt-cell wdt-day-col">
                   @let count = getPatientsForProfissionalOnDay(prof.id, day.key).length;
                   @if (count > 0) {
-                    <span class="wdt-count-badge" [style.background]="getAvatarColor(prof.nome)">
-                      {{ count }}
-                    </span>
+                    <span class="wdt-count-badge" [style.background]="getAvatarColor(prof.nome)">{{ count }}</span>
                   } @else {
                     <span class="wdt-empty-dot"></span>
                   }
                 </div>
               }
-              <div class="wdt-cell wdt-total-col">
-                <strong>{{ prof.totalAulas }}</strong>
-              </div>
+              <div class="wdt-cell wdt-total-col"><strong>{{ prof.totalAulas }}</strong></div>
             </div>
           }
-
-          <!-- Linha de totais -->
           <div class="wdt-row wdt-totals-row">
             <div class="wdt-cell wdt-prof-col"><strong>Total</strong></div>
             @for (day of daysOfWeek.slice(0, 6); track day.key) {
-              <div class="wdt-cell wdt-day-col">
-                <strong>{{ getPatientsForDayWithTime(day.key).length }}</strong>
-              </div>
+              <div class="wdt-cell wdt-day-col"><strong>{{ getPatientsForDayWithTime(day.key).length }}</strong></div>
             }
-            <div class="wdt-cell wdt-total-col">
-              <strong>{{ totalAulasSemanais() }}</strong>
-            </div>
+            <div class="wdt-cell wdt-total-col"><strong>{{ totalAulasSemanais() }}</strong></div>
           </div>
         </div>
       </p-card>
-
     </div>
   }
 
-  <!-- ================================================ -->
-  <!-- VISÃO DETALHADA: profissional regular OU gestor em drill-down -->
-  <!-- ================================================ -->
+  <!-- ================================================================ -->
+  <!-- VISÃO DETALHADA: profissional OU gestor em drill-down             -->
+  <!-- ================================================================ -->
   @if (!authService.isGestor() || gestorViewMode() === 'detail') {
     <p-card styleClass="calendar-card">
       <div class="calendar-toolbar">
         <div class="toolbar-left">
-          <p-button
-            icon="pi pi-chevron-left"
-            [text]="true"
-            (onClick)="previousPeriod()">
-          </p-button>
-
+          <p-button icon="pi pi-chevron-left" [text]="true" (onClick)="previousPeriod()"></p-button>
           <span class="period-label">{{ getPeriodLabel() }}</span>
-
-          <p-button
-            icon="pi pi-chevron-right"
-            [text]="true"
-            (onClick)="nextPeriod()">
-          </p-button>
-
-          <p-button
-            label="Hoje"
-            [text]="true"
-            (onClick)="goToToday()">
-          </p-button>
+          <p-button icon="pi pi-chevron-right" [text]="true" (onClick)="nextPeriod()"></p-button>
+          <p-button label="Hoje" [text]="true" (onClick)="goToToday()"></p-button>
         </div>
-
         <div class="toolbar-right">
           <div class="view-toggle">
             @for (mode of viewModes; track mode.value) {
-              <button
-                class="view-btn"
-                [class.active]="viewMode() === mode.value"
+              <button class="view-btn" [class.active]="viewMode() === mode.value"
                 (click)="onViewModeChange(mode.value)">
                 <i [class]="mode.icon"></i>
                 <span>{{ mode.label }}</span>
@@ -294,7 +252,7 @@
         </div>
       </div>
 
-      <!-- Modo Mês -->
+      <!-- ── MÊS ── -->
       @if (viewMode() === 'month') {
         <div class="month-view-google">
           <div class="month-header">
@@ -304,8 +262,7 @@
           </div>
           <div class="month-grid">
             @for (day of monthDays(); track day.date.getTime()) {
-              <div
-                class="month-day-cell"
+              <div class="month-day-cell"
                 [class.other-month]="!day.isCurrentMonth"
                 [class.today]="day.isToday"
                 [class.has-events]="day.patients.length > 0"
@@ -313,11 +270,8 @@
                 <div class="day-number">{{ day.date.getDate() }}</div>
                 <div class="day-events">
                   @for (patient of day.patients.slice(0, 3); track patient.id) {
-                    <div
-                      class="event-item"
-                      [style.background]="getAvatarColor(patient.nome)"
-                      [routerLink]="['/patients', patient.id]"
-                      (click)="$event.stopPropagation()">
+                    <div class="event-item" [style.background]="getAvatarColor(patient.nome)"
+                      [routerLink]="['/patients', patient.id]" (click)="$event.stopPropagation()">
                       <span class="event-time">{{ patient.displayTime }}</span>
                       <span class="event-name">{{ patient.nome }}</span>
                     </div>
@@ -332,105 +286,152 @@
         </div>
       }
 
-      <!-- Modo Semana -->
+      <!-- ── SEMANA ── -->
       @if (viewMode() === 'week') {
         <div class="week-view">
           @for (event of calendarEvents(); track event.date) {
-            <div class="day-column" [class.today]="isToday(event.date)">
-              <div class="day-header">
-                <span class="day-name">{{ getDayShortLabel(event.dayOfWeek) }}</span>
-                <span class="day-date">{{ event.date.getDate() }}</span>
-                @if (event.patients.length > 0) {
-                  <p-badge
-                    [value]="event.patients.length.toString()"
-                    severity="info"
-                    styleClass="day-badge">
-                  </p-badge>
+            @let hasPatients = event.patients.length > 0;
+            @let expanded = isDayExpanded(event.dayOfWeek, hasPatients);
+            <div class="day-column"
+              [class.today]="isToday(event.date)"
+              [class.collapsed]="!expanded"
+              [class.has-patients]="hasPatients">
+
+              <div class="day-header" (click)="!hasPatients && toggleDay(event.dayOfWeek)">
+                <div class="day-header-main">
+                  <span class="day-name">{{ getDayShortLabel(event.dayOfWeek) }}</span>
+                  <span class="day-date">{{ event.date.getDate() }}</span>
+                </div>
+                @if (hasPatients) {
+                  <p-badge [value]="event.patients.length.toString()" severity="info" styleClass="day-badge"></p-badge>
+                } @else {
+                  <i class="pi" [class]="expanded ? 'pi-chevron-up' : 'pi-chevron-down'" style="font-size:0.75rem; color: var(--text-color-secondary)"></i>
                 }
               </div>
-              <div class="day-content">
-                @if (event.patients.length > 0) {
-                  @for (patient of event.patients; track patient.id) {
-                    <div class="class-card" [routerLink]="['/patients', patient.id]">
-                      <div class="class-time">
-                        <i class="pi pi-clock"></i>
-                        <span>{{ patient.displayTime || '--:--' }}</span>
-                      </div>
-                      <div class="class-main">
-                        <div class="class-avatar" [style.background]="getAvatarColor(patient.nome)">
-                          {{ getInitials(patient.nome) }}
+
+              @if (expanded) {
+                <div class="day-content">
+                  @if (hasPatients) {
+                    @for (patient of event.patients; track patient.id) {
+                      <div class="class-card" [routerLink]="['/patients', patient.id]"
+                        [class.card-new]="patient.isNew"
+                        [class.card-makeup]="patient.makeupPending">
+
+                        <div class="class-time">
+                          <i class="pi pi-clock"></i>
+                          <span>{{ patient.displayTime || '--:--' }}</span>
+                          <!-- badges de status -->
+                          @if (patient.isNew) {
+                            <span class="badge-new" pTooltip="Aluno novo (iniciou nos últimos 7 dias)">NOVO</span>
+                          }
+                          @if (patient.makeupPending) {
+                            <span class="badge-makeup" pTooltip="Reposição pendente"><i class="pi pi-replay"></i></span>
+                          }
                         </div>
-                        <div class="class-info">
-                          <span class="class-name">{{ patient.nome }}</span>
-                          <span class="class-prof">{{ getProfessionalName(patient.profissional_id) }}</span>
-                          <span class="class-value">{{ patient.valor | currency:'BRL' }}</span>
+
+                        <div class="class-main">
+                          <div class="class-avatar" [style.background]="getAvatarColor(patient.nome)">
+                            {{ getInitials(patient.nome) }}
+                          </div>
+                          <div class="class-info">
+                            <span class="class-name">{{ patient.nome }}</span>
+                            <!-- status da última presença -->
+                            <span class="att-status" [class]="getAttendanceClass(patient.lastAttendanceStatus)"
+                              [pTooltip]="getAttendanceLabel(patient.lastAttendanceStatus)">
+                              <i [class]="getAttendanceIcon(patient.lastAttendanceStatus)"></i>
+                              <span>{{ getAttendanceLabel(patient.lastAttendanceStatus) }}</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
+                    }
+                  } @else {
+                    <div class="no-classes">
+                      <i class="pi pi-calendar-times"></i>
+                      <span>Sem aulas</span>
                     </div>
                   }
-                } @else {
-                  <div class="no-classes">
-                    <i class="pi pi-calendar-times"></i>
-                    <span>Sem aulas</span>
-                  </div>
-                }
-              </div>
+                </div>
+              }
             </div>
           }
         </div>
       }
 
-      <!-- Modo Dia -->
+      <!-- ── DIA ── -->
       @if (viewMode() === 'day') {
         <div class="day-view">
           @for (event of calendarEvents(); track event.date) {
             <div class="day-detail">
               <div class="day-detail-header">
-                <h3>{{ getDayFullLabel(event.dayOfWeek) }}</h3>
-                <p-badge [value]="event.patients.length + ' aulas'" severity="info"></p-badge>
+                <div>
+                  <h3>{{ getDayFullLabel(event.dayOfWeek) }}</h3>
+                  <span class="day-detail-date">
+                    {{ event.date.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) }}
+                  </span>
+                </div>
+                <div class="day-detail-badges">
+                  <p-badge [value]="event.patients.length + ' aulas'" severity="info"></p-badge>
+                  @if (getMakeupPendingCount() > 0 && !authService.isGestor()) {
+                    <span class="badge-makeup-header">
+                      <i class="pi pi-replay"></i> {{ getMakeupPendingCount() }} reposição pendente
+                    </span>
+                  }
+                </div>
               </div>
+
               @if (event.patients.length > 0) {
                 <div class="patients-timeline">
                   @for (patient of event.patients; track patient.id) {
                     <div class="timeline-item">
                       <div class="timeline-time">
-                        <i class="pi pi-clock"></i>
-                        <span>{{ patient.displayTime || '--:--' }}</span>
+                        <span class="time-value">{{ patient.displayTime || '--:--' }}</span>
                       </div>
-                      <div class="timeline-content">
-                        <p-card styleClass="patient-detail-card">
-                          <div class="patient-card-content">
-                            <div class="patient-header">
-                              <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">
-                                {{ getInitials(patient.nome) }}
-                              </div>
-                              <div class="patient-info">
+
+                      <div class="timeline-content" [class.tl-new]="patient.isNew" [class.tl-makeup]="patient.makeupPending">
+                        <div class="tl-card">
+                          <!-- Linha superior: avatar + nome + badges -->
+                          <div class="tl-main">
+                            <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">
+                              {{ getInitials(patient.nome) }}
+                            </div>
+                            <div class="patient-info">
+                              <div class="patient-name-row">
                                 <h4>{{ patient.nome }}</h4>
-                                <span class="patient-meta">
+                                @if (patient.isNew) {
+                                  <span class="badge-new">NOVO</span>
+                                }
+                                @if (patient.makeupPending) {
+                                  <span class="badge-makeup" pTooltip="Reposição pendente">
+                                    <i class="pi pi-replay"></i> Reposição
+                                  </span>
+                                }
+                              </div>
+                              @if (authService.isGestor()) {
+                                <span class="patient-prof">
                                   <i class="pi pi-user"></i>
                                   {{ getProfessionalName(patient.profissional_id) }}
                                 </span>
-                              </div>
+                              }
                             </div>
-                            <div class="patient-details">
-                              <div class="detail-item">
-                                <span class="label">Valor Pacote</span>
-                                <span class="value">{{ patient.valor | currency:'BRL' }}</span>
-                              </div>
-                              <div class="detail-item">
-                                <span class="label">Ganho Líquido</span>
-                                <span class="value success">{{ patient.ganho | currency:'BRL' }}</span>
-                              </div>
-                            </div>
-                            <p-button
-                              label="Ver Detalhes"
-                              icon="pi pi-arrow-right"
-                              [text]="true"
-                              styleClass="w-full"
+                          </div>
+
+                          <!-- Status da última presença -->
+                          <div class="tl-attendance">
+                            <span class="att-label">Última aula:</span>
+                            <span class="att-status" [class]="getAttendanceClass(patient.lastAttendanceStatus)">
+                              <i [class]="getAttendanceIcon(patient.lastAttendanceStatus)"></i>
+                              {{ getAttendanceLabel(patient.lastAttendanceStatus) }}
+                            </span>
+                          </div>
+
+                          <!-- Ações -->
+                          <div class="tl-actions">
+                            <p-button label="Ver detalhes" icon="pi pi-arrow-right" [text]="true" size="small"
                               [routerLink]="['/patients', patient.id]">
                             </p-button>
                           </div>
-                        </p-card>
+                        </div>
                       </div>
                     </div>
                   }
@@ -446,6 +447,7 @@
           }
         </div>
       }
+
     </p-card>
   }
 </div>
