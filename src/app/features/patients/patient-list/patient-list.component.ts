@@ -43,6 +43,9 @@ export class PatientListComponent implements OnInit {
     this.authService.professionals().map(p => ({ label: p.nome, value: p.id }))
   );
 
+  isGestor = signal(false);
+  profissionalNome = signal('');
+
   constructor(
     private patientService: PatientService,
     private exportService: ExportService,
@@ -51,6 +54,16 @@ export class PatientListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    const gestor = user?.role === 'gestor';
+    this.isGestor.set(gestor);
+
+    if (!gestor && user) {
+      // Profissional: já é o responsável — preenche e trava o campo
+      //this.formData.profissional = Number(user.id);
+      this.profissionalNome.set(user.nome);
+    }
+
     this.loading.set(true);
     // Garante que os dados estão carregados antes de subscrever
     this.patientService.loadPatients();

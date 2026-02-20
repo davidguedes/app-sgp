@@ -41,16 +41,27 @@
       />
     </p-iconfield>
 
-    <p-select
-      [options]="professionalsOptions()"
-      [(ngModel)]="selectedProfessional"
-      (onChange)="onProfessionalChange($event.value)"
-      placeholder="Filtrar por profissional"
-      [showClear]="true"
-      optionLabel="label"
-      optionValue="value"
-      styleClass="filter-dropdown">
-    </p-select>
+    @if(isGestor()) {
+      <p-select
+        [options]="professionalsOptions()"
+        [(ngModel)]="selectedProfessional"
+        (onChange)="onProfessionalChange($event.value)"
+        placeholder="Filtrar por profissional"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="filter-dropdown">
+      </p-select>
+    }
+    <!-- @else {
+      <input
+        type="text"
+        pInputText
+        placeholder="{{ profissionalNome() }}"
+        [disabled]="true"
+      />
+    } -->
+
   </div>
   
   <p-table 
@@ -66,7 +77,9 @@
     <ng-template pTemplate="header">
       <tr>
         <th>Aluno</th>
-        <th>Profissional</th>
+        @if (isGestor()) {
+          <th>Profissional</th>
+        }
         <th>Dias</th>
         <!-- <th>Frequência</th> -->
         <th>Pacote</th>
@@ -88,9 +101,11 @@
           </div>
         </td>
         
-        <td>
-          {{ getProfessionalName(patient.profissional_id) }}
-        </td>
+        @if (isGestor()) {
+          <td>
+            {{ getProfessionalName(patient.profissional_id) }}
+          </td>
+        }
         
         <td>
           <div class="days-pills">

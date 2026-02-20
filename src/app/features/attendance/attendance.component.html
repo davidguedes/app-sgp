@@ -16,14 +16,24 @@
         styleClass="date-selector">
       </p-datepicker>
       
-      <p-select
-        [options]="professionalsOptions()"
-        [(ngModel)]="selectedProfessional"
-        (onChange)="onProfessionalChange($event.value)"
-        placeholder="Filtrar profissional"
-        [showClear]="false"
-        styleClass="filter-dropdown">
-      </p-select>
+      @if(isGestor()) {
+        <p-select
+          [options]="professionalsOptions()"
+          [(ngModel)]="selectedProfessional"
+          (onChange)="onProfessionalChange($event.value)"
+          placeholder="Filtrar profissional"
+          [showClear]="false"
+          styleClass="filter-dropdown">
+        </p-select>
+      }
+      <!-- @else {
+        <input
+          type="text"
+          pInputText
+          placeholder="{{ profissionalNome() }}"
+          [disabled]="true"
+        />
+      } -->
       
       <!-- NOVO: Toggle de visualização -->
       <p-selectButton
@@ -144,10 +154,12 @@
               <div class="patient-details">
                 <h4>{{ patient.nome }}</h4>
                 <div class="patient-meta">
-                  <span>
-                    <i class="pi pi-user"></i>
-                    {{ getProfessionalName(patient.profissional_id) }}
-                  </span>
+                  @if(isGestor()) { 
+                    <span>
+                      <i class="pi pi-user"></i>
+                      {{ getProfessionalName(patient.profissional_id) }}
+                    </span>
+                  }
                   <span>
                     <i class="pi pi-dollar"></i>
                     {{ patient.valor | currency:'BRL' }}

@@ -57,6 +57,8 @@ export class AttendanceComponent implements OnInit {
 
   attendanceConfig = ATTENDANCE_STATUS_CONFIG;
 
+  isGestor = signal(false);
+  profissionalNome = signal('');
   constructor(
     private patientService: PatientService,
     private authService: AuthService,
@@ -64,6 +66,16 @@ export class AttendanceComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    const gestor = user?.role === 'gestor';
+    this.isGestor.set(gestor);
+
+    if (!gestor && user) {
+      // Profissional: já é o responsável — preenche e trava o campo
+      //this.formData.profissional = Number(user.id);
+      this.profissionalNome.set(user.nome);
+    }
+
     this.patientService.loadPatients();
     this.loadDayAttendance();
   }
