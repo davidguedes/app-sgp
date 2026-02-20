@@ -7,6 +7,7 @@ import { User } from './core/models/user.model';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { PwaUpdateBannerComponent } from './shared/pwa-update-banner/pwa-update-banner.component';
 
 // Itens base — sempre presentes para qualquer usuário autenticado
 const BASE_MENU: MenuItem[] = [
@@ -25,7 +26,7 @@ const GESTOR_MENU: MenuItem[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ButtonModule, MenuModule, RouterLink],
+  imports: [CommonModule, RouterOutlet, ButtonModule, MenuModule, RouterLink, PwaUpdateBannerComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
