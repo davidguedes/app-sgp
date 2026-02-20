@@ -306,7 +306,7 @@
 
   // p-button (variantes text/outlined que herdam cor do pai)
   .p-button.p-button-text:not(.p-button-danger):not(.p-button-success) {
-    color: var(--sage-dark) !important;
+    color: var(--charcoal) !important;
 
     &:hover { background: rgba(106, 148, 112, 0.1) !important; }
   }

@@ -34,6 +34,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials).pipe(
       tap(response => {
         this.setSession(response);
+        this.loadProfessionals();
       }),
       catchError(error => {
         console.error('Erro no login:', error);

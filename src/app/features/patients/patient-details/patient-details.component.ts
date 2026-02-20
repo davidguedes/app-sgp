@@ -98,7 +98,6 @@ export class PatientDetailsComponent implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {
-    this.authService.loadProfessionals();
     this.setupChartOptions();
   }
 

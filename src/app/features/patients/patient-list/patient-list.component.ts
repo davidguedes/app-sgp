@@ -51,7 +51,6 @@ export class PatientListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authService.loadProfessionals();
     this.loading.set(true);
     // Garante que os dados estão carregados antes de subscrever
     this.patientService.loadPatients();
