@@ -1,0 +1,363 @@
+// ============================================================
+// _theme.scss  (o _ no início indica que é um "partial" SCSS —
+//               não gera CSS próprio, só é importado por outro arquivo)
+//
+// Contém TODAS as variáveis CSS do app.
+// O modo claro é o padrão (:root).
+// O modo escuro sobrescreve as variáveis via media query.
+//
+// Para toggle MANUAL (botão no app), leia o comentário no
+// final deste arquivo.
+// ============================================================
+
+
+// ─── Modo Claro (padrão) ──────────────────────────────────────────────────────
+:root {
+
+  // Paleta principal
+  --cream:            #f8f5f0;
+  --warm-white:       #fdfcfa;
+  --sage:             #7a9e7e;
+  --sage-dark:        #4e6e52;
+  --accent:           #c4956a;
+  --charcoal:         #2c2c2c;
+
+  // Texto
+  --text-color:             #2c2c2c;
+  --text-color-secondary:   #6b7280;
+  --muted:                  #8a8580;
+
+  // Bordas e sombras
+  --border:           #e8e3dc;
+  --surface-border:   #e8e3dc;
+  --card-shadow:      0 2px 12px rgba(44, 44, 44, 0.08);
+
+  // Superfícies (camadas de elevação, do mais baixo ao mais alto)
+  --surface-ground:   #f8f5f0;   // fundo da página
+  --surface-card:     #ffffff;   // card padrão
+  --surface-50:       #f5f5f5;   // superfície elevada (ex: blocos internos)
+
+  // Semânticas
+  --success:          #5a8f5a;
+  --danger:           #c06060;
+  --warning:          #d4a574;
+
+  // PrimeNG — alinha o primary-color com a paleta do app
+  --primary-color:    #4e6e52;
+
+  // Tipografia
+  --font-sans:        'DM Sans', sans-serif;
+  --font-serif:       'DM Serif Display', serif;
+}
+
+
+// ─── Modo Escuro (automático via SO) ──────────────────────────────────────────
+@media (prefers-color-scheme: dark) {
+  :root {
+
+    // Paleta principal — tons escuros com identidade visual preservada
+    // O verde-musgo escuro é usado como base, não o cinza genérico
+    --cream:            #161a17;   // fundo geral da página
+    --warm-white:       #1e2420;   // superfície de cards
+
+    --sage:             #8eb892;   // sage levemente mais claro p/ contraste
+    --sage-dark:        #6a9470;   // sage-dark mais claro p/ uso em texto/ícone
+    --accent:           #d4a87c;   // terracota levemente mais claro
+    --charcoal:         #e8e4df;   // inverte: texto claro com tom quente
+
+    // Texto
+    --text-color:             #e8e4df;
+    --text-color-secondary:   #a09b95;
+    --muted:                  #a09b95;   // mais claro que no light p/ contraste mínimo WCAG
+
+    // Bordas — sutis no escuro para não "cortar" o layout
+    --border:           #2a322c;
+    --surface-border:   #2a322c;
+    --card-shadow:      0 2px 16px rgba(0, 0, 0, 0.4);
+
+    // Superfícies — três camadas de elevação escuras
+    --surface-ground:   #161a17;   // fundo da página
+    --surface-card:     #1e2420;   // card principal
+    --surface-50:       #252e27;   // bloco interno, hover
+
+    // Semânticas — versões mais claras p/ leitura sobre fundo escuro
+    --success:          #6aaa6a;
+    --danger:           #d47070;
+    --warning:          #debb8a;
+
+    // PrimeNG
+    --primary-color:    #6a9470;
+  }
+}
+
+
+// ─── Correções de componentes PrimeNG no Dark Mode ────────────────────────────
+//
+// As variáveis acima cobrem 90% dos casos.
+// Abaixo, corrigimos seletores PrimeNG que usam variáveis internas
+// próprias (--p-*) e não respeitam nosso :root automaticamente.
+//
+@media (prefers-color-scheme: dark) {
+
+  // p-card
+  .p-card {
+    background: var(--surface-card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--card-shadow) !important;
+    color: var(--text-color) !important;
+
+    .p-card-body,
+    .p-card-content,
+    .p-card-title,
+    .p-card-subtitle {
+      background: transparent !important;
+      color: inherit !important;
+    }
+  }
+
+  // p-select / p-dropdown
+  .p-select,
+  .p-dropdown {
+    background: var(--surface-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-color) !important;
+
+    .p-select-label,
+    .p-dropdown-label {
+      color: var(--text-color) !important;
+    }
+
+    .p-select-dropdown,
+    .p-dropdown-trigger {
+      color: var(--muted) !important;
+    }
+  }
+
+  .p-select-overlay,
+  .p-dropdown-panel {
+    background: var(--surface-card) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
+
+    .p-select-list-container,
+    .p-dropdown-items-wrapper {
+      background: var(--surface-card) !important;
+    }
+
+    .p-select-option,
+    .p-dropdown-item {
+      color: var(--text-color) !important;
+
+      &:hover,
+      &.p-focus {
+        background: var(--surface-50) !important;
+      }
+
+      &.p-select-option-selected,
+      &.p-highlight {
+        background: rgba(106, 148, 112, 0.2) !important;
+        color: var(--sage) !important;
+      }
+    }
+  }
+
+  // p-tabs
+  .p-tabs {
+    .p-tablist {
+      background: transparent !important;
+      border-bottom-color: var(--border) !important;
+    }
+
+    .p-tab {
+      color: var(--muted) !important;
+      background: transparent !important;
+
+      &:hover { color: var(--text-color) !important; }
+
+      &[aria-selected="true"],
+      &.p-tab-active {
+        color: var(--sage-dark) !important;
+        border-bottom-color: var(--sage) !important;
+        background: transparent !important;
+      }
+    }
+
+    .p-tabpanels {
+      background: transparent !important;
+    }
+  }
+
+  // p-dialog
+  .p-dialog {
+    background: var(--surface-card) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55) !important;
+    color: var(--text-color) !important;
+
+    .p-dialog-header {
+      background: var(--surface-card) !important;
+      color: var(--text-color) !important;
+      border-bottom-color: var(--border) !important;
+    }
+
+    .p-dialog-content {
+      background: var(--surface-card) !important;
+      color: var(--text-color) !important;
+    }
+
+    .p-dialog-footer {
+      background: var(--surface-card) !important;
+      border-top-color: var(--border) !important;
+    }
+  }
+
+  // p-inputtext / textarea
+  .p-inputtext,
+  textarea.p-inputtextarea {
+    background: var(--surface-50) !important;
+    border-color: var(--border) !important;
+    color: var(--text-color) !important;
+
+    &::placeholder { color: var(--muted) !important; }
+
+    &:focus {
+      border-color: var(--sage) !important;
+      box-shadow: 0 0 0 2px rgba(106, 148, 112, 0.2) !important;
+    }
+  }
+
+  // p-datepicker
+  .p-datepicker {
+    background: var(--surface-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-color) !important;
+
+    .p-datepicker-header {
+      background: var(--surface-card) !important;
+      border-bottom-color: var(--border) !important;
+      color: var(--text-color) !important;
+    }
+
+    .p-datepicker-day:not(.p-disabled):hover {
+      background: var(--surface-50) !important;
+    }
+
+    .p-datepicker-day.p-datepicker-today > span {
+      background: var(--sage-dark) !important;
+      color: white !important;
+    }
+
+    .p-datepicker-day.p-highlight > span {
+      background: var(--sage) !important;
+      color: white !important;
+    }
+  }
+
+  // p-multiselect
+  .p-multiselect {
+    background: var(--surface-50) !important;
+    border-color: var(--border) !important;
+    color: var(--text-color) !important;
+
+    .p-multiselect-label { color: var(--text-color) !important; }
+  }
+
+  .p-multiselect-panel {
+    background: var(--surface-card) !important;
+    border-color: var(--border) !important;
+
+    .p-multiselect-item {
+      color: var(--text-color) !important;
+
+      &:hover { background: var(--surface-50) !important; }
+
+      &.p-highlight {
+        background: rgba(106, 148, 112, 0.2) !important;
+        color: var(--sage) !important;
+      }
+    }
+
+    .p-multiselect-filter-container .p-inputtext {
+      background: var(--surface-50) !important;
+      border-color: var(--border) !important;
+      color: var(--text-color) !important;
+    }
+  }
+
+  // p-chip (usado no multiselect com display="chip")
+  .p-chip {
+    background: rgba(106, 148, 112, 0.2) !important;
+    color: var(--sage) !important;
+  }
+
+  // p-tag
+  .p-tag {
+    &.p-tag-success { background: rgba(106, 170, 106, 0.2) !important; color: var(--success) !important; }
+    &.p-tag-danger  { background: rgba(212, 112, 112, 0.2) !important; color: var(--danger)  !important; }
+    &.p-tag-warn    { background: rgba(222, 187, 138, 0.2) !important; color: var(--warning) !important; }
+    &.p-tag-info    { background: rgba(110, 148, 214, 0.2) !important; color: #8ab4e8        !important; }
+  }
+
+  // p-timeline
+  .p-timeline {
+    .p-timeline-event-connector { background: var(--border) !important; }
+    .p-timeline-event-marker    { border-color: var(--sage) !important; background: var(--surface-card) !important; }
+  }
+
+  // p-button (variantes text/outlined que herdam cor do pai)
+  .p-button.p-button-text:not(.p-button-danger):not(.p-button-success) {
+    color: var(--sage-dark) !important;
+
+    &:hover { background: rgba(106, 148, 112, 0.1) !important; }
+  }
+
+  // p-toast
+  .p-toast {
+    .p-toast-message {
+      background: var(--surface-card) !important;
+      border-color: var(--border) !important;
+      color: var(--text-color) !important;
+    }
+  }
+
+  // p-confirmdialog (herda p-dialog, mas garante o ícone)
+  .p-confirmdialog .p-dialog-content .p-confirm-dialog-icon {
+    color: var(--warning) !important;
+  }
+
+  // Scrollbar no dark mode
+  ::-webkit-scrollbar-track { background: var(--surface-ground); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    &:hover { background: var(--muted); }
+  }
+}
+
+
+// ─── Toggle Manual (alternativa ao prefers-color-scheme) ─────────────────────
+//
+// Se você quiser um botão de dark mode no app ao invés de seguir o SO:
+//
+//  1. Troque TODOS os `@media (prefers-color-scheme: dark)` acima por:
+//       [data-theme="dark"]
+//
+//  2. No seu componente Angular, injete DOCUMENT e alterne o atributo:
+//
+//       import { DOCUMENT } from '@angular/common';
+//       import { inject } from '@angular/core';
+//
+//       export class AppComponent {
+//         private doc = inject(DOCUMENT);
+//
+//         toggleDarkMode(isDark: boolean) {
+//           this.doc.documentElement.setAttribute(
+//             'data-theme', isDark ? 'dark' : 'light'
+//           );
+//         }
+//       }
+//
+//  3. Para persistir a preferência:
+//       localStorage.setItem('theme', isDark ? 'dark' : 'light');
+//       // e no ngOnInit, leia e aplique.
+//
+// ─────────────────────────────────────────────────────────────────────────────
