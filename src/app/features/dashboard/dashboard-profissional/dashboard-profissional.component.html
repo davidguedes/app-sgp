@@ -1,0 +1,222 @@
+<div class="dash-pro-container">
+  <p-toast />
+
+  <!-- ── HERO HEADER ─────────────────────────── -->
+  <div class="hero-header">
+    <div class="hero-greeting">
+      <span class="saudacao">{{ saudacao() }},</span>
+      <h1>{{ userName() }} 👋</h1>
+      <p class="hero-date">{{ dataHoje }}</p>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hs-value">{{ aulaHoje().length }}</span>
+        <span class="hs-label">aulas hoje</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hs-value">{{ totalAlunos() }}</span>
+        <span class="hs-label">alunos ativos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROGRESSO DO DIA ────────────────────── -->
+  @if (!loading() && aulaHoje().length > 0) {
+    <div class="day-progress-bar">
+      <div class="dpb-track">
+        <div
+          class="dpb-fill present"
+          [style.width.%]="(presentes() / aulaHoje().length) * 100">
+        </div>
+        <div
+          class="dpb-fill absent"
+          [style.width.%]="(faltas() / aulaHoje().length) * 100"
+          [style.left.%]="(presentes() / aulaHoje().length) * 100">
+        </div>
+      </div>
+      <div class="dpb-legend">
+        <span class="leg-item present">
+          <i class="pi pi-check-circle"></i>
+          {{ presentes() }} presentes
+        </span>
+        <span class="leg-item absent">
+          <i class="pi pi-times-circle"></i>
+          {{ faltas() }} faltas
+        </span>
+        @if (pendentes() > 0) {
+          <span class="leg-item pending">
+            <i class="pi pi-clock"></i>
+            {{ pendentes() }} pendentes
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── AULAS DE HOJE ───────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="pi pi-calendar"></i>
+        Aulas de Hoje
+      </h2>
+      <a routerLink="/attendance" class="section-link">
+        Ver frequência <i class="pi pi-arrow-right"></i>
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="skeleton-list">
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    } @else if (aulaHoje().length === 0) {
+      <div class="empty-day">
+        <i class="pi pi-sun"></i>
+        <p>Nenhuma aula agendada para hoje</p>
+        <a routerLink="/calendar" class="empty-link">Ver calendário completo</a>
+      </div>
+    } @else {
+      <div class="aulas-list">
+        @for (aula of aulaHoje(); track aula.patient.id) {
+          <div
+            class="aula-card"
+            [class.status-present]="aula.status === 'present'"
+            [class.status-absent]="aula.status === 'absent'"
+            [class.status-makeup]="aula.status === 'makeup'">
+
+            <!-- Info do aluno -->
+            <div class="aula-info">
+              <div
+                class="aula-avatar"
+                [style.background]="getAvatarColor(aula.patient.nome)">
+                {{ getInitials(aula.patient.nome) }}
+              </div>
+              <div class="aula-details">
+                <span class="aula-nome">{{ aula.patient.nome }}</span>
+                <span class="aula-horario">
+                  <i class="pi pi-clock"></i>
+                  {{ aula.horario || 'Sem horário' }}
+                </span>
+              </div>
+              @if (aula.status) {
+                <div class="status-indicator" [class]="aula.status">
+                  <i [class]="attendanceConfig[aula.status].icon"></i>
+                  <span>{{ attendanceConfig[aula.status].label }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Botões de ação rápida -->
+            <div class="aula-actions">
+              <button
+                class="freq-btn present"
+                [class.active]="aula.status === 'present'"
+                [disabled]="savingId() === aula.patient.id"
+                (click)="marcarFrequencia(aula, 'present')"
+                title="Presente">
+                <i class="pi pi-check"></i>
+              </button>
+              <button
+                class="freq-btn absent"
+                [class.active]="aula.status === 'absent'"
+                [disabled]="savingId() === aula.patient.id"
+                (click)="marcarFrequencia(aula, 'absent')"
+                title="Falta">
+                <i class="pi pi-times"></i>
+              </button>
+              <button
+                class="freq-btn makeup"
+                [class.active]="aula.status === 'makeup'"
+                [disabled]="savingId() === aula.patient.id"
+                (click)="marcarFrequencia(aula, 'makeup')"
+                title="Reposição">
+                <i class="pi pi-replay"></i>
+              </button>
+              <a
+                class="freq-btn detail"
+                [routerLink]="['/patients', aula.patient.id]"
+                title="Ver aluno">
+                <i class="pi pi-user"></i>
+              </a>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- ── ATALHOS RÁPIDOS ─────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <i class="pi pi-bolt"></i>
+      Atalhos
+    </h2>
+    <div class="atalhos-grid">
+      <a routerLink="/attendance" class="atalho-card">
+        <div class="atalho-icon attendance">
+          <i class="pi pi-check-square"></i>
+        </div>
+        <span class="atalho-label">Frequência</span>
+        @if (pendentes() > 0) {
+          <span class="atalho-badge">{{ pendentes() }}</span>
+        }
+      </a>
+
+      <a routerLink="/calendar" class="atalho-card">
+        <div class="atalho-icon calendar">
+          <i class="pi pi-calendar"></i>
+        </div>
+        <span class="atalho-label">Calendário</span>
+      </a>
+
+      <a routerLink="/patients" class="atalho-card">
+        <div class="atalho-icon patients">
+          <i class="pi pi-users"></i>
+        </div>
+        <span class="atalho-label">Alunos</span>
+        <span class="atalho-sub">{{ totalAlunos() }} ativos</span>
+      </a>
+
+      <a routerLink="/patients/new" class="atalho-card">
+        <div class="atalho-icon new">
+          <i class="pi pi-plus"></i>
+        </div>
+        <span class="atalho-label">Novo Aluno</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── RESUMO FINANCEIRO ───────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <i class="pi pi-wallet"></i>
+      Meu Resumo
+    </h2>
+    <div class="resumo-grid">
+      <div class="resumo-card ganho">
+        <div class="resumo-icon">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <div class="resumo-info">
+          <span class="resumo-label">Ganho estimado (alunos ativos)</span>
+          <span class="resumo-value">{{ ganhoMes() | currency:'BRL' }}</span>
+        </div>
+      </div>
+      <div class="resumo-card alunos">
+        <div class="resumo-icon">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="resumo-info">
+          <span class="resumo-label">Alunos ativos</span>
+          <span class="resumo-value">{{ totalAlunos() }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
