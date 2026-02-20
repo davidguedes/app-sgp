@@ -144,6 +144,140 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// TOGGLE MODO DE GANHO
+// ═══════════════════════════════════════════════════════════════════════════
+
+.ganho-mode-toggle {
+  margin-bottom: 1.5rem;
+  background: var(--cream, #f8f5f0);
+  border: 1.5px solid var(--border, #e8e3dc);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--sage-light, #a8c5ab);
+  }
+}
+
+.ganho-mode-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--muted, #8a8580);
+
+  i {
+    font-size: 0.95rem;
+    color: var(--sage, #7a9e7e);
+  }
+}
+
+.ganho-mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mode-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border, #e8e3dc);
+  background: white;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--charcoal, #2c2c2c);
+  transition: all 0.2s ease;
+  user-select: none;
+
+  // esconde o radio nativo
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  i {
+    font-size: 1.05rem;
+    color: var(--muted, #8a8580);
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+
+  // indicador visual no canto superior direito
+  &::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border, #e8e3dc);
+    background: white;
+    transition: all 0.2s ease;
+  }
+
+  &:hover:not(.active) {
+    border-color: var(--sage-light, #a8c5ab);
+    background: rgba(122, 158, 126, 0.04);
+
+    i {
+      color: var(--sage, #7a9e7e);
+    }
+  }
+
+  // estado ativo
+  &.active {
+    border-color: var(--sage, #7a9e7e);
+    background: rgba(122, 158, 126, 0.08);
+    box-shadow: 0 2px 10px rgba(122, 158, 126, 0.18);
+    color: var(--sage-dark, #4e6e52);
+    font-weight: 600;
+
+    i {
+      color: var(--sage, #7a9e7e);
+    }
+
+    &::after {
+      border-color: var(--sage, #7a9e7e);
+      background: var(--sage, #7a9e7e);
+      box-shadow: 0 0 0 2px rgba(122, 158, 126, 0.2);
+    }
+  }
+}
+
+// Badge "fixo" ao lado do label do ganho líquido
+.cb-tag-fixo {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(196, 149, 106, 0.15);
+  border: 1px solid rgba(196, 149, 106, 0.35);
+  color: var(--accent, #c4956a);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // DIAS E HORÁRIOS
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -280,6 +414,8 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
   }
   
   .cb-value {
@@ -426,6 +562,10 @@
   }
   
   .days-schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ganho-mode-options {
     grid-template-columns: 1fr;
   }
   

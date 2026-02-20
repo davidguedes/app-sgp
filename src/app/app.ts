@@ -34,6 +34,11 @@ export class App implements OnInit {
       icon: 'pi pi-home',
       routerLink: '/dashboard'
     },
+    // {
+    //   label: 'Profissionais',
+    //   icon: 'pi pi-id-card',
+    //   routerLink: '/professionals'
+    // },
     {
       label: 'Alunos',
       icon: 'pi pi-users',
@@ -65,7 +70,8 @@ export class App implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
-
+    this.authService.loadProfessionals();
+    
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {

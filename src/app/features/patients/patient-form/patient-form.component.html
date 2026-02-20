@@ -62,7 +62,6 @@
                   name="data_inicio"
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
-                  
                   placeholder="Quando o aluno inicia"
                   styleClass="w-full">
                 </p-datepicker>
@@ -130,25 +129,6 @@
                         class="w-full"
                         (onChange)="onHorarioChange(day, $event.value)">
                       </p-select>
-                      <!-- <p-datepicker
-                        [(ngModel)]="day.horario"
-                        [name]="'horario-' + day.key"
-                        placeholder="Horário"
-                        timeOnly="true"
-                        hourFormat="24"
-                        [showClear]="true"
-                        class="w-full"
-                        (onSelect)="onHorarioChangeDtepcker(day, day.horario)">
-                      </p-datepicker> -->
-                      <!-- <p-datepicker
-                        [options]="horarioOptions"
-                        [(ngModel)]="day.horario"
-                        [name]="'horario-' + day.key"
-                        (onChange)="onHorarioChange(day, $event.value)"
-                        placeholder="Horário"
-                        [showClear]="true"
-                        styleClass="w-full">
-                      </p-datepicker> -->
                     </div>
                   }
                 </div>
@@ -175,7 +155,27 @@
           <!-- VALORES -->
           <div class="form-section">
             <h3 class="section-title">Valores e Pagamento</h3>
-            
+
+            <!-- Toggle: cálculo automático vs valor fixo -->
+            <div class="ganho-mode-toggle">
+              <div class="ganho-mode-label">
+                <i class="pi pi-percentage"></i>
+                <span>Modo de cálculo do ganho</span>
+              </div>
+              <div class="ganho-mode-options">
+                <label class="mode-option" [class.active]="!usarGanhoFixo" (click)="usarGanhoFixo = false; onToggleGanhoFixo()">
+                  <input type="radio" name="modoGanho" [value]="false" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                  <i class="pi pi-calculator"></i>
+                  Calcular por porcentagem
+                </label>
+                <label class="mode-option" [class.active]="usarGanhoFixo" (click)="usarGanhoFixo = true; onToggleGanhoFixo()">
+                  <input type="radio" name="modoGanho" [value]="true" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                  <i class="pi pi-lock"></i>
+                  Valor fixo acordado
+                </label>
+              </div>
+            </div>
+
             <div class="input-row">
               <div class="form-group">
                 <label for="valor">Valor do Pacote *</label>
@@ -191,29 +191,51 @@
                   styleClass="w-full">
                 </p-inputNumber>
               </div>
-              
-              <div class="form-group">
-                <label for="porcentagem">Minha % de Ganho *</label>
-                <p-inputNumber
-                  inputId="porcentagem"
-                  [(ngModel)]="formData.porcentagem"
-                  name="porcentagem"
-                  [min]="0"
-                  [max]="100"
-                  suffix="%"
-                  (onInput)="onPorcentagemChange($any($event.value))"
-                  styleClass="w-full">
-                </p-inputNumber>
-              </div>
+
+              <!-- Coluna direita: % OU valor fixo -->
+              @if (!usarGanhoFixo) {
+                <div class="form-group">
+                  <label for="porcentagem">Minha % de Ganho *</label>
+                  <p-inputNumber
+                    inputId="porcentagem"
+                    [(ngModel)]="formData.porcentagem"
+                    name="porcentagem"
+                    [min]="0"
+                    [max]="100"
+                    suffix="%"
+                    (onInput)="onPorcentagemChange($any($event.value))"
+                    styleClass="w-full">
+                  </p-inputNumber>
+                  <small class="field-hint">Ganho = (Valor × %) × 0,85</small>
+                </div>
+              } @else {
+                <div class="form-group">
+                  <label for="ganho_fixo">Valor Fixo de Ganho *</label>
+                  <p-inputNumber
+                    inputId="ganho_fixo"
+                    [(ngModel)]="formData.ganho_fixo"
+                    name="ganho_fixo"
+                    mode="currency"
+                    currency="BRL"
+                    locale="pt-BR"
+                    [minFractionDigits]="2"
+                    [min]="0"
+                    (onInput)="onGanhoFixoChange($any($event.value))"
+                    styleClass="w-full">
+                  </p-inputNumber>
+                  <small class="field-hint">Valor líquido acordado diretamente com o estúdio</small>
+                </div>
+              }
             </div>
             
             <div class="computed-badge">
-              <!-- <div class="computed-item">
-                <span class="cb-label">Base do Estúdio</span>
-                <div class="cb-value">{{ calculatedValues().base | currency:'BRL' }}</div>
-              </div> -->
               <div class="computed-item">
-                <span class="cb-label">Ganho Líquido</span>
+                <span class="cb-label">
+                  Ganho Líquido
+                  @if (usarGanhoFixo) {
+                    <span class="cb-tag-fixo">fixo</span>
+                  }
+                </span>
                 <div class="cb-net">{{ calculatedValues().ganho | currency:'BRL' }}</div>
               </div>
             </div>
@@ -260,13 +282,13 @@
           </div>
           
           <div class="info-item">
-            <strong>💰 Cálculo Financeiro</strong>
-            <p>O ganho líquido é calculado automaticamente: Valor - (Valor × Base%).</p>
+            <strong>💰 Cálculo do Ganho</strong>
+            <p>Por padrão, o ganho é calculado automaticamente: <em>(Valor × %) × 0,85</em>. Para casos especiais com valor acordado diretamente, use o modo <strong>Valor fixo</strong>.</p>
           </div>
           
           <div class="info-item">
             <strong>✏️ Edição</strong>
-            <p>Você pode editar qualquer informação do aluno a qualquer momento, incluindo estender ou ajustar o período de aulas.</p>
+            <p>Você pode editar qualquer informação do aluno a qualquer momento, incluindo trocar entre cálculo automático e valor fixo.</p>
           </div>
         </div>
         

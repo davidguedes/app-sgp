@@ -23,6 +23,28 @@ export const routes: Routes = [
         loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
+        path: 'professionals',
+        title: 'SGP - Profissionais',
+        children: [
+          // {
+          //   path: '',
+          //   loadComponent: () => import('./features/patients/patient-list/patient-list.component').then(m => m.PatientListComponent)
+          // },
+          // {
+          //   path: 'new',
+          //   loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent)
+          // },
+          // {
+          //   path: ':id',
+          //   loadComponent: () => import('./features/patients/patient-details/patient-details.component').then(m => m.PatientDetailsComponent)
+          // },
+          // {
+          //   path: ':id/edit',
+          //   loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent)
+          // }
+        ]
+      },
+      {
         path: 'patients',
         title: 'SGP - Pacientes',
         children: [
