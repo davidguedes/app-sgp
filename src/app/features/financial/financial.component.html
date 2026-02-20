@@ -1,21 +1,27 @@
 <!-- src/app/features/financial/financial.component.html -->
 <div class="financial-container">
+
+  <!-- ── HEADER ──────────────────────────────── -->
   <div class="financial-header">
     <div class="header-left">
       <h1>Financeiro</h1>
-      <p class="subtitle">Visão completa dos ganhos e receitas</p>
+      <p class="subtitle">
+        @if (isGestor()) { Visão consolidada do estúdio }
+        @else { Seus ganhos e receitas }
+      </p>
     </div>
-    
+
     <div class="header-actions">
-      <p-select
-        [options]="professionalsOptions()"
-        [(ngModel)]="selectedProfessional"
-        (onChange)="onProfessionalChange($event.value)"
-        placeholder="Filtrar profissional"
-        [showClear]="false"
-        styleClass="filter-dropdown">
-      </p-select>
-      
+      @if (isGestor()) {
+        <p-select
+          [options]="professionalsOptions()"
+          [(ngModel)]="selectedProfessional"
+          (onChange)="onProfessionalChange($event.value)"
+          placeholder="Todos os profissionais"
+          [showClear]="false"
+          styleClass="filter-dropdown">
+        </p-select>
+      }
       <p-button
         label="Exportar Excel"
         icon="pi pi-file-excel"
@@ -24,159 +30,311 @@
       </p-button>
     </div>
   </div>
-  
-  <!-- Cards de Resumo Financeiro -->
-  @let statsData = stats();
-  <div class="fin-grid">
-    <p-card styleClass="fin-card">
-      <div class="f-label">Total de Pacientes</div>
-      <div class="f-value">{{ statsData.totalPatients }}</div>
-      <div class="f-sub">cadastrados</div>
-    </p-card>
-    
-    <p-card styleClass="fin-card green">
-      <div class="f-label">Total dos Pacotes</div>
-      <div class="f-value">{{ statsData.totalPackages | currency:'BRL' }}</div>
-      <div class="f-sub">valor bruto</div>
-    </p-card>
-    
-    <!-- <p-card styleClass="fin-card gray">
-      <div class="f-label">Pacotes × {{ TAX_RATE }}</div>
-      <div class="f-value">{{ statsData.totalBase | currency:'BRL' }}</div>
-      <div class="f-sub">após 15% imposto</div>
-    </p-card> -->
-    
-    <p-card styleClass="fin-card orange">
-      <div class="f-label">Meu Líquido Total</div>
-      <div class="f-value">{{ statsData.totalLiquid | currency:'BRL' }}</div>
-      <div class="f-sub">o que você recebe</div>
-    </p-card>
-  </div>
-  
-  <!-- Fórmula Explicativa -->
-  <p-card styleClass="formula-card">
-    <div class="formula-content">
-      <div class="formula-item">
-        <strong>📐 Fórmula:</strong>
-        <code class="formula-code">
-          Meu Líquido = (Pacote × {{ TAX_RATE }}) × % minha
-        </code>
-      </div>
-      <div class="formula-note">
-        Idêntico ao Excel: =(mensalidade*{{ TAX_RATE }})*%
-      </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Carregando dados financeiros...</p>
     </div>
-  </p-card>
-  
-  <!-- Breakdown por Dia da Semana -->
-  <div class="section-title">
-    <h2>Por Dia da Semana</h2>
-  </div>
-  
-  <div class="day-breakdown">
-    @for (day of dayStats(); track day.day) {
-      <p-card 
-        styleClass="day-card"
-        [class.empty]="day.patients === 0">
-        <div class="dc-day">{{ day.dayLabel }}</div>
-        <div class="dc-patients">{{ day.patients }}</div>
-        <div class="dc-sub">
-          paciente{{ day.patients !== 1 ? 's' : '' }}
+  } @else {
+
+    <!-- ══════════════════════════════════════════
+         VIEW GESTOR
+    ══════════════════════════════════════════ -->
+    @if (isGestor()) {
+
+      <!-- Cards do estúdio inteiro (sempre sem filtro) -->
+      <div class="context-label">
+        <i class="pi pi-building"></i>
+        Receita total do estúdio
+      </div>
+
+      <div class="fin-grid cols-4">
+        <p-card styleClass="fin-card">
+          <div class="f-icon total"><i class="pi pi-users"></i></div>
+          <div class="f-label">Alunos Ativos</div>
+          <div class="f-value">{{ patients().length }}</div>
+          <div class="f-sub">cadastrados</div>
+        </p-card>
+
+        <p-card styleClass="fin-card green">
+          <div class="f-icon packages"><i class="pi pi-dollar"></i></div>
+          <div class="f-label">Receita Bruta</div>
+          <div class="f-value">{{ receitaEstudio() | currency:'BRL':'symbol':'1.0-0' }}</div>
+          <div class="f-sub">soma dos pacotes</div>
+        </p-card>
+
+        <p-card styleClass="fin-card orange">
+          <div class="f-icon liquid"><i class="pi pi-wallet"></i></div>
+          <div class="f-label">Líquido Profissionais</div>
+          <div class="f-value">{{ liquidoEstudio() | currency:'BRL':'symbol':'1.0-0' }}</div>
+          <div class="f-sub">o que vai para a equipe</div>
+        </p-card>
+
+        <p-card styleClass="fin-card sage">
+          <div class="f-icon studio"><i class="pi pi-chart-pie"></i></div>
+          <div class="f-label">Retenção do Estúdio</div>
+          <div class="f-value">{{ (receitaEstudio() - liquidoEstudio()) | currency:'BRL':'symbol':'1.0-0' }}</div>
+          <div class="f-sub">diferença bruto–líquido</div>
+        </p-card>
+      </div>
+
+      <!-- Breakdown por Profissional -->
+      <div class="section-title">
+        <h2>Por Profissional</h2>
+      </div>
+
+      @if (professionalStats().length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-users"></i>
+          <h3>Nenhum dado disponível</h3>
+          <p>Cadastre alunos para visualizar o breakdown por profissional</p>
         </div>
-        @if (day.patients > 0) {
-          <div class="dc-liquid">{{ day.liquid | currency:'BRL' }}</div>
-          <div class="dc-sub">líquido</div>
-        }
-      </p-card>
+      } @else {
+        <!-- Cards por profissional -->
+        <div class="prof-cards-grid">
+          @for (prof of professionalStats(); track prof.id) {
+            <div class="prof-card">
+              <div class="prof-card-header">
+                <div class="prof-avatar" [style.background]="getAvatarColorFromId(prof.id)">
+                  {{ getInitials(prof.nome) }}
+                </div>
+                <div class="prof-card-info">
+                  <span class="prof-card-name">{{ prof.nome }}</span>
+                  <span class="prof-card-sub">{{ prof.totalAlunos }} aluno{{ prof.totalAlunos !== 1 ? 's' : '' }}</span>
+                </div>
+                <div class="prof-share-badge">{{ prof.share.toFixed(0) }}%</div>
+              </div>
+
+              <div class="prof-share-bar">
+                <div class="share-fill" [style.width]="getShareBarWidth(prof.share)"></div>
+              </div>
+
+              <div class="prof-card-stats">
+                <div class="pcs-item">
+                  <span class="pcs-label">Bruto</span>
+                  <span class="pcs-value">{{ prof.receitaBruta | currency:'BRL':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="pcs-divider"></div>
+                <div class="pcs-item highlight">
+                  <span class="pcs-label">Líquido</span>
+                  <span class="pcs-value">{{ prof.liquidoTotal | currency:'BRL':'symbol':'1.0-0' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Gráfico distribuição + tabela de profissionais -->
+        <div class="gestor-charts-grid">
+          <p-card>
+            <ng-template pTemplate="header">
+              <div class="card-header-inner">
+                <h3>Distribuição do Líquido</h3>
+              </div>
+            </ng-template>
+            <div class="chart-area">
+              @if (profChartData()) {
+                <p-chart
+                  type="doughnut"
+                  [data]="profChartData()"
+                  [options]="profChartOpts"
+                  [style]="{ width:'100%', height:'220px' }">
+                </p-chart>
+              }
+            </div>
+          </p-card>
+
+          <p-card>
+            <ng-template pTemplate="header">
+              <div class="card-header-inner">
+                <h3>Líquido por Dia da Semana</h3>
+                @if (selectedProfessional()) {
+                  <span class="filter-badge">filtrado</span>
+                }
+              </div>
+            </ng-template>
+            <div class="chart-area">
+              <p-chart
+                type="bar"
+                [data]="dayChartData()"
+                [options]="dayChartOpts"
+                [style]="{ width:'100%', height:'220px' }">
+              </p-chart>
+            </div>
+          </p-card>
+        </div>
+      }
+
+      <!-- Separador: filtro aplicado -->
+      @if (selectedProfessional()) {
+        <div class="context-label filtered">
+          <i class="pi pi-filter"></i>
+          Detalhamento filtrado por profissional
+        </div>
+      } @else {
+        <div class="section-title"><h2>Detalhamento por Aluno</h2></div>
+      }
     }
-  </div>
-  
-  <!-- Detalhamento por Paciente -->
-  <div class="section-title">
-    <h2>Detalhamento por Paciente</h2>
-  </div>
-  
-  <p-card>
-    @if (loading()) {
-      <div class="loading-state">
-        <i class="pi pi-spin pi-spinner"></i>
-        <p>Carregando dados financeiros...</p>
+
+    <!-- ══════════════════════════════════════════
+         VIEW PROFISSIONAL
+    ══════════════════════════════════════════ -->
+    @if (!isGestor()) {
+
+      <!-- Cards do profissional -->
+      <div class="fin-grid cols-3">
+        <p-card styleClass="fin-card">
+          <div class="f-icon total"><i class="pi pi-users"></i></div>
+          <div class="f-label">Meus Alunos</div>
+          <div class="f-value">{{ stats().totalPatients }}</div>
+          <div class="f-sub">ativos</div>
+        </p-card>
+
+        <p-card styleClass="fin-card green">
+          <div class="f-icon packages"><i class="pi pi-dollar"></i></div>
+          <div class="f-label">Total dos Pacotes</div>
+          <div class="f-value">{{ stats().totalPackages | currency:'BRL':'symbol':'1.0-0' }}</div>
+          <div class="f-sub">valor bruto</div>
+        </p-card>
+
+        <p-card styleClass="fin-card orange">
+          <div class="f-icon liquid"><i class="pi pi-wallet"></i></div>
+          <div class="f-label">Meu Ganho Total</div>
+          <div class="f-value">{{ stats().totalLiquid | currency:'BRL':'symbol':'1.0-0' }}</div>
+          <div class="f-sub">o que você recebe</div>
+        </p-card>
       </div>
-    } @else if (sortedPatients().length === 0) {
-      <div class="empty-state">
-        <i class="pi pi-wallet"></i>
-        <h3>Nenhum paciente cadastrado</h3>
-        <p>Cadastre alunos para visualizar o detalhamento financeiro</p>
+
+      <!-- Gráfico de barras por dia -->
+      <div class="pro-charts-grid">
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="card-header-inner"><h3>Meu Ganho por Dia da Semana</h3></div>
+          </ng-template>
+          <div class="chart-area">
+            <p-chart
+              type="bar"
+              [data]="dayChartData()"
+              [options]="dayChartOpts"
+              [style]="{ width:'100%', height:'200px' }">
+            </p-chart>
+          </div>
+        </p-card>
+
+        <!-- Breakdown compacto por dia -->
+        <div class="day-breakdown-compact">
+          @for (day of dayStats(); track day.day) {
+            <div class="dbc-item" [class.empty]="day.patients === 0">
+              <div class="dbc-day">{{ day.dayLabel.substring(0, 3).toUpperCase() }}</div>
+              <div class="dbc-count">{{ day.patients }}</div>
+              @if (day.patients > 0) {
+                <div class="dbc-liquid">{{ day.liquid | currency:'BRL':'symbol':'1.0-0' }}</div>
+              } @else {
+                <div class="dbc-liquid empty-txt">—</div>
+              }
+            </div>
+          }
+        </div>
       </div>
-    } @else {
-      <div class="table-responsive">
-        <table class="patient-fin-table">
-          <thead>
-            <tr>
-              <th>Paciente</th>
-              <th>Pacote (R$)</th>
-              <!-- <th>× {{ TAX_RATE }} (R$)</th> -->
-              <th>Minha %</th>
-              <th>Meu Líquido (R$)</th>
-              <th>Dias</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (patient of sortedPatients(); track patient.id) {
+
+      <div class="section-title"><h2>Meus Alunos</h2></div>
+    }
+
+    <!-- ── TABELA (compartilhada gestor + profissional) ── -->
+    <p-card>
+      @if (sortedPatients().length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-wallet"></i>
+          <h3>Nenhum aluno encontrado</h3>
+          <p>Cadastre alunos para visualizar o detalhamento financeiro</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="patient-fin-table">
+            <thead>
               <tr>
-                <td>
-                  <strong>{{ patient.nome }}</strong>
-                </td>
-                <td>{{ patient.valor | currency:'BRL' }}</td>
-                <!-- <td>{{ patient.base | currency:'BRL' }}</td> -->
-                <td>{{ patient.porcentagem }}%</td>
-                <td class="earn-cell">{{ patient.ganho | currency:'BRL' }}</td>
-                <td>
-                  <div class="days-pills">
-                    @for (dia of patient.dias; track dia) {
-                      <span class="day-pill">{{ dia.toUpperCase() }}</span>
-                    }
-                  </div>
-                </td>
+                <th>Aluno</th>
+                @if (isGestor()) { <th>Profissional</th> }
+                <th>Pacote</th>
+                <th>%</th>
+                <th>Ganho</th>
+                <th>Dias</th>
               </tr>
-            }
-            
-            <!-- Linha de Total -->
-            <tr class="total-row">
-              <td>
-                <strong>TOTAL ({{ statsData.totalPatients }} pacientes)</strong>
-              </td>
-              <td>{{ statsData.totalPackages | currency:'BRL' }}</td>
-              <!-- <td>{{ statsData.totalBase | currency:'BRL' }}</td> -->
-              <td>—</td>
-              <td class="earn-cell">{{ statsData.totalLiquid | currency:'BRL' }}</td>
-              <td>—</td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (patient of sortedPatients(); track patient.id) {
+                <tr>
+                  <td>
+                    <div class="table-patient">
+                      <div class="table-avatar" [style.background]="getAvatarColorFromId(patient.profissional_id)">
+                        {{ getInitials(patient.nome) }}
+                      </div>
+                      <div>
+                        <strong>{{ patient.nome }}</strong>
+                        @if (patient.ganho_fixo != null) {
+                          <span class="tag-fixo">fixo</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  @if (isGestor()) {
+                    <td class="pro-cell">{{ authService.getProfessionalName(patient.profissional_id) }}</td>
+                  }
+                  <td>{{ patient.valor | currency:'BRL' }}</td>
+                  <td>
+                    @if (patient.ganho_fixo != null) {
+                      <span class="tag-fixo">fixo</span>
+                    } @else {
+                      {{ patient.porcentagem }}%
+                    }
+                  </td>
+                  <td class="earn-cell">{{ patient.ganho | currency:'BRL' }}</td>
+                  <td>
+                    <div class="days-pills">
+                      @for (dia of patient.dias; track dia) {
+                        <span class="day-pill">{{ dia.toUpperCase() }}</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+
+              <!-- Linha de total -->
+              <tr class="total-row">
+                <td [attr.colspan]="isGestor() ? 2 : 1">
+                  <strong>TOTAL ({{ stats().totalPatients }} alunos)</strong>
+                </td>
+                <td>{{ stats().totalPackages | currency:'BRL' }}</td>
+                <td>—</td>
+                <td class="earn-cell">{{ stats().totalLiquid | currency:'BRL' }}</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </p-card>
+
+    <!-- Info footer -->
+    <div class="info-footer">
+      <div class="info-item">
+        <i class="pi pi-calculator"></i>
+        <span>
+          <strong>Cálculo padrão:</strong> Ganho = (Pacote × 0,85) × % do profissional.
+          Quando um valor fixo está definido, ele substitui o cálculo automático.
+        </span>
       </div>
-    }
-  </p-card>
-  
-  <!-- Info Footer -->
-  <div class="info-footer">
-    <div class="info-item">
-      <i class="pi pi-info-circle"></i>
-      <span>
-        <strong>Imposto:</strong> O sistema considera automaticamente 15% de imposto sobre o valor do pacote
-      </span>
+      @if (isGestor()) {
+        <div class="info-item">
+          <i class="pi pi-info-circle"></i>
+          <span>
+            <strong>Retenção do estúdio</strong> = diferença entre a receita bruta dos pacotes e o
+            total líquido repassado aos profissionais (inclui o 15% de custo operacional).
+          </span>
+        </div>
+      }
     </div>
-    <div class="info-item">
-      <i class="pi pi-calculator"></i>
-      <span>
-        <strong>Cálculo:</strong> O ganho líquido é calculado como: (Valor do Pacote × 0,85) × Sua Porcentagem
-      </span>
-    </div>
-    <div class="info-item">
-      <i class="pi pi-chart-line"></i>
-      <span>
-        <strong>Filtros:</strong> Use o filtro por profissional para visualizar ganhos específicos
-      </span>
-    </div>
-  </div>
+
+  } <!-- /loading -->
 </div>
