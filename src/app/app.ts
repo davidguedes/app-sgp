@@ -116,4 +116,6 @@ export class App implements OnInit, OnDestroy {
   logout(): void { this.authService.logout(); }
 
   isRouteActive(route: string): boolean { return this.activeRoute.includes(route); }
+
+  goHome(): void { this.router.navigate(['/dashboard']); }
 }

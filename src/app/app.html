@@ -1,7 +1,7 @@
 @if (showHeader && currentUser) {
   <header class="app-header">
     <div class="header-top">
-      <div class="logo">
+      <div class="logo" (click)="goHome()">
         <div class="logo-icon"><img src="assets/logo.png" alt="Logo SGP"/></div>
         <div class="logo-text">
           <h1>SGP</h1>
