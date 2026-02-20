@@ -78,7 +78,7 @@
           </div>
         </p-card>
         
-        <p-card styleClass="info-card">
+        <!-- <p-card styleClass="info-card">
           <div class="card-content">
             <div class="card-icon taxa">
               <i class="pi pi-percentage"></i>
@@ -88,7 +88,7 @@
               <span class="card-value">{{ p.porcentagem }}%</span>
             </div>
           </div>
-        </p-card>
+        </p-card> -->
         
         <p-card styleClass="info-card">
           <div class="card-content">
@@ -381,7 +381,9 @@
     [(visible)]="showAttendanceDialog"
     [header]="editingAttendance() ? 'Editar Frequência' : 'Registrar Frequência'"
     [modal]="true"
-    [style]="{ width: '500px' }">
+    [style]="{ width: '500px', maxWidth: '95vw' }"
+    [breakpoints]="{ '768px': '95vw', '480px': '100vw' }"
+    [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '80vh' }">
     
     <div class="dialog-form">
       <div class="form-group">
@@ -439,7 +441,10 @@
     [(visible)]="showEvolutionDialog"
     [header]="editingEvolution() ? 'Editar Evolução' : 'Nova Evolução'"
     [modal]="true"
-    [style]="{ width: '700px' }"
+    [style]="{ width: '700px', maxWidth: '95vw' }"
+    [breakpoints]="{ '768px': '95vw', '480px': '100vw' }"
+    [maximizable]="true"
+    [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '75vh' }"
     styleClass="evolution-dialog">
     
     <div class="dialog-form">

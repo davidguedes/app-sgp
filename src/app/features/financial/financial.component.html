@@ -40,11 +40,11 @@
       <div class="f-sub">valor bruto</div>
     </p-card>
     
-    <p-card styleClass="fin-card gray">
+    <!-- <p-card styleClass="fin-card gray">
       <div class="f-label">Pacotes × {{ TAX_RATE }}</div>
       <div class="f-value">{{ statsData.totalBase | currency:'BRL' }}</div>
       <div class="f-sub">após 15% imposto</div>
-    </p-card>
+    </p-card> -->
     
     <p-card styleClass="fin-card orange">
       <div class="f-label">Meu Líquido Total</div>
@@ -115,7 +115,7 @@
             <tr>
               <th>Paciente</th>
               <th>Pacote (R$)</th>
-              <th>× {{ TAX_RATE }} (R$)</th>
+              <!-- <th>× {{ TAX_RATE }} (R$)</th> -->
               <th>Minha %</th>
               <th>Meu Líquido (R$)</th>
               <th>Dias</th>
@@ -128,7 +128,7 @@
                   <strong>{{ patient.nome }}</strong>
                 </td>
                 <td>{{ patient.valor | currency:'BRL' }}</td>
-                <td>{{ patient.base | currency:'BRL' }}</td>
+                <!-- <td>{{ patient.base | currency:'BRL' }}</td> -->
                 <td>{{ patient.porcentagem }}%</td>
                 <td class="earn-cell">{{ patient.ganho | currency:'BRL' }}</td>
                 <td>
@@ -147,7 +147,7 @@
                 <strong>TOTAL ({{ statsData.totalPatients }} pacientes)</strong>
               </td>
               <td>{{ statsData.totalPackages | currency:'BRL' }}</td>
-              <td>{{ statsData.totalBase | currency:'BRL' }}</td>
+              <!-- <td>{{ statsData.totalBase | currency:'BRL' }}</td> -->
               <td>—</td>
               <td class="earn-cell">{{ statsData.totalLiquid | currency:'BRL' }}</td>
               <td>—</td>

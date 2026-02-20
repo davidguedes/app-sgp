@@ -193,7 +193,7 @@
               </div>
               
               <div class="form-group">
-                <label for="porcentagem">Base do Estúdio (%) *</label>
+                <label for="porcentagem">Minha % de Ganho *</label>
                 <p-inputNumber
                   inputId="porcentagem"
                   [(ngModel)]="formData.porcentagem"
@@ -208,10 +208,10 @@
             </div>
             
             <div class="computed-badge">
-              <div class="computed-item">
+              <!-- <div class="computed-item">
                 <span class="cb-label">Base do Estúdio</span>
                 <div class="cb-value">{{ calculatedValues().base | currency:'BRL' }}</div>
-              </div>
+              </div> -->
               <div class="computed-item">
                 <span class="cb-label">Ganho Líquido</span>
                 <div class="cb-net">{{ calculatedValues().ganho | currency:'BRL' }}</div>
