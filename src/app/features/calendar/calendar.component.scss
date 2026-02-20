@@ -697,6 +697,16 @@
     .week-view { grid-template-columns: repeat(2, 1fr); }
     .gestor-overview {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-card { .kpi-body { .kpi-value { font-size: 1.2rem; } } }
+      .profissionais-grid {
+        .prof-card {
+          .prof-card-content {
+            .prof-metrics {
+              display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;
+            }
+          }
+        }
+      }
       .week-table-card .week-distribution-table {
         .wdt-header, .wdt-row { grid-template-columns: 120px repeat(6, 1fr) 50px; }
         .wdt-cell.wdt-prof-col .wdt-prof-name .wdt-avatar { display: none; }
@@ -723,7 +733,7 @@
     .week-view { grid-template-columns: 1fr; }
     .gestor-overview {
       .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .kpi-card { padding: 1rem; gap: 0.75rem; .kpi-value { font-size: 1.3rem; } }
+      .kpi-card { padding: 1rem; gap: 0.75rem; }
       .week-table-card { display: none; }
     }
     .month-view-google .month-grid .month-day-cell {
