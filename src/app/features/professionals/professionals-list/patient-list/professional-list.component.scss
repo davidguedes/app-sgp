@@ -135,7 +135,7 @@
 }
 
 .professional-card {
-  background: white;
+  background: var(--surface, var(--warm-white, #fdfcfa));
   border: 1.5px solid var(--border, #e8e3dc);
   border-radius: 16px;
   padding: 1.5rem;
@@ -167,9 +167,10 @@
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: #fff;
   flex-shrink: 0;
   letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .pro-info {
@@ -284,7 +285,7 @@
       &:focus {
         border-color: var(--sage, #7a9e7e);
         box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.15);
-        background: white;
+        background: var(--surface, var(--warm-white, #fdfcfa));
       }
     }
 
