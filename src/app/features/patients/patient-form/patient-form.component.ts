@@ -107,6 +107,9 @@ export class PatientFormComponent implements OnInit {
 
   professionals = this.authService.professionalsData();
 
+  isGestor = signal(false);
+  profissionalNome = signal('');
+
   calculatedValues = signal<{ ganho: number }>({ ganho: 0 });
 
   constructor(
@@ -117,6 +120,16 @@ export class PatientFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    const gestor = user?.role === 'gestor';
+    this.isGestor.set(gestor);
+
+    if (!gestor && user) {
+      // Profissional: já é o responsável — preenche e trava o campo
+      this.formData.profissional = Number(user.id);
+      this.profissionalNome.set(user.nome);
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode.set(true);

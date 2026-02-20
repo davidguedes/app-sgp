@@ -103,6 +103,44 @@
   }
 }
 
+// Campo somente-leitura quando o usuário é profissional
+.profissional-readonly {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border, #e8e3dc);
+  border-radius: 10px;
+  background: var(--cream, #f8f5f0);
+  color: var(--charcoal, #2c2c2c);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: default;
+
+  i {
+    color: var(--sage, #7a9e7e);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  span:first-of-type {
+    flex: 1;
+  }
+
+  .profissional-readonly-tag {
+    flex: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: rgba(122, 158, 126, 0.12);
+    color: var(--sage-dark, #4e6e52);
+    border: 1px solid rgba(122, 158, 126, 0.25);
+    border-radius: 20px;
+    padding: 2px 8px;
+  }
+}
+
 .field-hint {
   display: block;
   margin-top: 6px;

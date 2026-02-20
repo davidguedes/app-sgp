@@ -35,11 +35,6 @@ export class App implements OnInit {
       routerLink: '/dashboard'
     },
     {
-      label: 'Profissionais',
-      icon: 'pi pi-id-card',
-      routerLink: '/professionals'
-    },
-    {
       label: 'Alunos',
       icon: 'pi pi-users',
       routerLink: '/patients'
@@ -69,8 +64,10 @@ export class App implements OnInit {
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+
+      this.adjustMenuForRole();
+      this.loadProfessionalsData();
     });
-    this.authService.loadProfessionals();
     
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -117,5 +114,21 @@ export class App implements OnInit {
 
   isRouteActive(route: string): boolean {
     return this.activeRoute.includes(route);
+  }
+
+  adjustMenuForRole(): void {
+    if (this.authService.isGestor()) {
+      this.menuItems.splice(1, 0, {
+        label: 'Profissionais',
+        icon: 'pi pi-briefcase',
+        routerLink: '/professionals'
+      });
+    }
+  }
+
+  loadProfessionalsData(): void {
+    if (this.authService.isGestor()) {
+      this.authService.loadProfessionals();
+    }
   }
 }

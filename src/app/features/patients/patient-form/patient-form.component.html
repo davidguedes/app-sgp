@@ -35,17 +35,28 @@
             
             <div class="form-group">
               <label for="profissional">Profissional Responsável *</label>
-              <p-select
-                inputId="profissional"
-                [options]="professionals"
-                [(ngModel)]="formData.profissional"
-                name="profissional"
-                optionValue="id"
-                optionLabel="nome"
-                placeholder="Selecione o profissional"
-                [showClear]="false"
-                styleClass="w-full">
-              </p-select>
+
+              @if (isGestor()) {
+                <!-- Gestor: escolhe entre os profissionais cadastrados -->
+                <p-select
+                  inputId="profissional"
+                  [options]="professionals"
+                  [(ngModel)]="formData.profissional"
+                  name="profissional"
+                  optionValue="id"
+                  optionLabel="nome"
+                  placeholder="Selecione o profissional"
+                  [showClear]="false"
+                  styleClass="w-full">
+                </p-select>
+              } @else {
+                <!-- Profissional: é ele mesmo, campo somente-leitura -->
+                <div class="profissional-readonly">
+                  <i class="pi pi-user"></i>
+                  <span>{{ profissionalNome() }}</span>
+                  <span class="profissional-readonly-tag">você</span>
+                </div>
+              }
             </div>
           </div>
           
