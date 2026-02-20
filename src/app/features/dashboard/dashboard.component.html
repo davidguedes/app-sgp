@@ -3,131 +3,377 @@
   <app-dashboard-profissional />
 }
 
-<!-- Dashboard do Gestor (inalterado) -->
+<!-- Dashboard do Gestor -->
 @if (!isProfissional()) {
   <div class="dashboard-container">
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- HEADER                                  -->
+    <!-- ═══════════════════════════════════════ -->
     <div class="dashboard-header">
-      <div>
-        <h1>Bem-vindo, {{ userName() }}!</h1>
-        <p class="subtitle">{{ userRole() }} - Visão Geral do Sistema</p>
+      <div class="header-left">
+        <h1>Olá, {{ userName() }}</h1>
+        <p class="subtitle">
+          <i class="pi pi-calendar"></i>
+          {{ getTodayLabel() | titlecase }}
+          @if (todaySnapshot().totalAulasHoje > 0) {
+            · <strong>{{ todaySnapshot().totalAulasHoje }} aulas</strong> agendadas hoje
+          } @else {
+            · Sem aulas agendadas hoje
+          }
+        </p>
       </div>
-      <p-button
-        label="Novo Aluno"
-        severity="info"
-        icon="pi pi-plus"
-        routerLink="/patients/new">
-      </p-button>
+      <div class="header-actions">
+        <p-button label="Novo Aluno" severity="info" icon="pi pi-plus" routerLink="/patients/new"></p-button>
+      </div>
     </div>
 
-    <div class="stats-grid">
-      <p-card styleClass="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon total"><i class="pi pi-users"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">Total de Alunos</span>
-            <span class="stat-value">{{ stats().totalAlunos }}</span>
-          </div>
-        </div>
-      </p-card>
+    <!-- ═══════════════════════════════════════ -->
+    <!-- KPIs PRINCIPAIS                         -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="kpi-grid">
 
-      <p-card styleClass="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon ganho"><i class="pi pi-dollar"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">Ganho Total</span>
-            <span class="stat-value">{{ stats().ganhoTotal | currency:'BRL' }}</span>
-          </div>
+      <div class="kpi-card kpi-alunos">
+        <div class="kpi-icon"><i class="pi pi-users"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Alunos Ativos</span>
+          <span class="kpi-value">{{ totalAlunosAtivos() }}</span>
+          @if (alunosNovos30d() > 0) {
+            <span class="kpi-sub success">
+              <i class="pi pi-arrow-up"></i> {{ alunosNovos30d() }} novos este mês
+            </span>
+          }
         </div>
-      </p-card>
+      </div>
 
-      <p-card styleClass="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon presenca"><i class="pi pi-check-circle"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">Presenças</span>
-            <span class="stat-value">{{ stats().presencas }}</span>
-          </div>
+      <div class="kpi-card kpi-aulas">
+        <div class="kpi-icon"><i class="pi pi-calendar"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Aulas / Semana</span>
+          <span class="kpi-value">{{ totalAulasSemanais() }}</span>
+          <span class="kpi-sub muted">{{ todaySnapshot().totalAulasHoje }} hoje</span>
         </div>
-      </p-card>
+      </div>
 
-      <p-card styleClass="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon falta"><i class="pi pi-times-circle"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">Faltas</span>
-            <span class="stat-value">{{ stats().faltas }}</span>
-          </div>
+      <div class="kpi-card kpi-bruto">
+        <div class="kpi-icon"><i class="pi pi-dollar"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Receita Bruta</span>
+          <span class="kpi-value">{{ receitaBrutaTotal() | currency:'BRL':'symbol':'1.0-0' }}</span>
+          <span class="kpi-sub muted">total em pacotes ativos</span>
         </div>
-      </p-card>
+      </div>
+
+      <div class="kpi-card kpi-liquido">
+        <div class="kpi-icon"><i class="pi pi-wallet"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Receita Líquida</span>
+          <span class="kpi-value">{{ receitaLiquidaTotal() | currency:'BRL':'symbol':'1.0-0' }}</span>
+          <span class="kpi-sub muted">repasse aos profissionais</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-frequencia">
+        <div class="kpi-icon"><i class="pi pi-check-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Taxa de Presença</span>
+          <span class="kpi-value" [class]="getSeverity(stats().taxaPresenca)">
+            {{ stats().taxaPresenca.toFixed(1) }}%
+          </span>
+          <span class="kpi-sub muted">{{ stats().presencas }} pres. · {{ stats().faltas }} faltas</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-reposicoes" [class.has-alert]="totalReposicoesPendentes() > 0">
+        <div class="kpi-icon"><i class="pi pi-replay"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Reposições Pendentes</span>
+          <span class="kpi-value" [class.alert-value]="totalReposicoesPendentes() > 0">
+            {{ totalReposicoesPendentes() }}
+          </span>
+          <span class="kpi-sub" [class.warn]="totalReposicoesPendentes() > 0" [class.muted]="totalReposicoesPendentes() === 0">
+            @if (totalReposicoesPendentes() > 0) { alunos aguardando reposição }
+            @else { nenhuma pendente }
+          </span>
+        </div>
+      </div>
+
     </div>
 
-    <div class="charts-grid">
-      <p-card>
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LINHA 2: HOJE + DISTRIBUIÇÃO SEMANAL    -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="row-2">
+
+      <!-- Snapshot do dia -->
+      <p-card styleClass="today-card">
         <ng-template pTemplate="header">
           <div class="card-header">
-            <h3>Taxa de Frequência</h3>
+            <h3><i class="pi pi-sun"></i> Agenda de Hoje</h3>
+            <p-tag
+              [value]="todaySnapshot().totalAulasHoje + ' aulas'"
+              severity="info">
+            </p-tag>
+          </div>
+        </ng-template>
+
+        @if (todaySnapshot().alunosHoje.length > 0) {
+          <div class="today-list">
+            @for (aluno of todaySnapshot().alunosHoje; track aluno.nome) {
+              <div class="today-item">
+                <span class="today-time">{{ aluno.horario }}</span>
+                <div class="today-avatar" [style.background]="getAvatarColor(aluno.nome)">
+                  {{ getInitials(aluno.nome) }}
+                </div>
+                <div class="today-info">
+                  <span class="today-name">{{ aluno.nome }}</span>
+                  <span class="today-prof">{{ aluno.profissional }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-today">
+            <i class="pi pi-moon"></i>
+            <p>Sem aulas hoje</p>
+          </div>
+        }
+
+        <ng-template pTemplate="footer">
+          <p-button label="Ver calendário completo" icon="pi pi-calendar" [text]="true"
+            routerLink="/calendar" styleClass="w-full">
+          </p-button>
+        </ng-template>
+      </p-card>
+
+      <!-- Distribuição por dia da semana -->
+      <p-card styleClass="week-dist-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3><i class="pi pi-chart-bar"></i> Aulas por Dia</h3>
+            <span class="card-header-sub">semana típica</span>
+          </div>
+        </ng-template>
+
+        <div class="week-bars">
+          @for (day of dayDistribution(); track day.key) {
+            <div class="week-bar-item">
+              <div class="bar-track">
+                <div class="bar-fill"
+                  [style.height.%]="(day.count / maxDayCount()) * 100"
+                  [class.bar-today]="getTodayKey() === day.key"
+                  [pTooltip]="day.count + ' aulas'"
+                  tooltipPosition="top">
+                </div>
+              </div>
+              <span class="bar-count">{{ day.count || '' }}</span>
+              <span class="bar-label">{{ day.label.substring(0, 3) }}</span>
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <!-- Frequência geral -->
+      <p-card styleClass="freq-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3><i class="pi pi-chart-pie"></i> Frequência</h3>
             <p-tag
               [value]="stats().taxaPresenca.toFixed(1) + '%'"
               [severity]="getSeverity(stats().taxaPresenca)">
             </p-tag>
           </div>
         </ng-template>
+
         <div class="chart-container">
           @if (attendanceChartData) {
-            <p-chart
-              type="doughnut"
-              [data]="attendanceChartData"
-              [options]="attendanceChartOptions"
-              [style]="{ width: '100%' }">
+            <p-chart type="doughnut" [data]="attendanceChartData"
+              [options]="attendanceChartOptions" [style]="{ width: '100%', height: '180px' }">
             </p-chart>
           } @else {
             <div class="chart-empty">
               <i class="pi pi-chart-pie"></i>
-              <p>Nenhum dado de frequência disponível</p>
+              <p>Sem dados de frequência</p>
             </div>
           }
         </div>
       </p-card>
 
-      <p-card>
-        <ng-template pTemplate="header">
-          <div class="card-header"><h3>Ações Rápidas</h3></div>
-        </ng-template>
-        <div class="quick-actions">
-          <button class="action-btn" routerLink="/patients">
-            <div class="action-icon"><i class="pi pi-users"></i></div>
-            <div class="action-text">
-              <strong>Gerenciar Alunos</strong>
-              <span>Ver lista completa</span>
-            </div>
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="action-btn" routerLink="/attendance">
-            <div class="action-icon"><i class="pi pi-check-square"></i></div>
-            <div class="action-text">
-              <strong>Registrar Frequência</strong>
-              <span>Marcar presença/falta</span>
-            </div>
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="action-btn" routerLink="/calendar">
-            <div class="action-icon"><i class="pi pi-calendar"></i></div>
-            <div class="action-text">
-              <strong>Ver Calendário</strong>
-              <span>Aulas agendadas</span>
-            </div>
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="action-btn" routerLink="/professionals">
-            <div class="action-icon"><i class="pi pi-id-card"></i></div>
-            <div class="action-text">
-              <strong>Profissionais</strong>
-              <span>Gerenciar equipe</span>
-            </div>
-            <i class="pi pi-angle-right"></i>
-          </button>
-        </div>
-      </p-card>
     </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LINHA 3: PROFISSIONAIS                  -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="section-title">
+      <h2><i class="pi pi-id-card"></i> Profissionais</h2>
+      <p-button label="Ver financeiro completo" icon="pi pi-arrow-right" [text]="true"
+        size="small" routerLink="/financial">
+      </p-button>
+    </div>
+
+    <div class="prof-table-card">
+      <!-- Cabeçalho -->
+      <div class="prof-table-header">
+        <div class="ptcol ptcol-name">Profissional</div>
+        <div class="ptcol ptcol-num">Alunos</div>
+        <div class="ptcol ptcol-num">Aulas/sem</div>
+        <div class="ptcol ptcol-money">Bruto</div>
+        <div class="ptcol ptcol-money">Líquido</div>
+        <div class="ptcol ptcol-share">Share</div>
+        <div class="ptcol ptcol-freq">Presença</div>
+        <div class="ptcol ptcol-alerts">Alertas</div>
+      </div>
+
+      @for (prof of profStats(); track prof.id) {
+        <div class="prof-table-row" [routerLink]="['/calendar']"
+          pTooltip="Ver agenda de {{ prof.nome }}" tooltipPosition="left">
+
+          <div class="ptcol ptcol-name">
+            <div class="prof-name-cell">
+              <div class="prof-avatar-sm" [style.background]="getAvatarColor(prof.nome)">
+                {{ getInitials(prof.nome) }}
+              </div>
+              <div>
+                <span class="prof-name-text">{{ prof.nome }}</span>
+                <div class="prof-days">
+                  @for (d of prof.diasAtivos; track d) {
+                    <span class="day-dot">{{ d.substring(0,1).toUpperCase() }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ptcol ptcol-num">
+            <span class="num-value">{{ prof.totalAlunos }}</span>
+          </div>
+
+          <div class="ptcol ptcol-num">
+            <span class="num-value">{{ prof.aulasSemanais }}</span>
+          </div>
+
+          <div class="ptcol ptcol-money">
+            <span class="money-value">{{ prof.receitaBruta | currency:'BRL':'symbol':'1.0-0' }}</span>
+          </div>
+
+          <div class="ptcol ptcol-money">
+            <span class="money-value liquid">{{ prof.receitaLiquida | currency:'BRL':'symbol':'1.0-0' }}</span>
+          </div>
+
+          <div class="ptcol ptcol-share">
+            <div class="share-bar-wrap">
+              <div class="share-bar-track">
+                <div class="share-bar-fill" [style.width]="getShareBarWidth(prof.share)"
+                  [style.background]="getAvatarColor(prof.nome)">
+                </div>
+              </div>
+              <span class="share-pct">{{ prof.share.toFixed(0) }}%</span>
+            </div>
+          </div>
+
+          <div class="ptcol ptcol-freq">
+            @if (prof.presencas + prof.faltas > 0) {
+              <p-tag
+                [value]="prof.taxaPresenca + '%'"
+                [severity]="getSeverity(prof.taxaPresenca)"
+                styleClass="freq-tag">
+              </p-tag>
+            } @else {
+              <span class="no-data">—</span>
+            }
+          </div>
+
+          <div class="ptcol ptcol-alerts">
+            <div class="alerts-cell">
+              @if (prof.alunosNovos > 0) {
+                <span class="alert-chip chip-new"
+                  [pTooltip]="prof.alunosNovos + ' aluno(s) novo(s) este mês'">
+                  <i class="pi pi-user-plus"></i> {{ prof.alunosNovos }}
+                </span>
+              }
+              @if (prof.reposicoesPendentes > 0) {
+                <span class="alert-chip chip-makeup"
+                  [pTooltip]="prof.reposicoesPendentes + ' reposição(ões) pendente(s)'">
+                  <i class="pi pi-replay"></i> {{ prof.reposicoesPendentes }}
+                </span>
+              }
+              @if (prof.alunosNovos === 0 && prof.reposicoesPendentes === 0) {
+                <span class="no-data">—</span>
+              }
+            </div>
+          </div>
+
+        </div>
+      }
+
+      @if (profStats().length === 0) {
+        <div class="prof-table-empty">
+          <i class="pi pi-users"></i>
+          <p>Nenhum profissional cadastrado</p>
+        </div>
+      }
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LINHA 4: AÇÕES RÁPIDAS CONTEXTUAIS      -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="quick-actions-grid">
+      <button class="action-btn" routerLink="/patients">
+        <div class="action-icon"><i class="pi pi-users"></i></div>
+        <div class="action-text">
+          <strong>Alunos</strong>
+          <span>{{ totalAlunosAtivos() }} ativos</span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+
+      <button class="action-btn" routerLink="/calendar">
+        <div class="action-icon"><i class="pi pi-calendar"></i></div>
+        <div class="action-text">
+          <strong>Calendário</strong>
+          <span>{{ todaySnapshot().totalAulasHoje }} aulas hoje</span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+
+      <button class="action-btn" routerLink="/financial">
+        <div class="action-icon"><i class="pi pi-dollar"></i></div>
+        <div class="action-text">
+          <strong>Financeiro</strong>
+          <span>{{ receitaLiquidaTotal() | currency:'BRL':'symbol':'1.0-0' }} líquido</span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+
+      <button class="action-btn" routerLink="/professionals">
+        <div class="action-icon"><i class="pi pi-id-card"></i></div>
+        <div class="action-text">
+          <strong>Profissionais</strong>
+          <span>{{ profStats().length }} cadastrados</span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+
+      <button class="action-btn" routerLink="/attendance" [class.action-alert]="totalReposicoesPendentes() > 0">
+        <div class="action-icon"><i class="pi pi-replay"></i></div>
+        <div class="action-text">
+          <strong>Reposições</strong>
+          <span [class.text-warn]="totalReposicoesPendentes() > 0">
+            {{ totalReposicoesPendentes() > 0 ? totalReposicoesPendentes() + ' pendentes' : 'Nenhuma pendente' }}
+          </span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+
+      <button class="action-btn" routerLink="/patients/new">
+        <div class="action-icon action-icon-cta"><i class="pi pi-plus"></i></div>
+        <div class="action-text">
+          <strong>Novo Aluno</strong>
+          <span>Cadastrar agora</span>
+        </div>
+        <i class="pi pi-angle-right"></i>
+      </button>
+    </div>
+
   </div>
 }
