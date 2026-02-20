@@ -21,6 +21,9 @@
         font-size: 1.75rem;
         font-weight: 600;
         color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
     }
 
@@ -28,6 +31,23 @@
       display: flex;
       gap: 1rem;
       align-items: center;
+    }
+  }
+
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+
+    &.gestor-badge {
+      background: linear-gradient(135deg, var(--primary-200), var(--primary-100));
+      color: var(--primary-800);
+      border: 1px solid var(--primary-300);
     }
   }
 
@@ -81,9 +101,7 @@
           transition: all 0.2s;
           font-size: 0.875rem;
 
-          i {
-            font-size: 1rem;
-          }
+          i { font-size: 1rem; }
 
           &:hover {
             background: var(--surface-hover);
@@ -100,7 +118,413 @@
   }
 
   // ============================================
-  // MODO MÊS - ESTILO GOOGLE AGENDA
+  // GESTOR: VISÃO GERAL
+  // ============================================
+  .gestor-overview {
+
+    // --- KPI Cards ---
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      }
+
+      .kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i { font-size: 1.5rem; color: white; }
+      }
+
+      .kpi-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .kpi-label {
+          font-size: 0.8rem;
+          color: var(--text-color-secondary);
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: var(--text-color);
+          line-height: 1;
+        }
+      }
+
+      &.primary .kpi-icon { background: var(--primary-color); }
+      &.info .kpi-icon    { background: #3b82f6; }
+      &.success .kpi-icon { background: #22c55e; }
+      &.warning .kpi-icon { background: #f59e0b; }
+    }
+
+    // --- Section title ---
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+
+      i {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .section-count {
+        background: var(--primary-100);
+        color: var(--primary-700);
+        padding: 0.15rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+    }
+
+    // --- Cards de profissionais ---
+    .profissionais-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+
+      .prof-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .prof-card-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+
+          // Header
+          .prof-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+
+            .prof-avatar {
+              width: 52px;
+              height: 52px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              color: white;
+              font-size: 1.1rem;
+              flex-shrink: 0;
+            }
+
+            .prof-identity {
+              flex: 1;
+
+              h3 {
+                margin: 0 0 0.4rem 0;
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--text-color);
+              }
+
+              .prof-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.3rem;
+
+                .dia-tag {
+                  padding: 0.15rem 0.5rem;
+                  background: var(--surface-100);
+                  border: 1px solid var(--surface-border);
+                  border-radius: 4px;
+                  font-size: 0.7rem;
+                  font-weight: 600;
+                  color: var(--text-color-secondary);
+                  text-transform: uppercase;
+                }
+              }
+            }
+          }
+
+          // Métricas
+          .prof-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin: 0.5rem 0 1rem 0;
+
+            .metric {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.25rem;
+              padding: 0.75rem 0.5rem;
+              background: var(--surface-50);
+              border-radius: 8px;
+              border: 1px solid var(--surface-border);
+
+              .metric-label {
+                font-size: 0.7rem;
+                color: var(--text-color-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                font-weight: 600;
+                text-align: center;
+              }
+
+              .metric-value {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-color);
+
+                &.success { color: #22c55e; }
+                &.primary { color: var(--primary-color); }
+              }
+            }
+          }
+
+          // Barra de ocupação
+          .ocupacao-bar-wrapper {
+            margin-bottom: 1rem;
+
+            .ocupacao-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 0.5rem;
+
+              .ocupacao-label {
+                font-size: 0.78rem;
+                color: var(--text-color-secondary);
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+
+                i { font-size: 0.85rem; }
+              }
+
+              .ocupacao-pct {
+                font-size: 0.85rem;
+                font-weight: 700;
+
+                &.pct-success { color: #22c55e; }
+                &.pct-warning { color: #f59e0b; }
+                &.pct-danger  { color: #ef4444; }
+              }
+            }
+
+            .ocupacao-track {
+              height: 8px;
+              background: var(--surface-200);
+              border-radius: 99px;
+              overflow: hidden;
+
+              .ocupacao-fill {
+                height: 100%;
+                border-radius: 99px;
+                transition: width 0.6s ease;
+
+                &.fill-success { background: #22c55e; }
+                &.fill-warning { background: #f59e0b; }
+                &.fill-danger  { background: #ef4444; }
+              }
+            }
+          }
+
+          // Mini agenda semanal
+          .mini-week {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.4rem;
+
+            .mini-day {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 0.4rem 0.2rem;
+              border-radius: 6px;
+              background: var(--surface-50);
+              border: 1px solid var(--surface-border);
+              transition: all 0.2s;
+              cursor: default;
+
+              &.has-patients {
+                background: var(--primary-50);
+                border-color: var(--primary-200);
+              }
+
+              &.inactive {
+                opacity: 0.4;
+              }
+
+              .mini-day-label {
+                font-size: 0.65rem;
+                font-weight: 700;
+                color: var(--text-color-secondary);
+                text-transform: uppercase;
+              }
+
+              .mini-day-count {
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: var(--primary-color);
+                min-height: 1.2rem;
+                line-height: 1.2rem;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // --- Tabela de distribuição semanal ---
+    .week-table-card {
+      .week-distribution-table {
+        width: 100%;
+        overflow-x: auto;
+
+        .wdt-header,
+        .wdt-row {
+          display: grid;
+          grid-template-columns: 200px repeat(6, 1fr) 80px;
+          align-items: center;
+        }
+
+        .wdt-header {
+          background: var(--surface-50);
+          border-radius: 8px;
+          margin-bottom: 0.25rem;
+          padding: 0.5rem 0;
+
+          .wdt-cell {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            text-align: center;
+
+            &.wdt-prof-col { text-align: left; padding-left: 1rem; }
+          }
+        }
+
+        .wdt-row {
+          border-bottom: 1px solid var(--surface-border);
+          cursor: pointer;
+          transition: background 0.15s;
+          padding: 0.6rem 0;
+          border-radius: 6px;
+
+          &:hover { background: var(--surface-hover); }
+
+          &.wdt-totals-row {
+            background: var(--surface-50);
+            cursor: default;
+            border-radius: 0 0 8px 8px;
+            border-bottom: none;
+            margin-top: 0.25rem;
+
+            &:hover { background: var(--surface-50); }
+          }
+        }
+
+        .wdt-cell {
+          text-align: center;
+          padding: 0 0.25rem;
+
+          &.wdt-prof-col {
+            text-align: left;
+            padding-left: 1rem;
+
+            .wdt-prof-name {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+
+              .wdt-avatar {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                color: white;
+                font-size: 0.7rem;
+                flex-shrink: 0;
+              }
+
+              span {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--text-color);
+              }
+            }
+          }
+
+          .wdt-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: white;
+          }
+
+          .wdt-empty-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--surface-300);
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // MODO MÊS
   // ============================================
   .month-view-google {
     .month-header {
@@ -139,30 +563,17 @@
         background: white;
         position: relative;
 
-        &:nth-child(7n) {
-          border-right: none;
-        }
-
-        &:hover {
-          background: var(--surface-hover);
-        }
+        &:nth-child(7n) { border-right: none; }
+        &:hover { background: var(--surface-hover); }
 
         &.other-month {
           background: var(--surface-50);
-          
-          .day-number {
-            color: var(--text-color-secondary);
-            opacity: 0.5;
-          }
-
-          .event-item {
-            opacity: 0.6;
-          }
+          .day-number { color: var(--text-color-secondary); opacity: 0.5; }
+          .event-item { opacity: 0.6; }
         }
 
         &.today {
           background: #e3f2fd;
-
           .day-number {
             background: var(--primary-color);
             color: white;
@@ -176,13 +587,7 @@
           }
         }
 
-        &.has-events {
-          cursor: pointer;
-
-          &:hover {
-            background: var(--surface-100);
-          }
-        }
+        &.has-events:hover { background: var(--surface-100); }
 
         .day-number {
           font-size: 0.875rem;
@@ -211,24 +616,10 @@
             text-overflow: ellipsis;
             white-space: nowrap;
 
-            &:hover {
-              transform: translateY(-1px);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
+            &:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-            .event-time {
-              font-weight: 600;
-              font-size: 0.7rem;
-              opacity: 0.95;
-              min-width: 35px;
-            }
-
-            .event-name {
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              flex: 1;
-            }
+            .event-time { font-weight: 600; font-size: 0.7rem; opacity: 0.95; min-width: 35px; }
+            .event-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
           }
 
           .more-events {
@@ -240,10 +631,7 @@
             cursor: pointer;
             border-radius: 4px;
             transition: background 0.2s;
-
-            &:hover {
-              background: var(--surface-100);
-            }
+            &:hover { background: var(--surface-100); }
           }
         }
       }
@@ -265,10 +653,7 @@
       overflow: hidden;
       transition: transform 0.2s, box-shadow 0.2s;
 
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
+      &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
       &.today {
         border-color: var(--primary-color);
@@ -292,11 +677,7 @@
           letter-spacing: 0.5px;
         }
 
-        .day-date {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--text-color);
-        }
+        .day-date { font-size: 1.5rem; font-weight: 700; color: var(--text-color); }
       }
 
       .day-content {
@@ -319,7 +700,7 @@
 
           &:hover {
             border-color: var(--primary-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transform: translateX(2px);
           }
 
@@ -330,10 +711,7 @@
             color: var(--primary-color);
             font-size: 0.875rem;
             font-weight: 600;
-
-            i {
-              font-size: 1rem;
-            }
+            i { font-size: 1rem; }
           }
 
           .class-main {
@@ -356,24 +734,13 @@
 
             .class-info {
               flex: 1;
-              min-width: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 0.1rem;
 
-              .class-name {
-                display: block;
-                font-weight: 600;
-                color: var(--text-color);
-                font-size: 0.875rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-
-              .class-value {
-                display: block;
-                font-size: 0.75rem;
-                color: var(--text-color-secondary);
-                margin-top: 0.25rem;
-              }
+              .class-name { font-size: 0.875rem; font-weight: 600; color: var(--text-color); }
+              .class-prof { font-size: 0.75rem; color: var(--text-color-secondary); }
+              .class-value { font-size: 0.75rem; color: var(--text-color-secondary); margin-top: 0.15rem; }
             }
           }
         }
@@ -388,14 +755,8 @@
           color: var(--text-color-secondary);
           text-align: center;
 
-          i {
-            font-size: 2rem;
-            opacity: 0.5;
-          }
-
-          span {
-            font-size: 0.875rem;
-          }
+          i { font-size: 2rem; opacity: 0.5; }
+          span { font-size: 0.875rem; }
         }
       }
     }
@@ -442,22 +803,15 @@
             font-weight: 600;
             font-size: 1rem;
             padding-top: 1rem;
-
-            i {
-              font-size: 1.25rem;
-            }
+            i { font-size: 1.25rem; }
           }
 
           .timeline-content {
             .patient-detail-card {
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+              box-shadow: 0 2px 8px rgba(0,0,0,0.08);
               border: 1px solid var(--surface-border);
               transition: all 0.2s;
-
-              &:hover {
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-                transform: translateY(-2px);
-              }
+              &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
 
               .patient-card-content {
                 .patient-header {
@@ -481,24 +835,14 @@
 
                   .patient-info {
                     flex: 1;
-
-                    h4 {
-                      margin: 0 0 0.5rem 0;
-                      font-size: 1.125rem;
-                      font-weight: 600;
-                      color: var(--text-color);
-                    }
-
+                    h4 { margin: 0 0 0.5rem 0; font-size: 1.125rem; font-weight: 600; color: var(--text-color); }
                     .patient-meta {
                       display: flex;
                       align-items: center;
                       gap: 0.5rem;
                       color: var(--text-color-secondary);
                       font-size: 0.875rem;
-
-                      i {
-                        font-size: 1rem;
-                      }
+                      i { font-size: 1rem; }
                     }
                   }
                 }
@@ -529,10 +873,7 @@
                       font-size: 1rem;
                       font-weight: 700;
                       color: var(--text-color);
-
-                      &.success {
-                        color: var(--green-600);
-                      }
+                      &.success { color: var(--green-600); }
                     }
                   }
                 }
@@ -551,35 +892,9 @@
         text-align: center;
         color: var(--text-color-secondary);
 
-        i {
-          font-size: 4rem;
-          opacity: 0.3;
-          margin-bottom: 1rem;
-        }
-
-        h3 {
-          margin: 0 0 0.5rem 0;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: var(--text-color);
-        }
-
-        p {
-          margin: 0;
-          font-size: 0.875rem;
-        }
-
-        &.small {
-          padding: 2rem;
-
-          i {
-            font-size: 2rem;
-          }
-
-          h3 {
-            font-size: 1rem;
-          }
-        }
+        i { font-size: 4rem; opacity: 0.3; margin-bottom: 1rem; }
+        h3 { margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: var(--text-color); }
+        p { margin: 0; font-size: 0.875rem; }
       }
     }
   }
@@ -592,33 +907,21 @@
   .calendar-container {
     padding: 1rem;
 
-    .calendar-header {
-      h1 {
-        font-size: 1.5rem;
+    .calendar-header h1 { font-size: 1.5rem; }
+
+    .gestor-overview {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .profissionais-grid { grid-template-columns: 1fr; }
+      .week-table-card .week-distribution-table {
+        .wdt-header, .wdt-row { grid-template-columns: 160px repeat(6, 1fr) 60px; }
       }
     }
 
-    .week-view {
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    }
+    .week-view { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 
-    .month-view-google {
-      .month-grid {
-        .month-day-cell {
-          min-height: 100px;
-
-          .day-events {
-            .event-item {
-              font-size: 0.7rem;
-
-              .event-time {
-                font-size: 0.65rem;
-                min-width: 30px;
-              }
-            }
-          }
-        }
-      }
+    .month-view-google .month-grid .month-day-cell {
+      min-height: 100px;
+      .day-events .event-item { font-size: 0.7rem; .event-time { font-size: 0.65rem; min-width: 30px; } }
     }
   }
 }
@@ -628,60 +931,35 @@
     .calendar-toolbar {
       flex-direction: column;
       align-items: stretch;
+      .toolbar-left, .toolbar-right { width: 100%; justify-content: center; }
+    }
 
-      .toolbar-left,
-      .toolbar-right {
-        width: 100%;
-        justify-content: center;
+    .gestor-overview {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .week-table-card .week-distribution-table {
+        .wdt-header, .wdt-row { grid-template-columns: 120px repeat(6, 1fr) 50px; }
+        .wdt-cell.wdt-prof-col .wdt-prof-name .wdt-avatar { display: none; }
       }
     }
 
-    .week-view {
+    .week-view { grid-template-columns: 1fr; }
+
+    .day-view .day-detail .patients-timeline .timeline-item {
       grid-template-columns: 1fr;
-    }
-
-    .day-view {
-      .day-detail {
-        .patients-timeline {
-          .timeline-item {
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-
-            .timeline-time {
-              padding-top: 0;
-            }
-          }
-        }
-      }
+      gap: 0.5rem;
+      .timeline-time { padding-top: 0; }
     }
 
     .month-view-google {
-      .month-header {
-        .month-weekday {
-          padding: 0.5rem;
-          font-size: 0.75rem;
-        }
-      }
-
-      .month-grid {
-        .month-day-cell {
-          min-height: 80px;
-          padding: 0.25rem;
-
-          .day-number {
-            font-size: 0.75rem;
-          }
-
-          .day-events {
-            .event-item {
-              padding: 0.2rem 0.4rem;
-              font-size: 0.65rem;
-
-              .event-time {
-                display: none; // Esconder horário em mobile para economizar espaço
-              }
-            }
-          }
+      .month-header .month-weekday { padding: 0.5rem; font-size: 0.75rem; }
+      .month-grid .month-day-cell {
+        min-height: 80px;
+        padding: 0.25rem;
+        .day-number { font-size: 0.75rem; }
+        .day-events .event-item {
+          padding: 0.2rem 0.4rem;
+          font-size: 0.65rem;
+          .event-time { display: none; }
         }
       }
     }
@@ -693,27 +971,18 @@
     .calendar-header {
       flex-direction: column;
       align-items: stretch;
-
-      .header-left,
-      .header-filters {
-        width: 100%;
-      }
+      .header-left, .header-filters { width: 100%; }
     }
 
-    .month-view-google {
-      .month-grid {
-        .month-day-cell {
-          min-height: 60px;
+    .gestor-overview {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-card { padding: 1rem; gap: 0.75rem; .kpi-value { font-size: 1.3rem; } }
+      .week-table-card { display: none; } // esconde tabela em mobile muito pequeno
+    }
 
-          .day-events {
-            .event-item {
-              .event-name {
-                display: none; // Mostrar apenas bolinhas coloridas em telas muito pequenas
-              }
-            }
-          }
-        }
-      }
+    .month-view-google .month-grid .month-day-cell {
+      min-height: 60px;
+      .day-events .event-item .event-name { display: none; }
     }
   }
 }

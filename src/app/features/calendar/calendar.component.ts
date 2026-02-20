@@ -7,6 +7,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { BadgeModule } from 'primeng/badge';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { DividerModule } from 'primeng/divider';
 import { PatientService } from '../../core/services/patient.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
@@ -16,10 +18,24 @@ interface CalendarEvent { date: Date; patients: PatientWithTime[]; dayOfWeek: st
 interface MonthDay { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; }
 interface PatientWithTime extends Patient { displayTime?: string; }
 
+interface ProfessionalSummary {
+  id: number;
+  nome: string;
+  totalAlunos: number;
+  totalAulas: number; // aulas na semana atual
+  receitaBruta: number;
+  receitaLiquida: number;
+  diasAtivos: string[];
+  patients: PatientWithTime[];
+}
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, RouterLink, CardModule, ButtonModule, DatePickerModule, SelectModule, BadgeModule, TagModule, FormsModule],
+  imports: [
+    CommonModule, RouterLink, CardModule, ButtonModule, DatePickerModule,
+    SelectModule, BadgeModule, TagModule, FormsModule, TooltipModule, DividerModule
+  ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
@@ -31,6 +47,10 @@ export class CalendarComponent implements OnInit {
   patients = signal<Patient[]>([]);
   calendarEvents = signal<CalendarEvent[]>([]);
   monthDays = signal<MonthDay[]>([]);
+
+  // Gestor: visão por profissional
+  gestorViewMode = signal<'overview' | 'detail'>('overview');
+  profissionalStats = signal<ProfessionalSummary[]>([]);
 
   professionalsOptions = computed(() => [
     { label: 'Todos', value: null },
@@ -53,18 +73,129 @@ export class CalendarComponent implements OnInit {
     { key: 'dom', label: 'Domingo', full: 'Domingo', short: 'Dom' }
   ];
 
-  constructor(private patientService: PatientService, private authService: AuthService) {}
+  constructor(private patientService: PatientService, public authService: AuthService) {}
 
   ngOnInit(): void {
     this.patientService.loadPatients();
+    this.authService.loadProfessionals();
     this.patientService.getPatients().subscribe({
       next: (patients) => {
         this.patients.set(patients);
         this.generateCalendarEvents();
+        if (this.authService.isGestor()) this.computeProfissionalStats();
       },
       error: (err) => console.error('Erro ao carregar pacientes:', err)
     });
   }
+
+  // ─────────────────────────────────────────────
+  // GESTOR: STATS POR PROFISSIONAL
+  // ─────────────────────────────────────────────
+
+  computeProfissionalStats(): void {
+    const professionals = this.authService.professionals();
+    const allPatients = this.patients();
+    const weekDays = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+
+    const stats: ProfessionalSummary[] = professionals.map(prof => {
+      const profPatients = allPatients.filter(p => p.profissional_id === Number(prof.id));
+      const activePatients = profPatients.filter(p => this.isPatientCurrentlyActive(p));
+
+      const totalAulas = weekDays.reduce((sum, day) => {
+        return sum + activePatients.filter(p => p.dias.includes(day)).length;
+      }, 0);
+
+      const diasAtivos = weekDays.filter(day =>
+        activePatients.some(p => p.dias.includes(day))
+      );
+
+      const receitaBruta = activePatients.reduce((s, p) => s + (p.valor || 0), 0);
+      const receitaLiquida = activePatients.reduce((s, p) => s + (p.ganho || 0), 0);
+
+      const patientsWithTime: PatientWithTime[] = activePatients.map(p => ({
+        ...p,
+        displayTime: p.horarios?.['seg'] || ''
+      }));
+
+      return {
+        id: Number(prof.id),
+        nome: prof.nome,
+        totalAlunos: activePatients.length,
+        totalAulas,
+        receitaBruta,
+        receitaLiquida,
+        diasAtivos,
+        patients: patientsWithTime
+      };
+    });
+
+    this.profissionalStats.set(stats.sort((a, b) => b.totalAulas - a.totalAulas));
+  }
+
+  isPatientCurrentlyActive(p: Patient): boolean {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const inicio = new Date(p.data_inicio); inicio.setHours(0, 0, 0, 0);
+    if (inicio > today) return false;
+    if (p.data_fim) {
+      const fim = new Date(p.data_fim); fim.setHours(0, 0, 0, 0);
+      if (fim < today) return false;
+    }
+    return true;
+  }
+
+  // Totais consolidados para cards do gestor
+  totalAlunosGeral = computed(() => {
+    return this.patients().filter(p => this.isPatientCurrentlyActive(p)).length;
+  });
+
+  totalAulasSemanais = computed(() => {
+    return this.profissionalStats().reduce((s, p) => s + p.totalAulas, 0);
+  });
+
+  receitaBrutaGeral = computed(() => {
+    return this.profissionalStats().reduce((s, p) => s + p.receitaBruta, 0);
+  });
+
+  receitaLiquidaGeral = computed(() => {
+    return this.profissionalStats().reduce((s, p) => s + p.receitaLiquida, 0);
+  });
+
+  getOcupacaoPercent(prof: ProfessionalSummary): number {
+    // Considera máximo 30 aulas/semana como 100%
+    return Math.min(Math.round((prof.totalAulas / 30) * 100), 100);
+  }
+
+  getOcupacaoSeverity(pct: number): string {
+    if (pct >= 80) return 'success';
+    if (pct >= 40) return 'warning';
+    return 'danger';
+  }
+
+  getPatientsForProfissionalOnDay(profId: number, dayKey: string): PatientWithTime[] {
+    return this.getPatientsForDayWithTime(dayKey).filter(p => p.profissional_id === Number(profId));
+  }
+
+  drillDownProfissional(profId: number): void {
+    this.selectedProfessional.set(profId);
+    this.gestorViewMode.set('detail');
+    this.generateCalendarEvents();
+  }
+
+  backToOverview(): void {
+    this.selectedProfessional.set(null);
+    this.gestorViewMode.set('overview');
+    this.generateCalendarEvents();
+  }
+
+  getSelectedProfNome(): string {
+    const id = this.selectedProfessional();
+    if (!id) return '';
+    return this.profissionalStats().find(p => Number(p.id) === id)?.nome ?? '';
+  }
+
+  // ─────────────────────────────────────────────
+  // CALENDAR EVENTS
+  // ─────────────────────────────────────────────
 
   generateCalendarEvents(): void {
     if (this.viewMode() === 'month') this.generateMonthView();
