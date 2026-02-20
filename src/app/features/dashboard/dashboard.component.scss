@@ -46,7 +46,7 @@
 // ══════════════════════════════════════
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
@@ -592,34 +592,118 @@
 // ══════════════════════════════════════
 // RESPONSIVIDADE
 // ══════════════════════════════════════
+
+// ── Tablet largo (≤1280px) ──
 @media (max-width: 1280px) {
   .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-  .row-2 { grid-template-columns: 1fr 1fr; }
+  .row-2    { grid-template-columns: 1fr 1fr; }
   .freq-card { grid-column: 1 / -1; }
-  .prof-table-card {
-    .prof-table-header,
-    .prof-table-row { grid-template-columns: 180px 70px 80px 100px 100px 110px 80px 110px; }
-  }
-}
 
-@media (max-width: 1024px) {
-  .row-2 { grid-template-columns: 1fr 1fr; }
   .prof-table-card {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     .prof-table-header,
-    .prof-table-row { min-width: 800px; }
+    .prof-table-row {
+      grid-template-columns: 180px 70px 80px 100px 100px 110px 80px 110px;
+      min-width: 830px;
+    }
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-container { padding: 1rem; gap: 1.25rem; }
-  .dashboard-header h1 { font-size: 1.5rem; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .row-2 { grid-template-columns: 1fr; }
+// ── Tablet (≤1024px) ──
+@media (max-width: 1024px) {
+  .row-2 { grid-template-columns: 1fr 1fr; }
 }
 
+// ── Mobile largo (≤768px) ──
+@media (max-width: 768px) {
+  .dashboard-container { padding: 1rem; gap: 1.25rem; }
+
+  .dashboard-header {
+    h1 { font-size: 1.5rem; }
+    .subtitle { font-size: 0.82rem; flex-wrap: wrap; }
+  }
+
+  // KPIs: 2 colunas, ícone menor, valor sem nowrap
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .kpi-card {
+    padding: 1rem;
+    gap: 0.75rem;
+    .kpi-icon { width: 40px; height: 40px; border-radius: 10px; i { font-size: 1.1rem; } }
+    .kpi-label { font-size: 0.68rem; }
+    .kpi-value { font-size: 1.25rem; white-space: normal; word-break: break-word; }
+    .kpi-sub   { font-size: 0.7rem; }
+  }
+
+  // Linha 2: empilha em coluna única
+  .row-2 { grid-template-columns: 1fr; }
+  .freq-card { grid-column: auto; } // cancela o span que foi definido em 1280
+
+  // Barras: altura menor empilhadas
+  .week-dist-card .week-bars { height: 140px; padding-bottom: 2rem; }
+
+  // Tabela de profissionais: scroll horizontal bem definido
+  .prof-table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    // hint visual de scroll
+    background:
+      linear-gradient(to right, white 20%, rgba(255,255,255,0)),
+      linear-gradient(to left,  white 20%, rgba(255,255,255,0)) 100% 0,
+      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.08), transparent),
+      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.08), transparent) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 12px 100%, 12px 100%;
+    background-attachment: local, local, scroll, scroll;
+
+    .prof-table-header,
+    .prof-table-row {
+      grid-template-columns: 160px 65px 80px 95px 95px 100px 80px 100px;
+      min-width: 775px;
+    }
+  }
+
+  // Ações rápidas: 2 colunas compactas
+  .quick-actions-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .action-btn {
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+    .action-icon { width: 38px; height: 38px; font-size: 1rem; }
+    .action-text strong { font-size: 0.82rem; }
+    .action-text span   { font-size: 0.72rem; }
+    > i:last-child { display: none; } // remove seta em mobile, economiza espaço
+  }
+}
+
+// ── Mobile pequeno (≤480px) ──
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .kpi-value { font-size: 1.25rem !important; }
-  .quick-actions-grid { grid-template-columns: 1fr 1fr; }
+  .dashboard-container { padding: 0.75rem; gap: 1rem; }
+
+  // KPIs: ainda 2 colunas mas mais compactos
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .kpi-card {
+    padding: 0.875rem 0.75rem;
+    gap: 0.6rem;
+    .kpi-icon { width: 36px; height: 36px; i { font-size: 1rem; } }
+    .kpi-value { font-size: 1.1rem; }
+    .kpi-sub   { display: none; } // remove subtítulo para economizar altura
+  }
+
+  // Agenda de hoje: grid mais simples
+  .today-card .today-item {
+    grid-template-columns: 44px 32px 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  .today-card .today-avatar { width: 32px; height: 32px; font-size: 0.68rem; }
+  .today-card .today-time   { font-size: 0.82rem; }
+  .today-card .today-name   { font-size: 0.8rem; }
+  .today-card .today-prof   { display: none; } // remove profissional em tela muito pequena
+
+  // Ações rápidas: 1 coluna
+  .quick-actions-grid { grid-template-columns: 1fr; }
+  .action-btn > i:last-child { display: block; } // restaura seta em 1 coluna
+
+  // Section title: empilha
+  .section-title { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
