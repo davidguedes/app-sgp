@@ -1,0 +1,193 @@
+<div class="professionals-container">
+  <p-toast />
+  <p-confirmDialog />
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Profissionais</h2>
+      <p class="header-subtitle">Gerencie os profissionais do estúdio</p>
+    </div>
+    <p-button
+      label="Novo Profissional"
+      icon="pi pi-plus"
+      (onClick)="openCreate()">
+    </p-button>
+  </div>
+
+  <!-- BUSCA + CONTADOR -->
+  <div class="toolbar">
+    <div class="search-wrapper">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por nome ou e-mail..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        class="search-input"
+      />
+    </div>
+    <span class="results-count">
+      {{ filtered().length }} profissional{{ filtered().length !== 1 ? 'is' : '' }}
+    </span>
+  </div>
+
+  <!-- LOADING -->
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Carregando profissionais...</span>
+    </div>
+  }
+
+  <!-- EMPTY STATE -->
+  @if (!loading() && filtered().length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-users"></i>
+      <h3>Nenhum profissional encontrado</h3>
+      <p>{{ searchQuery() ? 'Tente outro termo de busca.' : 'Cadastre o primeiro profissional do estúdio.' }}</p>
+      @if (!searchQuery()) {
+        <p-button label="Cadastrar Profissional" icon="pi pi-plus" (onClick)="openCreate()" />
+      }
+    </div>
+  }
+
+  <!-- GRID DE CARDS -->
+  @if (!loading() && filtered().length > 0) {
+    <div class="professionals-grid">
+      @for (pro of filtered(); track pro.id) {
+        <div class="professional-card">
+
+          <!-- Cabeçalho do card -->
+          <div class="card-header">
+            <div
+              class="pro-avatar"
+              [style.background]="getAvatarColor(pro.nome)">
+              {{ getInitials(pro.nome) }}
+            </div>
+            <div class="pro-info">
+              <h3 class="pro-name">{{ pro.nome }}</h3>
+              <span class="pro-email">
+                <i class="pi pi-envelope"></i>
+                {{ pro.email }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="card-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ pro.total_alunos }}</span>
+              <span class="stat-label">Aluno{{ pro.total_alunos !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-value">{{ pro.ganho_total | currency:'BRL':'symbol':'1.0-0' }}</span>
+              <span class="stat-label">Ganho Total</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-value">{{ pro.created_at | date:'MM/yy' }}</span>
+              <span class="stat-label">Desde</span>
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="card-actions">
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              [text]="true"
+              size="small"
+              (onClick)="openEdit(pro)">
+            </p-button>
+            <p-button
+              label="Excluir"
+              icon="pi pi-trash"
+              [text]="true"
+              severity="danger"
+              size="small"
+              (onClick)="confirmDelete(pro)">
+            </p-button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- DIALOG: CRIAR / EDITAR -->
+  <p-dialog
+    [header]="isEditMode() ? 'Editar Profissional' : 'Novo Profissional'"
+    [visible]="showDialog()"
+    (visibleChange)="showDialog.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="professional-dialog"
+    [style]="{ width: '480px' }">
+
+    <div class="dialog-body">
+
+      <div class="dialog-form-group">
+        <label for="d-nome">Nome *</label>
+        <input
+          pInputText
+          id="d-nome"
+          type="text"
+          [(ngModel)]="formData.nome"
+          placeholder="Nome completo"
+          class="w-full"
+        />
+      </div>
+
+      <div class="dialog-form-group">
+        <label for="d-email">E-mail *</label>
+        <input
+          pInputText
+          id="d-email"
+          type="email"
+          [(ngModel)]="formData.email"
+          placeholder="email@exemplo.com"
+          class="w-full"
+        />
+      </div>
+
+      <div class="dialog-form-group">
+        <label for="d-senha">
+          Senha {{ isEditMode() ? '(deixe em branco para manter)' : '*' }}
+        </label>
+        <p-password
+          inputId="d-senha"
+          [(ngModel)]="formData.senha"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="••••••••"
+          styleClass="w-full">
+        </p-password>
+      </div>
+
+      @if (isEditMode()) {
+        <div class="dialog-info-tip">
+          <i class="pi pi-info-circle"></i>
+          Deixe a senha em branco para não alterá-la.
+        </div>
+      }
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="closeDialog()">
+      </p-button>
+      <p-button
+        [label]="isEditMode() ? 'Salvar Alterações' : 'Cadastrar'"
+        icon="pi pi-check"
+        [loading]="saving()"
+        (onClick)="save()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+</div>

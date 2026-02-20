@@ -34,11 +34,11 @@ export class App implements OnInit {
       icon: 'pi pi-home',
       routerLink: '/dashboard'
     },
-    // {
-    //   label: 'Profissionais',
-    //   icon: 'pi pi-id-card',
-    //   routerLink: '/professionals'
-    // },
+    {
+      label: 'Profissionais',
+      icon: 'pi pi-id-card',
+      routerLink: '/professionals'
+    },
     {
       label: 'Alunos',
       icon: 'pi pi-users',

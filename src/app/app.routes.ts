@@ -25,24 +25,7 @@ export const routes: Routes = [
       {
         path: 'professionals',
         title: 'SGP - Profissionais',
-        children: [
-          // {
-          //   path: '',
-          //   loadComponent: () => import('./features/patients/patient-list/patient-list.component').then(m => m.PatientListComponent)
-          // },
-          // {
-          //   path: 'new',
-          //   loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent)
-          // },
-          // {
-          //   path: ':id',
-          //   loadComponent: () => import('./features/patients/patient-details/patient-details.component').then(m => m.PatientDetailsComponent)
-          // },
-          // {
-          //   path: ':id/edit',
-          //   loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent)
-          // }
-        ]
+        loadComponent: () => import('./features/professionals/professionals-list/patient-list/professional-list.component').then(m => m.ProfessionalsListComponent)
       },
       {
         path: 'patients',
