@@ -139,7 +139,7 @@
                   type="doughnut"
                   [data]="profChartData()"
                   [options]="profChartOpts"
-                  [style]="{ width:'100%', height:'220px' }">
+                  styleClass="chart-canvas">
                 </p-chart>
               }
             </div>
@@ -159,7 +159,7 @@
                 type="bar"
                 [data]="dayChartData()"
                 [options]="dayChartOpts"
-                [style]="{ width:'100%', height:'220px' }">
+                styleClass="chart-canvas">
               </p-chart>
             </div>
           </p-card>
@@ -217,7 +217,7 @@
               type="bar"
               [data]="dayChartData()"
               [options]="dayChartOpts"
-              [style]="{ width:'100%', height:'200px' }">
+              styleClass="chart-canvas">
             </p-chart>
           </div>
         </p-card>

@@ -1,0 +1,22 @@
+@if (pwaUpdate.updateAvailable()) {
+  <div class="update-banner" role="alert" aria-live="polite">
+    <div class="update-content">
+      <div class="update-icon">
+        <i class="pi pi-refresh"></i>
+      </div>
+      <div class="update-text">
+        <strong>Nova versão disponível</strong>
+        <span>Atualize para ter as últimas melhorias</span>
+      </div>
+    </div>
+    <div class="update-actions">
+      <button class="btn-update" (click)="pwaUpdate.applyUpdate()">
+        <i class="pi pi-check"></i>
+        Atualizar agora
+      </button>
+      <button class="btn-dismiss" (click)="pwaUpdate.dismiss()" aria-label="Dispensar">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </div>
+}

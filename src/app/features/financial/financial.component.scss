@@ -297,6 +297,7 @@
 
 .pro-charts-grid {
   grid-template-columns: 2fr 1fr;
+  align-items: start;
 }
 
 .card-header-inner {
@@ -327,6 +328,22 @@
 
 .chart-area {
   padding: 1rem 1.5rem 1.5rem;
+
+  // Garante que o canvas do Chart.js respeite o container em qualquer tamanho
+  ::ng-deep canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  // Classe aplicada via styleClass nos p-chart — controla altura pelo CSS
+  ::ng-deep .chart-canvas {
+    display: block;
+    width: 100%;
+
+    canvas {
+      height: 220px !important;
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -609,12 +626,48 @@
     thead th, tbody td { padding: 10px 8px; }
   }
 
+  // Grids de charts: sempre coluna única em mobile
+  .gestor-charts-grid,
   .pro-charts-grid {
     grid-template-columns: 1fr;
+    margin-bottom: 1.5rem;
+  }
+
+  // Breakdown compacto vira grid horizontal em mobile (fica abaixo do chart)
+  .day-breakdown-compact {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+
+    .dbc-item {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 10px 6px;
+      gap: 4px;
+
+      .dbc-day   { width: auto; }
+      .dbc-liquid { text-align: center; font-size: 0.78rem; }
+    }
+  }
+
+  // Reduz padding lateral do chart para ganhar espaço
+  .chart-area {
+    padding: 0.75rem 0.75rem 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .fin-grid.cols-4,
   .fin-grid.cols-3 { grid-template-columns: 1fr; }
+
+  // Breakdown em 2 colunas no menor breakpoint
+  .day-breakdown-compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // Altura menor para charts em telas pequenas — evita canvas muito alto
+  .chart-area ::ng-deep .chart-canvas canvas {
+    height: 180px !important;
+  }
 }
