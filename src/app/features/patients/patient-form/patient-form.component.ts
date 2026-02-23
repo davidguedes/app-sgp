@@ -1,4 +1,3 @@
-// src/app/features/patients/patient-form/patient-form.component.ts
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -240,6 +239,7 @@ export class PatientFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+
     const data: PatientFormData = this.formData;
 
     if (!data.nome.trim()) {

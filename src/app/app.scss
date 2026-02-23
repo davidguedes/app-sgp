@@ -368,3 +368,9 @@ html, body {
     display: none;
   }
 }
+
+:host ::ng-deep {
+  .p-toast {
+    max-width: calc(100vw - 40px);
+  }
+}

@@ -1,4 +1,3 @@
-<!-- src/app/features/patients/patient-details/patient-details.component.html -->
 <div class="patient-details-container">
   <p-toast />
   <p-confirmDialog />
@@ -431,7 +430,9 @@
       <p-button
         label="Salvar"
         icon="pi pi-check"
-        (onClick)="saveAttendance()">
+        (onClick)="saveAttendance()"
+        [loading]="loading()"
+        >
       </p-button>
     </ng-template>
   </p-dialog>
@@ -553,7 +554,9 @@
       <p-button
         label="Salvar"
         icon="pi pi-check"
-        (onClick)="saveEvolution()">
+        (onClick)="saveEvolution()"
+        [loading]="loading()"
+        >
       </p-button>
     </ng-template>
   </p-dialog>

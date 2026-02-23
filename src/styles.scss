@@ -104,10 +104,3 @@ body {
   outline: 2px solid var(--sage);
   outline-offset: 2px;
 }
-
-
-:host ::ng-deep {
-  .p-toast {
-    max-width: calc(100vw - 40px);
-  }
-}
