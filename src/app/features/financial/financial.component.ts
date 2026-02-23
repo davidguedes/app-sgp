@@ -75,6 +75,14 @@ export class FinancialComponent implements OnInit {
     if (this.isGestor() && this.selectedProfessional()) {
       list = list.filter(p => p.profissional_id === this.selectedProfessional());
     }
+    list = list.filter(p => {
+      if(p.data_fim) {
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        const fim = new Date(p.data_fim); fim.setHours(0, 0, 0, 0);
+        if (fim < hoje) return false;
+      }
+      return true;
+    })
     return list;
   });
 
