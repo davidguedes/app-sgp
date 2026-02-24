@@ -69,6 +69,20 @@
     font-weight: 700;
     color: white;
   }
+
+  .badge-exp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.5rem;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #991b1b;
+    i { font-size: 0.7rem; }
+  }
 }
 
 .days-pills {

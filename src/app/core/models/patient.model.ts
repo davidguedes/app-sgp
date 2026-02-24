@@ -1,26 +1,29 @@
 import { Attendance } from './attendance.model';
 import { Evolution } from './evolution.model';
 
+// Usado na listagem — sem dados aninhados
 export interface Patient {
   id: string;
   nome: string;
   profissional_id: number;
   profissional_nome: string;
+  tipo: 'fixo' | 'experimental';
   dias: string[];
   horarios?: { [key: string]: string };
   valor: number;
   porcentagem: number;
   base: number;
   ganho: number;
-  ganho_fixo?: number | null;   // valor fixo — quando preenchido, sobrescreve o cálculo por %
+  ganho_fixo?: number | null;
   data_inicio: Date;
   data_fim?: Date;
-  total_attendance?: number;
-  total_evolutions?: number;
+  total_attendance?: number;  // contagem vinda do backend
+  total_evolutions?: number;  // contagem vinda do backend
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+// Usado na tela de detalhes — carregado sob demanda
 export interface PatientDetail extends Patient {
   attendance: Attendance[];
   evolutions: Evolution[];
@@ -44,11 +47,12 @@ export interface PatientsHttpResponse {
 export interface PatientFormData {
   nome: string;
   profissional: number;
+  tipo: 'fixo' | 'experimental';
   dias: string[];
   horarios?: { [key: string]: string };
   valor: number;
   porcentagem: number;
-  ganho_fixo?: number | null;   // null = usar cálculo por %; número = valor fixo manual
+  ganho_fixo?: number | null;
   data_inicio: Date;
   data_fim?: Date;
 }

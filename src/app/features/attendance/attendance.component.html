@@ -152,7 +152,12 @@
               </div>
               
               <div class="patient-details">
-                <h4>{{ patient.nome }}</h4>
+                <div class="patient-name-row">
+                  <h4>{{ patient.nome }}</h4>
+                  @if(patient.tipo === 'experimental') {
+                    <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
+                  }
+                </div>
                 <div class="patient-meta">
                   @if(isGestor()) { 
                     <span>

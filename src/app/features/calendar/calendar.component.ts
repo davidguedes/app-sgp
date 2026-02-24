@@ -22,6 +22,7 @@ interface MonthDay       { date: Date; isCurrentMonth: boolean; isToday: boolean
 interface PatientWithTime extends Patient {
   displayTime?: string;
   isNew?: boolean;                // iniciou nos últimos 7 dias
+  isExp?: boolean;                // é aluno experimental
   lastAttendanceStatus?: 'present' | 'absent' | 'makeup' | null;
   makeupPending?: boolean;        // tem falta sem reposição registrada
 }
@@ -161,6 +162,7 @@ export class CalendarComponent implements OnInit {
       ...p,
       displayTime: p.horarios?.[dayKey] || '',
       isNew: inicio >= sevenDaysAgo,
+      isExp: p.tipo === 'experimental',
       lastAttendanceStatus,
       makeupPending
     };

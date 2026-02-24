@@ -270,7 +270,7 @@
                 <div class="day-number">{{ day.date.getDate() }}</div>
                 <div class="day-events">
                   @for (patient of day.patients.slice(0, 3); track patient.id) {
-                    <div class="event-item" [style.background]="getAvatarColor(patient.nome)"
+                    <div class="event-item" [ngClass]="patient.tipo === 'experimental' ? 'event-item-experimental' : ''" [style.background]="getAvatarColor(patient.nome)"
                       [routerLink]="['/patients', patient.id]" (click)="$event.stopPropagation()">
                       <span class="event-time">{{ patient.displayTime }}</span>
                       <span class="event-name">{{ patient.nome }}</span>
@@ -326,6 +326,9 @@
                           }
                           @if (patient.makeupPending) {
                             <span class="badge-makeup" pTooltip="Reposição pendente"><i class="pi pi-replay"></i></span>
+                          }
+                          @if(patient.isExp) {
+                            <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i></span>
                           }
                         </div>
 
@@ -400,6 +403,9 @@
                                 <h4>{{ patient.nome }}</h4>
                                 @if (patient.isNew) {
                                   <span class="badge-new">NOVO</span>
+                                }
+                                @if(patient.isExp) {
+                                  <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
                                 }
                                 @if (patient.makeupPending) {
                                   <span class="badge-makeup" pTooltip="Reposição pendente">

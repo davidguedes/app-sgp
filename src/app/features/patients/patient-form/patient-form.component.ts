@@ -56,6 +56,7 @@ export class PatientFormComponent implements OnInit {
   formData: PatientFormData = {
     nome: '',
     profissional: 0,
+    tipo: 'fixo',
     dias: [],
     horarios: {},
     valor: 0,
@@ -109,6 +110,9 @@ export class PatientFormComponent implements OnInit {
   isGestor = signal(false);
   profissionalNome = signal('');
 
+  /** Controla se a seção financeira está visível (false = experimental) */
+  get isExperimental(): boolean { return this.formData.tipo === 'experimental'; }
+
   calculatedValues = signal<{ ganho: number }>({ ganho: 0 });
 
   constructor(
@@ -150,6 +154,7 @@ export class PatientFormComponent implements OnInit {
           this.formData = {
             nome: patient.nome,
             profissional: patient.profissional_id,
+            tipo: patient.tipo || 'fixo',
             dias: [...patient.dias],
             horarios: { ...patient.horarios },
             valor: patient.valor,
@@ -221,6 +226,10 @@ export class PatientFormComponent implements OnInit {
     }
 
     this.calculatedValues.set({ ganho });
+
+    if (this.isExperimental) {
+      this.formData.data_fim = this.formData.data_inicio;
+    }
   }
 
   onValorChange(value: number): void {
@@ -257,21 +266,22 @@ export class PatientFormComponent implements OnInit {
       return;
     }
 
-    if (data.valor <= 0) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe um valor válido' });
-      return;
-    }
+    // Validações financeiras só se não for experimental
+    if (data.tipo !== 'experimental') {
+      if (data.valor <= 0) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe um valor válido' });
+        return;
+      }
 
-    // Valida porcentagem apenas se não estiver usando ganho fixo
-    if (!this.usarGanhoFixo && (data.porcentagem <= 0 || data.porcentagem > 100)) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe uma porcentagem válida (1-100)' });
-      return;
-    }
+      if (!this.usarGanhoFixo && (data.porcentagem <= 0 || data.porcentagem > 100)) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe uma porcentagem válida (1-100)' });
+        return;
+      }
 
-    // Valida ganho fixo se estiver usando
-    if (this.usarGanhoFixo && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor fixo de ganho' });
-      return;
+      if (this.usarGanhoFixo && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor fixo de ganho' });
+        return;
+      }
     }
 
     if (!data.data_inicio) {
@@ -312,6 +322,21 @@ export class PatientFormComponent implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar o aluno' });
         this.loading.set(false);
       }
+    });
+  }
+
+  /** Converte experimental → fixo inline, sem trocar de rota */
+  converterParaFixo(): void {
+    this.formData.tipo  = 'fixo';
+    this.formData.valor = 0;
+    this.formData.porcentagem = 0;
+    this.formData.ganho_fixo  = null;
+    this.usarGanhoFixo = false;
+    this.calculateValues();
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Modo alterado',
+      detail: 'Preencha os dados financeiros e salve para confirmar'
     });
   }
 

@@ -227,14 +227,34 @@
     flex: 1;
     min-width: 0;
     
-    h4 {
-      margin: 0;
-      font-size: 1rem;
-      color: var(--charcoal, #2c2c2c);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .patient-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--charcoal, #2c2c2c);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .badge-exp {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.1rem 0.5rem;
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #991b1b;
+        i { font-size: 0.7rem; }
+      }
     }
     
     .patient-meta {

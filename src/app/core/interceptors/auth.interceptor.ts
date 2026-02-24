@@ -8,7 +8,6 @@ export function httpAuthInterceptor(
   const TOKEN_KEY = 'pilates_token';
   const token = localStorage.getItem(TOKEN_KEY);
 
-  console.log('term token? ', token);
   if (!token) {
     return next(req);
   }

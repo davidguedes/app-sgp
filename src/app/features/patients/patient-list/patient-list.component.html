@@ -98,6 +98,9 @@
               {{ getInitials(patient.nome) }}
             </div>
             <span>{{ patient.nome }}</span>
+            @if(patient.tipo === 'experimental') {
+              <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
+             }
           </div>
         </td>
         

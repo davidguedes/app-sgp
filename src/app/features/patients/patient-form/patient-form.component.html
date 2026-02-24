@@ -59,6 +59,38 @@
               }
             </div>
           </div>
+
+            <!-- TIPO DE ALUNO -->
+            <div class="tipo-toggle">
+              <div class="tipo-toggle-label">
+                <i class="pi pi-tag"></i>
+                <span>Tipo de aula</span>
+              </div>
+              <div class="tipo-toggle-options">
+                <label class="tipo-option"
+                  [class.active]="formData.tipo === 'fixo'"
+                  [class.fixo]="formData.tipo === 'fixo'"
+                  (click)="formData.tipo = 'fixo'; calculateValues()">
+                  <input type="radio" name="tipoAluno" value="fixo" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                  <i class="pi pi-user-plus"></i>
+                  <span class="tipo-label-text">
+                    <strong>Aluno Fixo</strong>
+                    <small>Paga mensalidade, tem pacote definido</small>
+                  </span>
+                </label>
+                <label class="tipo-option"
+                  [class.active]="formData.tipo === 'experimental'"
+                  [class.experimental]="formData.tipo === 'experimental'"
+                  (click)="formData.tipo = 'experimental'; calculateValues()">
+                  <input type="radio" name="tipoAluno" value="experimental" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                  <i class="pi pi-star"></i>
+                  <span class="tipo-label-text">
+                    <strong>Aula Experimental</strong>
+                    <small>Gratuita, sem pacote ou pagamento</small>
+                  </span>
+                </label>
+              </div>
+            </div>
           
           <!-- PERÍODO DE AULAS -->
           <div class="form-section">
@@ -165,91 +197,115 @@
           
           <!-- VALORES -->
           <div class="form-section">
-            <h3 class="section-title">Valores e Pagamento</h3>
+            @if (isExperimental) {
 
-            <!-- Toggle: cálculo automático vs valor fixo -->
-            <div class="ganho-mode-toggle">
-              <div class="ganho-mode-label">
-                <i class="pi pi-percentage"></i>
-                <span>Modo de cálculo do ganho</span>
-              </div>
-              <div class="ganho-mode-options">
-                <label class="mode-option" [class.active]="!usarGanhoFixo" (click)="usarGanhoFixo = false; onToggleGanhoFixo()">
-                  <input type="radio" name="modoGanho" [value]="false" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
-                  <i class="pi pi-calculator"></i>
-                  Calcular por porcentagem
-                </label>
-                <label class="mode-option" [class.active]="usarGanhoFixo" (click)="usarGanhoFixo = true; onToggleGanhoFixo()">
-                  <input type="radio" name="modoGanho" [value]="true" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
-                  <i class="pi pi-lock"></i>
-                  Valor fixo acordado
-                </label>
-              </div>
-            </div>
-
-            <div class="input-row">
-              <div class="form-group">
-                <label for="valor">Valor do Pacote *</label>
-                <p-inputNumber
-                  inputId="valor"
-                  [(ngModel)]="formData.valor"
-                  name="valor"
-                  mode="currency"
-                  currency="BRL"
-                  locale="pt-BR"
-                  [minFractionDigits]="2"
-                  (onInput)="onValorChange($any($event.value))"
-                  styleClass="w-full">
-                </p-inputNumber>
-              </div>
-
-              <!-- Coluna direita: % OU valor fixo -->
-              @if (!usarGanhoFixo) {
-                <div class="form-group">
-                  <label for="porcentagem">Minha % de Ganho *</label>
-                  <p-inputNumber
-                    inputId="porcentagem"
-                    [(ngModel)]="formData.porcentagem"
-                    name="porcentagem"
-                    [min]="0"
-                    [max]="100"
-                    suffix="%"
-                    (onInput)="onPorcentagemChange($any($event.value))"
-                    styleClass="w-full">
-                  </p-inputNumber>
-                  <small class="field-hint">Ganho = (Valor × %) × 0,85</small>
+              <!-- Estado experimental: sem campos financeiros -->
+              <div class="experimental-banner">
+                <div class="exp-banner-icon">
+                  <i class="pi pi-star-fill"></i>
                 </div>
-              } @else {
+                <div class="exp-banner-body">
+                  <strong>Aula Experimental — sem custo</strong>
+                  <p>Este aluno não tem pacote nem pagamento associado. Após a aula, você pode convertê-lo para aluno fixo e definir os valores.</p>
+                </div>
+              </div>
+
+              @if (isEditMode()) {
+                <!-- Botão de conversão — aparece apenas na edição -->
+                <button type="button" class="btn-converter" (click)="converterParaFixo()">
+                  <i class="pi pi-arrow-right-arrow-left"></i>
+                  Converter para Aluno Fixo
+                </button>
+              }
+
+            } @else {
+
+              <h3 class="section-title">Valores e Pagamento</h3>
+
+              <!-- Toggle: cálculo automático vs valor fixo -->
+              <div class="ganho-mode-toggle">
+                <div class="ganho-mode-label">
+                  <i class="pi pi-percentage"></i>
+                  <span>Modo de cálculo do ganho</span>
+                </div>
+                <div class="ganho-mode-options">
+                  <label class="mode-option" [class.active]="!usarGanhoFixo" (click)="usarGanhoFixo = false; onToggleGanhoFixo()">
+                    <input type="radio" name="modoGanho" [value]="false" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                    <i class="pi pi-calculator"></i>
+                    Calcular por porcentagem
+                  </label>
+                  <label class="mode-option" [class.active]="usarGanhoFixo" (click)="usarGanhoFixo = true; onToggleGanhoFixo()">
+                    <input type="radio" name="modoGanho" [value]="true" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                    <i class="pi pi-lock"></i>
+                    Valor fixo acordado
+                  </label>
+                </div>
+              </div>
+
+              <div class="input-row">
                 <div class="form-group">
-                  <label for="ganho_fixo">Valor Fixo de Ganho *</label>
+                  <label for="valor">Valor do Pacote *</label>
                   <p-inputNumber
-                    inputId="ganho_fixo"
-                    [(ngModel)]="formData.ganho_fixo"
-                    name="ganho_fixo"
+                    inputId="valor"
+                    [(ngModel)]="formData.valor"
+                    name="valor"
                     mode="currency"
                     currency="BRL"
                     locale="pt-BR"
                     [minFractionDigits]="2"
-                    [min]="0"
-                    (onInput)="onGanhoFixoChange($any($event.value))"
+                    (onInput)="onValorChange($any($event.value))"
                     styleClass="w-full">
                   </p-inputNumber>
-                  <small class="field-hint">Valor líquido acordado diretamente com o estúdio</small>
                 </div>
-              }
-            </div>
-            
-            <div class="computed-badge">
-              <div class="computed-item">
-                <span class="cb-label">
-                  Ganho Líquido
-                  @if (usarGanhoFixo) {
-                    <span class="cb-tag-fixo">fixo</span>
-                  }
-                </span>
-                <div class="cb-net">{{ calculatedValues().ganho | currency:'BRL' }}</div>
+
+                @if (!usarGanhoFixo) {
+                  <div class="form-group">
+                    <label for="porcentagem">Minha % de Ganho *</label>
+                    <p-inputNumber
+                      inputId="porcentagem"
+                      [(ngModel)]="formData.porcentagem"
+                      name="porcentagem"
+                      [min]="0"
+                      [max]="100"
+                      suffix="%"
+                      (onInput)="onPorcentagemChange($any($event.value))"
+                      styleClass="w-full">
+                    </p-inputNumber>
+                    <small class="field-hint">Ganho = (Valor × %) × 0,85</small>
+                  </div>
+                } @else {
+                  <div class="form-group">
+                    <label for="ganho_fixo">Valor Fixo de Ganho *</label>
+                    <p-inputNumber
+                      inputId="ganho_fixo"
+                      [(ngModel)]="formData.ganho_fixo"
+                      name="ganho_fixo"
+                      mode="currency"
+                      currency="BRL"
+                      locale="pt-BR"
+                      [minFractionDigits]="2"
+                      [min]="0"
+                      (onInput)="onGanhoFixoChange($any($event.value))"
+                      styleClass="w-full">
+                    </p-inputNumber>
+                    <small class="field-hint">Valor líquido acordado diretamente com o estúdio</small>
+                  </div>
+                }
               </div>
-            </div>
+
+              <div class="computed-badge">
+                <div class="computed-item">
+                  <span class="cb-label">
+                    Ganho Líquido
+                    @if (usarGanhoFixo) {
+                      <span class="cb-tag-fixo">fixo</span>
+                    }
+                  </span>
+                  <div class="cb-net">{{ calculatedValues().ganho | currency:'BRL' }}</div>
+                </div>
+              </div>
+
+            }
           </div>
           
           <!-- AÇÕES -->
@@ -283,29 +339,29 @@
         
         <div class="info-content">
           <div class="info-item">
-            <strong>📅 Período de Aulas</strong>
-            <p>Defina quando o aluno inicia e, se aplicável, quando termina. O sistema só mostrará o aluno no calendário durante este período.</p>
+            <strong>⭐ Aula Experimental</strong>
+            <p>Use para registrar uma aula gratuita de avaliação. O aluno aparece no calendário normalmente e você pode marcar frequência.</p>
           </div>
-          
+
           <div class="info-item">
-            <strong>⏰ Horários</strong>
-            <p>Configure horários específicos para cada dia. Isso ajuda na organização da agenda e evita conflitos.</p>
+            <strong>🔄 Conversão</strong>
+            <p>Quando o aluno decidir fechar o plano, edite o cadastro e clique em <strong>Converter para Aluno Fixo</strong> para definir os valores.</p>
+          </div>
+
+          <div class="info-item">
+            <strong>📅 Período de Aulas</strong>
+            <p>O aluno aparece no calendário durante o período informado, seja fixo ou experimental.</p>
           </div>
           
           <div class="info-item">
             <strong>💰 Cálculo do Ganho</strong>
-            <p>Por padrão, o ganho é calculado automaticamente: <em>(Valor × %) × 0,85</em>. Para casos especiais com valor acordado diretamente, use o modo <strong>Valor fixo</strong>.</p>
-          </div>
-          
-          <div class="info-item">
-            <strong>✏️ Edição</strong>
-            <p>Você pode editar qualquer informação do aluno a qualquer momento, incluindo trocar entre cálculo automático e valor fixo.</p>
+            <p>Para alunos fixos: <em>(Valor × %) × 0,85</em>. Para experimentais, o sistema registra R$&nbsp;0 automaticamente.</p>
           </div>
         </div>
         
         <div class="info-tip">
           <i class="pi pi-lightbulb"></i>
-          <strong>Dica:</strong> Alunos inativos (com data de término) não aparecem no calendário, mas seus dados históricos são mantidos.
+          <strong>Dica:</strong> Alunos experimentais aparecem com um badge especial na listagem e não afetam os cálculos financeiros.
         </div>
       </p-card>
     </div>

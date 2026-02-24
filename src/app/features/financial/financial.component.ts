@@ -81,6 +81,9 @@ export class FinancialComponent implements OnInit {
         const fim = new Date(p.data_fim); fim.setHours(0, 0, 0, 0);
         if (fim < hoje) return false;
       }
+      if(p.tipo === 'experimental') {
+        return false;
+      }
       return true;
     })
     return list;
