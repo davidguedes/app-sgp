@@ -280,10 +280,13 @@ export class PatientFormComponent implements OnInit {
         return;
       }
 
-      if ((data.tipo === 'fixo' && this.usarGanhoFixo || data.tipo === 'convenio') 
-          && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
-        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor por aula' });
+      if (data.tipo === 'fixo' && this.usarGanhoFixo && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor fixo de ganho' });
         return;
+      }
+
+      if (data.tipo === 'convenio' && data.ganho_fixo == null) {
+        data.ganho_fixo = 0;  // garante que vai 0 e não null, para o backend não tratar como ausente
       }
     }
 
