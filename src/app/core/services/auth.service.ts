@@ -130,43 +130,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Mock login para desenvolvimento (remover em produção)
-   */
-  mockLogin(credentials: LoginCredentials): Observable<AuthResponse> {
-    const users: User[] = [
-      { id: '1', nome: 'Gestor Master', email: 'gestor@studio.com', role: 'gestor' },
-      { id: '2', nome: 'Profissional Silva', email: 'prof@studio.com', role: 'profissional' }
-    ];
-    
-    const user = users.find(u => u.email === credentials.email);
-    
-    console.log('user: ', user);
-    if (user && (
-      (credentials.email === 'gestor@studio.com' && credentials.senha === 'gestor123') ||
-      (credentials.email === 'prof@studio.com' && credentials.senha === 'prof123')
-    )) {
-      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-      const payload = btoa(
-        JSON.stringify({
-          userId: user.id,
-          exp: Math.floor(Date.now() / 1000) + 86400 // segundos
-        })
-      );
-
-      const signature = 'fake-signature';
-
-      const mockToken = `${header}.${payload}.${signature}`;
-      const response: AuthResponse = { token: mockToken, user };
-            
-      return of(response).pipe(
-        tap(res => this.setSession(res))
-      );
-    }
-    
-    throw new Error('Credenciais inválidas');
-  }
-
   loadProfessionals(): void {
     this.http.get<ProfessionalsHttpResponse>(`${this.API_URL}/auth/professionals`).subscribe({
       next: (result) => {

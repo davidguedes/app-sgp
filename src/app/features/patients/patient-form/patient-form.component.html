@@ -37,7 +37,6 @@
               <label for="profissional">Profissional Responsável *</label>
 
               @if (isGestor()) {
-                <!-- Gestor: escolhe entre os profissionais cadastrados -->
                 <p-select
                   inputId="profissional"
                   [options]="professionals"
@@ -50,7 +49,6 @@
                   styleClass="w-full">
                 </p-select>
               } @else {
-                <!-- Profissional: é ele mesmo, campo somente-leitura -->
                 <div class="profissional-readonly">
                   <i class="pi pi-user"></i>
                   <span>{{ profissionalNome() }}</span>
@@ -60,37 +58,48 @@
             </div>
           </div>
 
-            <!-- TIPO DE ALUNO -->
-            <div class="tipo-toggle">
-              <div class="tipo-toggle-label">
-                <i class="pi pi-tag"></i>
-                <span>Tipo de aula</span>
-              </div>
-              <div class="tipo-toggle-options">
-                <label class="tipo-option"
-                  [class.active]="formData.tipo === 'fixo'"
-                  [class.fixo]="formData.tipo === 'fixo'"
-                  (click)="formData.tipo = 'fixo'; calculateValues()">
-                  <input type="radio" name="tipoAluno" value="fixo" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
-                  <i class="pi pi-user-plus"></i>
-                  <span class="tipo-label-text">
-                    <strong>Aluno Fixo</strong>
-                    <small>Paga mensalidade, tem pacote definido</small>
-                  </span>
-                </label>
-                <label class="tipo-option"
-                  [class.active]="formData.tipo === 'experimental'"
-                  [class.experimental]="formData.tipo === 'experimental'"
-                  (click)="formData.tipo = 'experimental'; calculateValues()">
-                  <input type="radio" name="tipoAluno" value="experimental" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
-                  <i class="pi pi-star"></i>
-                  <span class="tipo-label-text">
-                    <strong>Aula Experimental</strong>
-                    <small>Gratuita, sem pacote ou pagamento</small>
-                  </span>
-                </label>
-              </div>
+          <!-- TIPO DE ALUNO -->
+          <div class="tipo-toggle">
+            <div class="tipo-toggle-label">
+              <i class="pi pi-tag"></i>
+              <span>Tipo de aula</span>
             </div>
+            <div class="tipo-toggle-options">
+              <label class="tipo-option"
+                [class.active]="formData.tipo === 'fixo'"
+                [class.fixo]="formData.tipo === 'fixo'"
+                (click)="formData.tipo = 'fixo'; calculateValues()">
+                <input type="radio" name="tipoAluno" value="fixo" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <i class="pi pi-user-plus"></i>
+                <span class="tipo-label-text">
+                  <strong>Aluno Fixo</strong>
+                  <small>Paga mensalidade, tem pacote definido</small>
+                </span>
+              </label>
+              <label class="tipo-option"
+                [class.active]="formData.tipo === 'experimental'"
+                [class.experimental]="formData.tipo === 'experimental'"
+                (click)="formData.tipo = 'experimental'; calculateValues()">
+                <input type="radio" name="tipoAluno" value="experimental" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <i class="pi pi-star"></i>
+                <span class="tipo-label-text">
+                  <strong>Aula Experimental</strong>
+                  <small>Gratuita, sem pacote ou pagamento</small>
+                </span>
+              </label>
+              <label class="tipo-option"
+                [class.active]="formData.tipo === 'convenio'"
+                [class.convenio]="formData.tipo === 'convenio'"
+                (click)="formData.tipo = 'convenio'; calculateValues()">
+                <input type="radio" name="tipoAluno" value="convenio" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <i class="pi pi-building"></i>
+                <span class="tipo-label-text">
+                  <strong>Convênio Corporativo</strong>
+                  <small>Gympass, Totalpass, convênio empresarial</small>
+                </span>
+              </label>
+            </div>
+          </div>
           
           <!-- PERÍODO DE AULAS -->
           <div class="form-section">
@@ -197,9 +206,9 @@
           
           <!-- VALORES -->
           <div class="form-section">
-            @if (isExperimental) {
 
-              <!-- Estado experimental: sem campos financeiros -->
+            <!-- ── EXPERIMENTAL ── -->
+            @if (isExperimental) {
               <div class="experimental-banner">
                 <div class="exp-banner-icon">
                   <i class="pi pi-star-fill"></i>
@@ -211,18 +220,63 @@
               </div>
 
               @if (isEditMode()) {
-                <!-- Botão de conversão — aparece apenas na edição -->
                 <button type="button" class="btn-converter" (click)="converterParaFixo()">
                   <i class="pi pi-arrow-right-arrow-left"></i>
                   Converter para Aluno Fixo
                 </button>
               }
 
+            <!-- ── CONVÊNIO ── -->
+            } @else if (formData.tipo === 'convenio') {
+
+              <h3 class="section-title">Repasse por Aula</h3>
+
+              <div class="convenio-banner">
+                <div class="convenio-banner-icon">
+                  <i class="pi pi-building"></i>
+                </div>
+                <div class="convenio-banner-body">
+                  <strong>Modalidade Convênio Corporativo</strong>
+                  <p>O ganho do profissional é calculado por aula realizada. Informe o valor a ser repassado para cada aula concluída (presenças + reposições).</p>
+                </div>
+              </div>
+
+              <div class="form-group" style="max-width: 320px;">
+                <label for="ganho_por_aula">Valor repassado por aula *</label>
+                <p-inputNumber
+                  inputId="ganho_por_aula"
+                  [(ngModel)]="formData.ganho_fixo"
+                  name="ganho_fixo"
+                  mode="currency"
+                  currency="BRL"
+                  locale="pt-BR"
+                  [minFractionDigits]="2"
+                  [min]="0"
+                  (onInput)="onGanhoFixoChange($any($event.value))"
+                  styleClass="w-full">
+                </p-inputNumber>
+                <small class="field-hint">Valor líquido por aula realizada, independente do convênio</small>
+              </div>
+
+              <div class="computed-badge convenio-preview">
+                <div class="computed-item">
+                  <span class="cb-label">
+                    Ganho por aula
+                    <span class="cb-tag-convenio">por aula</span>
+                  </span>
+                  <div class="cb-net">{{ (formData.ganho_fixo ?? 0) | currency:'BRL' }}</div>
+                </div>
+                <div class="convenio-note">
+                  <i class="pi pi-info-circle"></i>
+                  O ganho total será calculado automaticamente com base nas aulas marcadas como realizadas.
+                </div>
+              </div>
+
+            <!-- ── FIXO (padrão) ── -->
             } @else {
 
               <h3 class="section-title">Valores e Pagamento</h3>
 
-              <!-- Toggle: cálculo automático vs valor fixo -->
               <div class="ganho-mode-toggle">
                 <div class="ganho-mode-label">
                   <i class="pi pi-percentage"></i>
@@ -344,24 +398,29 @@
           </div>
 
           <div class="info-item">
+            <strong>🏢 Convênio Corporativo</strong>
+            <p>Para alunos via Gympass, Totalpass ou convênio empresarial. Informe o valor por aula — o ganho é calculado automaticamente conforme as presenças registradas.</p>
+          </div>
+
+          <div class="info-item">
             <strong>🔄 Conversão</strong>
             <p>Quando o aluno decidir fechar o plano, edite o cadastro e clique em <strong>Converter para Aluno Fixo</strong> para definir os valores.</p>
           </div>
 
           <div class="info-item">
             <strong>📅 Período de Aulas</strong>
-            <p>O aluno aparece no calendário durante o período informado, seja fixo ou experimental.</p>
+            <p>O aluno aparece no calendário durante o período informado, seja fixo, experimental ou convênio.</p>
           </div>
           
           <div class="info-item">
             <strong>💰 Cálculo do Ganho</strong>
-            <p>Para alunos fixos: <em>(Valor × %) × 0,85</em>. Para experimentais, o sistema registra R$&nbsp;0 automaticamente.</p>
+            <p>Fixo: <em>(Valor × %) × 0,85</em>. Convênio: <em>valor/aula × nº de aulas realizadas</em>. Experimental: R$&nbsp;0.</p>
           </div>
         </div>
         
         <div class="info-tip">
           <i class="pi pi-lightbulb"></i>
-          <strong>Dica:</strong> Alunos experimentais aparecem com um badge especial na listagem e não afetam os cálculos financeiros.
+          <strong>Dica:</strong> Alunos de convênio aparecem com badge especial no financeiro, com a quantidade de aulas realizadas no mês.
         </div>
       </p-card>
     </div>

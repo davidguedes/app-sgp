@@ -105,7 +105,10 @@ export class FinancialComponent implements OnInit {
       totalPatients: p.length,
       totalPackages: p.reduce((s, x) => s + x.valor, 0),
       totalBase:     p.reduce((s, x) => s + x.base, 0),
-      totalLiquid:   p.reduce((s, x) => s + x.ganho, 0)
+      totalLiquid: p.reduce((s, x) => {
+        const ganho = x.tipo === 'convenio' ? (x.ganho_convenio ?? 0) : x.ganho;
+        return s + ganho;
+      }, 0),
     };
   });
 

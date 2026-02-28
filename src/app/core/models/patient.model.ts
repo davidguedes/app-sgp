@@ -7,7 +7,9 @@ export interface Patient {
   nome: string;
   profissional_id: number;
   profissional_nome: string;
-  tipo: 'fixo' | 'experimental';
+  tipo: 'fixo' | 'experimental' | 'convenio';
+  aulas_realizadas?: number;
+  ganho_convenio?: number | null;
   dias: string[];
   horarios?: { [key: string]: string };
   valor: number;
@@ -47,7 +49,7 @@ export interface PatientsHttpResponse {
 export interface PatientFormData {
   nome: string;
   profissional: number;
-  tipo: 'fixo' | 'experimental';
+  tipo: 'fixo' | 'experimental' | 'convenio';
   dias: string[];
   horarios?: { [key: string]: string };
   valor: number;

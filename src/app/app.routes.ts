@@ -24,6 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'professionals',
+        canActivate: [gestorGuard],
         title: 'SGP - Profissionais',
         loadComponent: () => import('./features/professionals/professionals-list/patient-list/professional-list.component').then(m => m.ProfessionalsListComponent)
       },

@@ -239,7 +239,6 @@
   transition: all 0.2s ease;
   user-select: none;
 
-  // esconde o radio nativo
   input[type="radio"] {
     position: absolute;
     opacity: 0;
@@ -255,7 +254,6 @@
     flex-shrink: 0;
   }
 
-  // indicador visual no canto superior direito
   &::after {
     content: '';
     position: absolute;
@@ -278,7 +276,6 @@
     }
   }
 
-  // estado ativo
   &.active {
     border-color: var(--sage, #7a9e7e);
     background: rgba(122, 158, 126, 0.08);
@@ -307,6 +304,23 @@
   background: rgba(196, 149, 106, 0.15);
   border: 1px solid rgba(196, 149, 106, 0.35);
   color: var(--accent, #c4956a);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+// Badge "por aula" para convênio
+.cb-tag-convenio {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(106, 130, 196, 0.15);
+  border: 1px solid rgba(106, 130, 196, 0.35);
+  color: #4a5fa0;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -392,16 +406,11 @@
   background: var(--warm-white, #fdfcfa);
   border: 1px solid var(--border, #e8e3dc);
   border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--muted, #8a8580);
   
   strong {
-    font-size: 0.85rem;
-    color: var(--sage-dark, #4e6e52);
-  }
-  
-  .text-muted {
-    font-size: 0.85rem;
-    color: var(--muted, #8a8580);
-    font-style: italic;
+    color: var(--charcoal, #2c2c2c);
   }
 }
 
@@ -411,34 +420,38 @@
   gap: 6px;
   background: rgba(122, 158, 126, 0.12);
   color: var(--sage-dark, #4e6e52);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 5px 10px;
   border-radius: 20px;
-  border: 1px solid rgba(122, 158, 126, 0.3);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
   
   .horario-badge {
-    background: var(--sage, #7a9e7e);
-    color: white;
-    padding: 2px 6px;
+    background: white;
     border-radius: 10px;
-    font-size: 0.7rem;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// VALORES CALCULADOS
+// COMPUTED BADGE
 // ═══════════════════════════════════════════════════════════════════════════
 
 .computed-badge {
-  background: var(--accent-light, #f0e4d7);
-  border: 1px solid rgba(196, 149, 106, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  background: rgba(122, 158, 126, 0.06);
+  border: 1.5px solid rgba(122, 158, 126, 0.2);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
   gap: 1.5rem;
+
+  &.convenio-preview {
+    flex-direction: column;
+    gap: 1rem;
+    background: rgba(106, 130, 196, 0.05);
+    border-color: rgba(106, 130, 196, 0.2);
+  }
 }
 
 .computed-item {
@@ -467,6 +480,23 @@
     font-size: 1.8rem;
     color: var(--sage-dark, #4e6e52);
     font-weight: 500;
+  }
+}
+
+.convenio-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #4a5fa0;
+  background: rgba(106, 130, 196, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+
+  i {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 1px;
   }
 }
 
@@ -563,7 +593,7 @@
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TOGGLE TIPO DE ALUNO (fixo / experimental)
+// TOGGLE TIPO DE ALUNO (fixo / experimental / convenio)
 // ═══════════════════════════════════════════════════════════════════════════
 
 .tipo-toggle {
@@ -593,9 +623,10 @@
   i { font-size: 0.95rem; color: var(--sage, #7a9e7e); }
 }
 
+// 3 opções: grid de 3 colunas
 .tipo-toggle-options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
 }
 
@@ -673,6 +704,21 @@
       box-shadow: 0 0 0 2px rgba(196, 149, 106, 0.2);
     }
   }
+
+  // Estilo azul-índigo para convênio
+  &.active.convenio {
+    border-color: #6a82c4;
+    background: rgba(106, 130, 196, 0.08);
+    color: #3a4f8a;
+    box-shadow: 0 2px 10px rgba(106, 130, 196, 0.18);
+    > i { color: #6a82c4; }
+
+    &::after {
+      border-color: #6a82c4;
+      background: #6a82c4;
+      box-shadow: 0 0 0 2px rgba(106, 130, 196, 0.2);
+    }
+  }
 }
 
 .tipo-label-text {
@@ -695,7 +741,7 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BANNER EXPERIMENTAL (substitui a seção de valores)
+// BANNER EXPERIMENTAL
 // ═══════════════════════════════════════════════════════════════════════════
 
 .experimental-banner {
@@ -733,6 +779,56 @@
     font-size: 0.95rem;
     font-weight: 700;
     color: #8a5c35;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted, #8a8580);
+    line-height: 1.55;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BANNER CONVÊNIO
+// ═══════════════════════════════════════════════════════════════════════════
+
+.convenio-banner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: rgba(106, 130, 196, 0.07);
+  border: 1.5px solid rgba(106, 130, 196, 0.25);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.convenio-banner-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(106, 130, 196, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  i {
+    font-size: 1.3rem;
+    color: #6a82c4;
+  }
+}
+
+.convenio-banner-body {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #3a4f8a;
     margin-bottom: 6px;
   }
 
@@ -816,6 +912,7 @@
     grid-template-columns: 1fr;
   }
 
+  // 3 opções em coluna única no mobile
   .ganho-mode-options,
   .tipo-toggle-options {
     grid-template-columns: 1fr;

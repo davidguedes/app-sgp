@@ -329,13 +329,11 @@
 .chart-area {
   padding: 1rem 1.5rem 1.5rem;
 
-  // Garante que o canvas do Chart.js respeite o container em qualquer tamanho
   ::ng-deep canvas {
     max-width: 100% !important;
     width: 100% !important;
   }
 
-  // Classe aplicada via styleClass nos p-chart — controla altura pelo CSS
   ::ng-deep .chart-canvas {
     display: block;
     width: 100%;
@@ -456,6 +454,11 @@
 
       &:hover:not(.total-row) { background: rgba(122, 158, 126, 0.04); }
 
+      // Linha de convênio: leve fundo azulado para distinguir visualmente
+      &.row-convenio:hover {
+        background: rgba(106, 130, 196, 0.05);
+      }
+
       td {
         padding: 13px 14px;
         border-bottom: 1px solid rgba(232, 227, 220, 0.6);
@@ -513,6 +516,7 @@
   font-size: 0.95rem;
 }
 
+// Tag de aluno com ganho fixo
 .tag-fixo {
   display: inline-block;
   margin-left: 6px;
@@ -526,6 +530,80 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
   vertical-align: middle;
+}
+
+// Tag de convênio corporativo
+.tag-convenio {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(106, 130, 196, 0.12);
+  border: 1px solid rgba(106, 130, 196, 0.3);
+  color: #4a5fa0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+// Label "Por aula" na coluna Pacote
+.convenio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: #4a5fa0;
+  font-weight: 600;
+
+  i { font-size: 0.8rem; }
+}
+
+// Repasse por aula na coluna Repasse
+.convenio-repasse {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+
+  .repasse-valor {
+    font-weight: 700;
+    color: #4a5fa0;
+    font-size: 0.9rem;
+  }
+
+  .repasse-label {
+    font-size: 0.72rem;
+    color: var(--muted, #8a8580);
+  }
+}
+
+// Célula de ganho de convênio com badge de aulas
+.ganho-convenio-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  span:first-child {
+    color: var(--success, #5a8f5a);
+    font-weight: 700;
+  }
+
+  .aulas-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #4a5fa0;
+    background: rgba(106, 130, 196, 0.1);
+    border: 1px solid rgba(106, 130, 196, 0.2);
+    border-radius: 20px;
+    padding: 1px 6px;
+    width: fit-content;
+
+    i { font-size: 0.65rem; }
+  }
 }
 
 .days-pills {
@@ -626,14 +704,12 @@
     thead th, tbody td { padding: 10px 8px; }
   }
 
-  // Grids de charts: sempre coluna única em mobile
   .gestor-charts-grid,
   .pro-charts-grid {
     grid-template-columns: 1fr;
     margin-bottom: 1.5rem;
   }
 
-  // Breakdown compacto vira grid horizontal em mobile (fica abaixo do chart)
   .day-breakdown-compact {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -651,9 +727,13 @@
     }
   }
 
-  // Reduz padding lateral do chart para ganhar espaço
   .chart-area {
     padding: 0.75rem 0.75rem 1rem;
+  }
+
+  // Em mobile, ocultar badge de aulas para economizar espaço
+  .ganho-convenio-cell .aulas-badge {
+    display: none;
   }
 }
 
@@ -661,12 +741,10 @@
   .fin-grid.cols-4,
   .fin-grid.cols-3 { grid-template-columns: 1fr; }
 
-  // Breakdown em 2 colunas no menor breakpoint
   .day-breakdown-compact {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  // Altura menor para charts em telas pequenas — evita canvas muito alto
   .chart-area ::ng-deep .chart-canvas canvas {
     height: 180px !important;
   }

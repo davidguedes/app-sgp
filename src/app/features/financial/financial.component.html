@@ -256,15 +256,15 @@
               <tr>
                 <th>Aluno</th>
                 @if (isGestor()) { <th>Profissional</th> }
-                <th>Pacote</th>
-                <th>%</th>
+                <th>Pacote / Tipo</th>
+                <th>Repasse</th>
                 <th>Ganho</th>
                 <th>Dias</th>
               </tr>
             </thead>
             <tbody>
               @for (patient of sortedPatients(); track patient.id) {
-                <tr>
+                <tr [class.row-convenio]="patient.tipo === 'convenio'">
                   <td>
                     <div class="table-patient">
                       <div class="table-avatar" [style.background]="getAvatarColorFromId(patient.profissional_id)">
@@ -272,24 +272,60 @@
                       </div>
                       <div>
                         <strong>{{ patient.nome }}</strong>
-                        @if (patient.ganho_fixo != null) {
+                        @if (patient.tipo === 'convenio') {
+                          <span class="tag-convenio">convênio</span>
+                        } @else if (patient.ganho_fixo != null) {
                           <span class="tag-fixo">fixo</span>
                         }
                       </div>
                     </div>
                   </td>
+
                   @if (isGestor()) {
                     <td class="pro-cell">{{ authService.getProfessionalName(patient.profissional_id) }}</td>
                   }
-                  <td>{{ patient.valor | currency:'BRL' }}</td>
+
+                  <!-- Coluna Pacote / Tipo -->
                   <td>
-                    @if (patient.ganho_fixo != null) {
+                    @if (patient.tipo === 'convenio') {
+                      <span class="convenio-label">
+                        <i class="pi pi-building"></i>
+                        Por aula
+                      </span>
+                    } @else {
+                      {{ patient.valor | currency:'BRL' }}
+                    }
+                  </td>
+
+                  <!-- Coluna Repasse (antes era %) -->
+                  <td>
+                    @if (patient.tipo === 'convenio') {
+                      <div class="convenio-repasse">
+                        <span class="repasse-valor">{{ patient.ganho | currency:'BRL' }}</span>
+                        <span class="repasse-label">/ aula</span>
+                      </div>
+                    } @else if (patient.ganho_fixo != null) {
                       <span class="tag-fixo">fixo</span>
                     } @else {
                       {{ patient.porcentagem }}%
                     }
                   </td>
-                  <td class="earn-cell">{{ patient.ganho | currency:'BRL' }}</td>
+
+                  <!-- Coluna Ganho -->
+                  <td class="earn-cell">
+                    @if (patient.tipo === 'convenio') {
+                      <div class="ganho-convenio-cell">
+                        <span>{{ patient.ganho_convenio | currency:'BRL' }}</span>
+                        <span class="aulas-badge">
+                          <i class="pi pi-check-circle"></i>
+                          {{ patient.aulas_realizadas }} aula{{ patient.aulas_realizadas !== 1 ? 's' : '' }}
+                        </span>
+                      </div>
+                    } @else {
+                      {{ patient.ganho | currency:'BRL' }}
+                    }
+                  </td>
+
                   <td>
                     <div class="days-pills">
                       @for (dia of patient.dias; track dia) {
@@ -323,6 +359,12 @@
         <span>
           <strong>Cálculo padrão:</strong> Ganho = (Pacote × 0,85) × % do profissional.
           Quando um valor fixo está definido, ele substitui o cálculo automático.
+        </span>
+      </div>
+      <div class="info-item">
+        <i class="pi pi-building"></i>
+        <span>
+          <strong>Convênio corporativo:</strong> Ganho = valor por aula × número de aulas realizadas (presenças + reposições) registradas no período.
         </span>
       </div>
       @if (isGestor()) {

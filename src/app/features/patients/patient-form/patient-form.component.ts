@@ -149,7 +149,7 @@ export class PatientFormComponent implements OnInit {
       next: (patient) => {
         if (patient) {
           // Detecta se o paciente usa ganho fixo
-          this.usarGanhoFixo = patient.ganho_fixo != null;
+          this.usarGanhoFixo = patient.tipo === 'fixo' && patient.ganho_fixo != null;
 
           this.formData = {
             nome: patient.nome,
@@ -217,10 +217,12 @@ export class PatientFormComponent implements OnInit {
   }
 
   calculateValues(): void {
-    let ganho: number;
+    let ganho = 0;
 
-    if (this.usarGanhoFixo && this.formData.ganho_fixo != null) {
-      ganho = this.formData.ganho_fixo;
+    if (this.formData.tipo === 'convenio') {
+      ganho = this.formData.ganho_fixo ?? 0;  // preview: valor por aula
+    } else if (this.usarGanhoFixo) {
+      ganho = this.formData.ganho_fixo ?? 0;
     } else {
       ganho = (this.formData.valor * 0.85) * (this.formData.porcentagem / 100);
     }
@@ -267,21 +269,32 @@ export class PatientFormComponent implements OnInit {
     }
 
     // Validações financeiras só se não for experimental
-    if (data.tipo !== 'experimental') {
-      if (data.valor <= 0) {
+    if (data.tipo === 'fixo' || data.tipo === 'convenio') {
+      if (data.tipo === 'fixo' && data.valor <= 0) {
         this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe um valor válido' });
         return;
       }
 
-      if (!this.usarGanhoFixo && (data.porcentagem <= 0 || data.porcentagem > 100)) {
+      if (data.tipo === 'fixo' && !this.usarGanhoFixo && (data.porcentagem <= 0 || data.porcentagem > 100)) {
         this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe uma porcentagem válida (1-100)' });
         return;
       }
 
-      if (this.usarGanhoFixo && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
-        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor fixo de ganho' });
+      if ((data.tipo === 'fixo' && this.usarGanhoFixo || data.tipo === 'convenio') 
+          && (data.ganho_fixo == null || data.ganho_fixo <= 0)) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o valor por aula' });
         return;
       }
+    }
+
+    // Garante ganho_fixo null quando não está sendo usado (só para fixo sem ganho fixo)
+    if (data.tipo === 'fixo' && !this.usarGanhoFixo) {
+      data.ganho_fixo = null;
+    }
+    // Para convenio: ganho_fixo deve sempre ir preenchido
+    // Para experimental: zera tudo
+    if (data.tipo === 'experimental') {
+      data.ganho_fixo = null;
     }
 
     if (!data.data_inicio) {
@@ -292,11 +305,6 @@ export class PatientFormComponent implements OnInit {
     if (data.data_fim && data.data_fim < data.data_inicio) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'A data de término deve ser posterior à data de início' });
       return;
-    }
-
-    // Garante que ganho_fixo seja null quando não está sendo usado
-    if (!this.usarGanhoFixo) {
-      data.ganho_fixo = null;
     }
 
     this.loading.set(true);
