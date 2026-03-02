@@ -26,6 +26,8 @@
                 pInputText
                 id="nome"
                 type="text"
+                inputmode="text"
+                enterkeyhint="next"
                 [(ngModel)]="formData.nome"
                 name="nome"
                 placeholder="Digite o nome completo"
@@ -44,6 +46,7 @@
                   name="profissional"
                   optionValue="id"
                   optionLabel="nome"
+                  enterkeyhint="next"
                   placeholder="Selecione o profissional"
                   [showClear]="false"
                   styleClass="w-full">
@@ -69,7 +72,7 @@
                 [class.active]="formData.tipo === 'fixo'"
                 [class.fixo]="formData.tipo === 'fixo'"
                 (click)="formData.tipo = 'fixo'; calculateValues()">
-                <input type="radio" name="tipoAluno" value="fixo" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <input type="radio" name="tipoAluno" value="fixo" [(ngModel)]="formData.tipo" enterkeyhint="next" (change)="calculateValues()" />
                 <i class="pi pi-user-plus"></i>
                 <span class="tipo-label-text">
                   <strong>Aluno Fixo</strong>
@@ -80,7 +83,7 @@
                 [class.active]="formData.tipo === 'experimental'"
                 [class.experimental]="formData.tipo === 'experimental'"
                 (click)="formData.tipo = 'experimental'; calculateValues()">
-                <input type="radio" name="tipoAluno" value="experimental" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <input type="radio" name="tipoAluno" value="experimental" enterkeyhint="next" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
                 <i class="pi pi-star"></i>
                 <span class="tipo-label-text">
                   <strong>Aula Experimental</strong>
@@ -91,7 +94,7 @@
                 [class.active]="formData.tipo === 'convenio'"
                 [class.convenio]="formData.tipo === 'convenio'"
                 (click)="formData.tipo = 'convenio'; calculateValues()">
-                <input type="radio" name="tipoAluno" value="convenio" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
+                <input type="radio" name="tipoAluno" value="convenio" enterkeyhint="next" [(ngModel)]="formData.tipo" (change)="calculateValues()" />
                 <i class="pi pi-building"></i>
                 <span class="tipo-label-text">
                   <strong>Convênio Corporativo</strong>
@@ -114,6 +117,8 @@
                   name="data_inicio"
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
+                  [showClear]="true"
+                  enterkeyhint="next"
                   placeholder="Quando o aluno inicia"
                   styleClass="w-full">
                 </p-datepicker>
@@ -129,6 +134,7 @@
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
                   [showClear]="true"
+                  enterkeyhint="next"
                   placeholder="Deixe vazio se ainda ativo"
                   styleClass="w-full">
                 </p-datepicker>
@@ -160,6 +166,7 @@
                       [(ngModel)]="day.selected"
                       [name]="'day-' + day.key"
                       [binary]="true"
+                      enterkeyhint="next"
                       (onChange)="updateFormDays()"
                       [inputId]="'day-' + day.key">
                     </p-checkbox>
@@ -176,6 +183,7 @@
                         [name]="'horario-' + day.key"
                         optionLabel="label"
                         optionValue="value"
+                        enterkeyhint="next"
                         placeholder="Horário"
                         [showClear]="true"
                         class="w-full"
@@ -247,6 +255,8 @@
                   inputId="ganho_por_aula"
                   [(ngModel)]="formData.ganho_fixo"
                   name="ganho_fixo"
+                  enterkeyhint="next"
+                  inputmode="numeric"
                   mode="currency"
                   currency="BRL"
                   locale="pt-BR"
@@ -284,12 +294,12 @@
                 </div>
                 <div class="ganho-mode-options">
                   <label class="mode-option" [class.active]="!usarGanhoFixo" (click)="usarGanhoFixo = false; onToggleGanhoFixo()">
-                    <input type="radio" name="modoGanho" [value]="false" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                    <input type="radio" enterkeyhint="next" name="modoGanho" [value]="false" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
                     <i class="pi pi-calculator"></i>
                     Calcular por porcentagem
                   </label>
                   <label class="mode-option" [class.active]="usarGanhoFixo" (click)="usarGanhoFixo = true; onToggleGanhoFixo()">
-                    <input type="radio" name="modoGanho" [value]="true" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
+                    <input type="radio" enterkeyhint="next" name="modoGanho" [value]="true" [(ngModel)]="usarGanhoFixo" (change)="onToggleGanhoFixo()" />
                     <i class="pi pi-lock"></i>
                     Valor fixo acordado
                   </label>
@@ -303,6 +313,8 @@
                     inputId="valor"
                     [(ngModel)]="formData.valor"
                     name="valor"
+                    inputmode="numeric"
+                    enterkeyhint="next"
                     mode="currency"
                     currency="BRL"
                     locale="pt-BR"
@@ -319,6 +331,11 @@
                       inputId="porcentagem"
                       [(ngModel)]="formData.porcentagem"
                       name="porcentagem"
+                      mode="decimal"
+                      [minFractionDigits]="2"
+                      [maxFractionDigits]="2"
+                      inputmode="numeric"
+                      enterkeyhint="send"
                       [min]="0"
                       [max]="100"
                       suffix="%"
@@ -334,6 +351,8 @@
                       inputId="ganho_fixo"
                       [(ngModel)]="formData.ganho_fixo"
                       name="ganho_fixo"
+                      enterkeyhint="send"
+                      inputmode="numeric"
                       mode="currency"
                       currency="BRL"
                       locale="pt-BR"

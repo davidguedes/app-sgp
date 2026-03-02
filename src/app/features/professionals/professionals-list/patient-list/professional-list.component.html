@@ -22,6 +22,9 @@
       <input
         pInputText
         type="text"
+        inputmode="search"
+        enterkeyhint="search"
+        autocomplete="off"
         placeholder="Buscar por nome ou e-mail..."
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
@@ -135,6 +138,8 @@
           pInputText
           id="d-nome"
           type="text"
+          inputmode="text"
+          enterkeyhint="next"
           [(ngModel)]="formData.nome"
           placeholder="Nome completo"
           class="w-full"
@@ -147,6 +152,8 @@
           pInputText
           id="d-email"
           type="email"
+          inputmode="email"
+          enterkeyhint="next"
           [(ngModel)]="formData.email"
           placeholder="email@exemplo.com"
           class="w-full"
@@ -159,6 +166,8 @@
         </label>
         <p-password
           inputId="d-senha"
+          inputmode="text"
+          enterkeyhint="send"
           [(ngModel)]="formData.senha"
           [feedback]="false"
           [toggleMask]="true"

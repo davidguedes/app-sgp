@@ -389,6 +389,7 @@
         <label for="attDate">Data *</label>
         <p-datepicker
           inputId="attDate"
+          enterkeyhint="next"
           [(ngModel)]="attendanceForm().date"
           dateFormat="dd/mm/yy"
           [showIcon]="true"
@@ -400,6 +401,7 @@
         <label for="attStatus">Status *</label>
         <p-select
           inputId="attStatus"
+          enterkeyhint="next"
           [options]="statusOptions"
           [(ngModel)]="attendanceForm().status"
           placeholder="Selecione o status"
@@ -412,6 +414,7 @@
         <textarea
           pInputTextarea
           id="attNotes"
+          enterkeyhint="send"
           [(ngModel)]="attendanceForm().notes"
           rows="3"
           placeholder="Observações opcionais..."

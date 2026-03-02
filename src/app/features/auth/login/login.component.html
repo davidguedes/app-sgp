@@ -26,6 +26,8 @@
           pInputText
           id="email"
           type="email"
+          inputmode="email"
+          enterkeyhint="next"
           [value]="credentials().email"
           (input)="updateEmail($any($event.target).value)"
           placeholder="seu@email.com"
@@ -38,6 +40,8 @@
         <label for="senha">Senha</label>
         <p-password
           inputId="senha"
+          inputmode="text"
+          enterkeyhint="send"
           [(ngModel)]="credentials().senha"
           [ngModelOptions]="{ standalone: true }"
           (input)="updateSenha($any($event.target).value)"
