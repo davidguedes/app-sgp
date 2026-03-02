@@ -1,36 +1,61 @@
-// src/app/features/auth/login/login.component.scss
+// login.component.scss
+
 .login-page {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: var(--cream, #f8f5f0);
+  // var(--surface-ground) já troca para o valor escuro no dark mode automaticamente
+  background: var(--surface-ground);
   position: relative;
-  
-  &::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(122, 158, 126, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(196, 149, 106, 0.06) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  overflow: hidden;
 }
 
+// ─── Canvas ──────────────────────────────────────────────────────────────────
+// Fica fixo atrás de tudo via z-index negativo
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;           // abaixo do container (z-index: 1)
+  pointer-events: none; // não interfere em cliques
+  opacity: 0.65;        // suaviza para não competir com o form
+}
+
+// ─── Card central ────────────────────────────────────────────────────────────
 .login-container {
-  background: var(--warm-white, #fdfcfa);
+  // var(--warm-white) já troca para #1e2420 no dark mode automaticamente
+  background: color-mix(in srgb, var(--warm-white) 85%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(44, 44, 44, 0.15);
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.06) inset,
+    var(--card-shadow);                   // --card-shadow já tem valor dark/light
   padding: 3rem 2.5rem;
   width: 100%;
   max-width: 420px;
-  border: 1px solid var(--border, #e8e3dc);
+  border: 1px solid var(--border);        // --border troca automaticamente
   position: relative;
   z-index: 1;
+
+  // Animação de entrada — sobe e aparece suavemente
+  animation: cardEntrance 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ─── Logo ────────────────────────────────────────────────────────────────────
 .login-logo {
   text-align: center;
   margin-bottom: 2rem;
@@ -46,7 +71,7 @@
   justify-content: center;
   font-size: 32px;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 24px rgba(122, 158, 126, 0.3);
+  box-shadow: 0 8px 24px rgba(122, 158, 126, 0.35);
   padding: 5px;
 
   img {
@@ -69,10 +94,11 @@
   margin-top: 4px;
 }
 
+// ─── Erro ────────────────────────────────────────────────────────────────────
 .login-error {
   margin-bottom: 1rem;
   width: 100%;
-  
+
   ::ng-deep .p-message {
     animation: shake 0.4s;
   }
@@ -80,17 +106,18 @@
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
+  25%       { transform: translateX(-8px); }
+  75%       { transform: translateX(8px); }
 }
 
+// ─── Formulário ──────────────────────────────────────────────────────────────
 .login-form {
   margin-top: 2rem;
 }
 
 .form-group {
   margin-bottom: 1.3rem;
-  
+
   label {
     display: block;
     font-size: 0.82rem;
@@ -98,7 +125,7 @@
     color: var(--muted, #8a8580);
     margin-bottom: 6px;
   }
-  
+
   ::ng-deep input {
     width: 100%;
     padding: 13px 16px;
@@ -109,7 +136,7 @@
     background: var(--cream, #f8f5f0);
     color: var(--charcoal, #2c2c2c);
     transition: all 0.2s;
-    
+
     &:focus {
       border-color: var(--sage, #7a9e7e);
       box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.12);
@@ -118,11 +145,12 @@
   }
 }
 
+// ─── Botão ───────────────────────────────────────────────────────────────────
 ::ng-deep .login-btn {
   width: 100%;
   padding: 15px;
   margin-top: 0.5rem;
-  
+
   .p-button {
     width: 100%;
     background: var(--sage-dark, #4e6e52);
@@ -131,40 +159,11 @@
     font-weight: 600;
     border-radius: 12px;
     transition: all 0.25s;
-    
+
     &:hover {
       background: var(--sage, #7a9e7e);
       border-color: var(--sage, #7a9e7e);
       transform: translateY(-2px);
     }
-  }
-}
-
-.login-demo {
-  background: rgba(122, 158, 126, 0.08);
-  border: 1px solid rgba(122, 158, 126, 0.25);
-  border-radius: 12px;
-  padding: 14px;
-  margin-top: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--sage-dark, #4e6e52);
-  line-height: 1.8;
-  
-  strong {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.78rem;
-  }
-  
-  div {
-    margin-top: 4px;
-  }
-  
-  code {
-    background: rgba(0, 0, 0, 0.05);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.7rem;
   }
 }
