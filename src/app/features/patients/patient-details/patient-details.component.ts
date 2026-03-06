@@ -25,6 +25,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { PatientDetail } from '../../../core/models/patient.model';
 import { Attendance, AttendanceFormData, ATTENDANCE_STATUS_CONFIG } from '../../../core/models/attendance.model';
 import { Evolution, EvolutionFormData, EXERCISES_BY_EQUIPMENT, ExercisesByEquipment } from '../../../core/models/evolution.model';
+import { BiometricManagerComponent } from '../../biometric/biometric-manager/biometric-manager';
 
 interface ExerciseOption { label: string; value: string; }
 interface ExerciseEquipment { key: keyof ExercisesByEquipment; label: string; exercises: ExerciseOption[]; }
@@ -36,7 +37,7 @@ interface ExerciseEquipment { key: keyof ExercisesByEquipment; label: string; ex
     CommonModule, FormsModule, RouterLink, CardModule, ButtonModule, TabsModule,
     TagModule, BadgeModule, DialogModule, InputTextModule, TextareaModule,
     DatePickerModule, SelectModule, MultiSelectModule, RatingModule,
-    ToastModule, ConfirmDialogModule, TimelineModule, ChartModule
+    ToastModule, ConfirmDialogModule, TimelineModule, ChartModule, BiometricManagerComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './patient-details.component.html',

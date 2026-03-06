@@ -19,6 +19,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
 import { Attendance, AttendanceFormData, AvulsoFormData, ATTENDANCE_STATUS_CONFIG } from '../../core/models/attendance.model';
 import { forkJoin } from 'rxjs';
+import { BiometricCheckinButtonComponent } from './biometric-checkin-button/biometric-checkin-button';
 
 interface PatientAttendance extends Patient {
   todayStatus?: 'present' | 'absent' | 'makeup' | null;
@@ -36,7 +37,7 @@ interface PatientAttendance extends Patient {
     CommonModule, FormsModule, ReactiveFormsModule, RouterLink,
     CardModule, ButtonModule, DatePickerModule, SelectModule,
     SelectButtonModule, ToastModule, DialogModule, MultiSelectModule,
-    InputNumberModule, TextareaModule, TooltipModule
+    InputNumberModule, TextareaModule, TooltipModule, BiometricCheckinButtonComponent
   ],
   providers: [MessageService],
   templateUrl: './attendance.component.html',
@@ -186,6 +187,22 @@ export class AttendanceComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  onBiometricSuccess(attendance: Attendance, patient: PatientAttendance): void {
+    // Atualiza o status local igual ao que já é feito em markAttendance()
+    this._updatePatientStatus(patient.id, 'present');
+    // Registra o id para permitir edição posterior
+    patient.todayAttendanceId = attendance.id;
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Presença registrada',
+      detail: `${patient.nome} — presença via biometria`
+    });
+  }
+
+  onBiometricError(message: string): void {
+    this.messageService.add({ severity: 'warn', summary: 'Biometria', detail: message });
   }
 
   applyFilters(): void {

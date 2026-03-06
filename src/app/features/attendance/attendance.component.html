@@ -228,6 +228,13 @@
                       <i class="pi pi-replay"></i>
                       <span>Reposição</span>
                     </button>
+
+                    <app-biometric-checkin-button
+                      [patientId]="patient.id"
+                      [hasBiometric]="patient.has_biometric ?? false"
+                      [disabled]="saving()"
+                      (onSuccess)="onBiometricSuccess($event, patient)"
+                      (onError)="onBiometricError($event)" />
                   </div>
                   
                   <p-button

@@ -23,6 +23,7 @@ export interface Patient {
   total_evolutions?: number;  // contagem vinda do backend
   createdAt?: Date;
   updatedAt?: Date;
+  has_biometric?: boolean;
 }
 
 // Usado na tela de detalhes — carregado sob demanda
