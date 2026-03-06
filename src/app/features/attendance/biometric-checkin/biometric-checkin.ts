@@ -21,6 +21,7 @@ import { BiometricService } from '../../../core/services/biometric.service';
 import { PatientService } from '../../../core/services/patient.service';
 import { Attendance } from '../../../core/models/attendance.model';
 import { AvulsoFormData } from '../../../core/models/attendance.model';
+import { TooltipModule } from 'primeng/tooltip';
 
 type CheckinState =
   | 'idle'        // aguardando o professor iniciar
@@ -42,7 +43,7 @@ interface CheckinResult {
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, DialogModule,
-    TagModule, ToastModule, ConfirmDialogModule, InputNumberModule
+    TagModule, ToastModule, ConfirmDialogModule, InputNumberModule, TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   template: `
