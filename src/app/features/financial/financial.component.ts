@@ -12,6 +12,7 @@ import { PatientService } from '../../core/services/patient.service';
 import { ExportService } from '../../core/services/export.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
+import { AvulsoAttendance } from '../../core/models/attendance.model';
 
 interface FinancialStats {
   totalPatients: number;
@@ -257,7 +258,25 @@ export class FinancialComponent implements OnInit {
     if (!user) return;
     const patients = this.sortedPatients();
     if (!patients.length) return;
-    this.exportService.exportPatientsToExcel(patients, user.nome, user.role);
+
+    // Monta o intervalo do mês atual: primeiro e último dia
+    const hoje = new Date();
+    const start = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      .toISOString().split('T')[0];
+    const end = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+      .toISOString().split('T')[0];
+
+    // Busca avulsas do mês e só então gera o Excel
+    // Dessa forma o fechamento já inclui tudo que aconteceu no período
+    this.patientService.getAvulsoByPeriod(start, end).subscribe({
+      next: (avulsos) => {
+        this.exportService.exportPatientsToExcel(patients, user.nome, user.role, avulsos);
+      },
+      error: () => {
+        // Mesmo se falhar, exporta sem avulsas (não bloqueia o usuário)
+        this.exportService.exportPatientsToExcel(patients, user.nome, user.role, []);
+      }
+    });
   }
 
   // ─────────────────────────────────────────────

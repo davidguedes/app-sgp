@@ -139,7 +139,32 @@
     font-weight: 700;
     line-height: 1;
   }
-  
+
+  .stat-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat-avulso-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 7px;
+    background: rgba(196, 149, 106, 0.13);
+    border: 1px solid rgba(196, 149, 106, 0.28);
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: #8a5a2a;
+    white-space: nowrap;
+    // Alinha visualmente com a baseline do número grande
+    margin-bottom: 3px;
+
+    i { font-size: 0.65rem; color: #c4956a; }
+  }
+
   &.total   i { background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52)); }
   &.present i { background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d); }
   &.absent  i { background: linear-gradient(135deg, var(--danger, #c06060), #a85050); }

@@ -303,6 +303,8 @@ export class AttendanceComponent implements OnInit {
         });
         this.showAvulsoDialog.set(false);
         this.savingAvulso.set(false);
+        // Recarrega a lista do dia para refletir as avulsas recém-criadas
+        this.loadDayAttendance();
       },
       error: () => {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar a(s) aula(s) avulsa(s)' });
@@ -332,12 +334,13 @@ export class AttendanceComponent implements OnInit {
       ? this.patients().filter(p => p.profissional_id === this.selectedProfessional())
       : this.patients();
     const regulares = studentsToCount.filter(p => !p.isAvulso);
-    const total     = regulares.length;
+    const avulsos   = studentsToCount.filter(p => p.isAvulso).length;
     const present   = regulares.filter(p => p.todayStatus === 'present').length;
     const absent    = regulares.filter(p => p.todayStatus === 'absent').length;
     const makeup    = regulares.filter(p => p.todayStatus === 'makeup').length;
     const pending   = regulares.filter(p => !p.todayStatus).length;
-    const avulsos   = studentsToCount.filter(p => p.isAvulso).length;
+    // total inclui regulares + avulsas para refletir todas as aulas do dia
+    const total     = regulares.length + avulsos;
     return { total, present, absent, makeup, pending, avulsos };
   }
 

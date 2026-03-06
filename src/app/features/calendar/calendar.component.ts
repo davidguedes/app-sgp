@@ -87,7 +87,7 @@ export class CalendarComponent implements OnInit {
   constructor(private patientService: PatientService, public authService: AuthService) {}
 
   ngOnInit(): void {
-    if (!this.authService.isGestor()) this.viewMode.set('day');
+    if (!this.authService.isGestor()) this.viewMode.set('week');
 
     this.patientService.loadPatients();
     this.authService.loadProfessionals();
