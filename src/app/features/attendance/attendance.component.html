@@ -55,19 +55,19 @@
   @let stats = getStats();
   <div class="stats-grid">
     <p-card styleClass="stat-card total">
-    <div class="stat-content">
-      <i class="pi pi-users"></i>
-      <div class="stat-info">
-        <span class="stat-label">Total de Aulas</span>
-        <span class="stat-value">{{ stats.total }}</span>
-        @if (stats.avulsos > 0) {
-          <span class="stat-avulso-hint">
-            <i class="pi pi-bolt"></i> {{ stats.avulsos }} avulsa(s)
-          </span>
-        }
+      <div class="stat-content">
+        <i class="pi pi-users"></i>
+        <div class="stat-info">
+          <span class="stat-label">Total de Aulas</span>
+          <span class="stat-value">{{ stats.total }}</span>
+          @if (stats.avulsos > 0) {
+            <span class="stat-avulso-hint">
+              <i class="pi pi-bolt"></i>{{ stats.avulsos }} avulsa{{ stats.avulsos > 1 ? 's' : '' }}
+            </span>
+          }
+        </div>
       </div>
-    </div>
-  </p-card>
+    </p-card>
     
     <p-card styleClass="stat-card present">
       <div class="stat-content">
@@ -282,6 +282,14 @@
                     Presente
                   </div>
                 </div>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="deleteAvulso(patient)"
+                  pTooltip="Excluir aula avulsa">
+                </p-button>
                 <p-button
                   icon="pi pi-eye"
                   severity="info"

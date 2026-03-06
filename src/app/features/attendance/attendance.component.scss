@@ -140,27 +140,20 @@
     line-height: 1;
   }
 
-  .stat-value-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
   .stat-avulso-hint {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    padding: 1px 7px;
+    padding: 2px 8px;
     background: rgba(196, 149, 106, 0.13);
     border: 1px solid rgba(196, 149, 106, 0.28);
     border-radius: 20px;
-    font-size: 0.73rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #8a5a2a;
     white-space: nowrap;
-    // Alinha visualmente com a baseline do número grande
-    margin-bottom: 3px;
+    width: fit-content;
+    margin-top: 2px;
 
     i { font-size: 0.65rem; color: #c4956a; }
   }

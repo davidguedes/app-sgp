@@ -315,6 +315,32 @@ export class AttendanceComponent implements OnInit {
 
   // ─────────────────────────────────────────────
 
+  // ── Excluir Aula Avulsa ──────────────────────
+  deleteAvulso(patient: PatientAttendance): void {
+    if (!patient.todayAttendanceId) return;
+    if (!confirm(`Excluir a aula avulsa de ${patient.nome}?`)) return;
+
+    this.patientService.deleteAttendance(patient.id, patient.todayAttendanceId).subscribe({
+      next: () => {
+        // Remove da lista local sem recarregar do servidor (mais performático)
+        this.patients.set(this.patients().filter(p => p.todayAttendanceId !== patient.todayAttendanceId));
+        this.applyFilters();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Removida',
+          detail: `Aula avulsa de ${patient.nome} excluída`
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível excluir a aula avulsa'
+        });
+      }
+    });
+  }
+
   private _updatePatientStatus(id: string, status: 'present' | 'absent' | 'makeup' | null, attendanceId?: string): void {
     const updated = this.patients().map(p =>
       p.id === id
