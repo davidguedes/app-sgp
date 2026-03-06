@@ -25,6 +25,7 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
     
     ::ng-deep {
       .date-selector,
@@ -32,7 +33,6 @@
         min-width: 200px;
       }
       
-      // Estilos para o toggle de visualização
       .view-mode-toggle {
         .p-buttonset {
           display: flex;
@@ -50,18 +50,10 @@
             font-size: 0.85rem;
             transition: all 0.2s;
             
-            &:first-child {
-              border-radius: 10px 0 0 10px;
-            }
+            &:first-child { border-radius: 10px 0 0 10px; }
+            &:last-child  { border-radius: 0 10px 10px 0; border-left: none; }
             
-            &:last-child {
-              border-radius: 0 10px 10px 0;
-              border-left: none;
-            }
-            
-            i {
-              font-size: 0.9rem;
-            }
+            i { font-size: 0.9rem; }
             
             &.p-highlight {
               background: var(--sage, #7a9e7e);
@@ -78,10 +70,29 @@
           }
         }
       }
+
+      // Botão aula avulsa
+      .avulso-btn.p-button {
+        background: linear-gradient(135deg, #c4956a, #b07d52);
+        border-color: #b07d52;
+        color: white;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 10px 18px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(196, 149, 106, 0.3);
+
+        &:hover {
+          background: linear-gradient(135deg, #b07d52, #9a6b42);
+          box-shadow: 0 4px 14px rgba(196, 149, 106, 0.45);
+          transform: translateY(-1px);
+        }
+      }
     }
   }
 }
 
+// ── Stats ────────────────────────────────────────────────────
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -90,9 +101,7 @@
 }
 
 .stat-card {
-  ::ng-deep .p-card-body {
-    padding: 1.5rem;
-  }
+  ::ng-deep .p-card-body { padding: 1.5rem; }
   
   .stat-content {
     display: flex;
@@ -131,36 +140,24 @@
     line-height: 1;
   }
   
-  &.total i {
-    background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
-  }
-  
-  &.present i {
-    background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
-  }
-  
-  &.absent i {
-    background: linear-gradient(135deg, var(--danger, #c06060), #a85050);
-  }
-  
-  &.pending i {
-    background: linear-gradient(135deg, var(--warning, #d4a574), #c49261);
-  }
+  &.total   i { background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52)); }
+  &.present i { background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d); }
+  &.absent  i { background: linear-gradient(135deg, var(--danger, #c06060), #a85050); }
+  &.pending i { background: linear-gradient(135deg, var(--warning, #d4a574), #c49261); }
 }
 
+// ── Bulk Actions ─────────────────────────────────────────────
 .bulk-actions {
   margin-bottom: 2rem;
   display: flex;
   justify-content: flex-end;
 }
 
+// ── Lista ────────────────────────────────────────────────────
 .attendance-card {
-  ::ng-deep .p-card-body {
-    padding: 0;
-  }
+  ::ng-deep .p-card-body { padding: 0; }
 }
 
-// NOVO: Cabeçalho de resultados
 .results-header {
   padding: 1rem 1.5rem;
   background: rgba(122, 158, 126, 0.05);
@@ -191,17 +188,9 @@
   transition: background 0.2s;
   gap: 2rem;
   
-  &:last-child {
-    border-bottom: none;
-  }
-  
-  &:hover {
-    background: rgba(122, 158, 126, 0.03);
-  }
-  
-  &.has-status {
-    background: rgba(122, 158, 126, 0.05);
-  }
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(122, 158, 126, 0.03); }
+  &.has-status { background: rgba(122, 158, 126, 0.05); }
   
   .patient-info-section {
     display: flex;
@@ -231,7 +220,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-
+      
       h4 {
         margin: 0;
         font-size: 1rem;
@@ -241,7 +230,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
+      
       .badge-exp {
         display: inline-flex;
         align-items: center;
@@ -268,10 +257,7 @@
         gap: 4px;
         font-size: 0.8rem;
         color: var(--muted, #8a8580);
-        
-        i {
-          font-size: 0.75rem;
-        }
+        i { font-size: 0.75rem; }
       }
     }
   }
@@ -303,20 +289,9 @@
       font-size: 0.85rem;
       font-weight: 600;
       
-      &.present {
-        background: rgba(90, 143, 90, 0.12);
-        color: var(--success, #5a8f5a);
-      }
-      
-      &.absent {
-        background: rgba(192, 96, 96, 0.12);
-        color: var(--danger, #c06060);
-      }
-      
-      &.makeup {
-        background: rgba(212, 165, 116, 0.12);
-        color: var(--warning, #d4a574);
-      }
+      &.present { background: rgba(90, 143, 90, 0.12);  color: var(--success, #5a8f5a); }
+      &.absent  { background: rgba(192, 96, 96, 0.12);  color: var(--danger, #c06060);  }
+      &.makeup  { background: rgba(212, 165, 116, 0.12); color: var(--warning, #d4a574); }
     }
   }
   
@@ -340,49 +315,17 @@
     cursor: pointer;
     transition: all 0.2s;
     
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+    &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    i { font-size: 0.9rem; }
     
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    i {
-      font-size: 0.9rem;
-    }
-    
-    &.present {
-      &:hover:not(:disabled),
-      &.active {
-        background: var(--success, #5a8f5a);
-        border-color: var(--success, #5a8f5a);
-        color: white;
-      }
-    }
-    
-    &.absent {
-      &:hover:not(:disabled),
-      &.active {
-        background: var(--danger, #c06060);
-        border-color: var(--danger, #c06060);
-        color: white;
-      }
-    }
-    
-    &.makeup {
-      &:hover:not(:disabled),
-      &.active {
-        background: var(--warning, #d4a574);
-        border-color: var(--warning, #d4a574);
-        color: white;
-      }
-    }
+    &.present { &:hover:not(:disabled), &.active { background: var(--success, #5a8f5a); border-color: var(--success, #5a8f5a); color: white; } }
+    &.absent  { &:hover:not(:disabled), &.active { background: var(--danger, #c06060);  border-color: var(--danger, #c06060);  color: white; } }
+    &.makeup  { &:hover:not(:disabled), &.active { background: var(--warning, #d4a574); border-color: var(--warning, #d4a574); color: white; } }
   }
 }
 
+// ── Estados ──────────────────────────────────────────────────
 .loading-state,
 .empty-state {
   display: flex;
@@ -397,24 +340,14 @@
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.5;
-    
-    &.pi-check-circle {
-      color: var(--success, #5a8f5a);
-      opacity: 0.7;
-    }
+    &.pi-check-circle { color: var(--success, #5a8f5a); opacity: 0.7; }
   }
   
-  h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--charcoal, #2c2c2c);
-  }
-  
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-  }
+  h3 { margin: 0 0 0.5rem 0; color: var(--charcoal, #2c2c2c); }
+  p  { margin: 0; font-size: 0.9rem; }
 }
 
+// ── Footer ───────────────────────────────────────────────────
 .info-footer {
   margin-top: 2rem;
   padding: 1.5rem;
@@ -431,34 +364,235 @@
     gap: 10px;
     font-size: 0.85rem;
     color: var(--sage-dark, #4e6e52);
-    
-    i {
-      font-size: 1rem;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
+    i { font-size: 1rem; margin-top: 2px; flex-shrink: 0; }
   }
 }
 
+// ════════════════════════════════════════════════════════════
+// DIALOG — AULA AVULSA
+// ════════════════════════════════════════════════════════════
+::ng-deep .avulso-dialog {
+  .p-dialog-header { display: none; } // usamos ng-template header customizado
+
+  .p-dialog-content {
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .p-dialog-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border, #e8e3dc);
+    background: var(--cream, #f8f5f0);
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+.avulso-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 0;
+
+  .avulso-dialog-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #c4956a, #b07d52);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(196, 149, 106, 0.35);
+
+    i {
+      font-size: 1.4rem;
+      color: white;
+    }
+  }
+
+  h3 {
+    margin: 0 0 2px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--charcoal, #2c2c2c);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted, #8a8580);
+  }
+}
+
+.avulso-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .field-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--charcoal, #2c2c2c);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i { font-size: 0.85rem; color: var(--sage, #7a9e7e); }
+
+    .required { color: var(--danger, #c06060); margin-left: 2px; }
+  }
+
+  .field-error {
+    color: var(--danger, #c06060);
+    font-size: 0.78rem;
+    margin-top: 2px;
+  }
+
+  .notes-textarea {
+    resize: vertical;
+    border: 1.5px solid var(--border, #e8e3dc);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--charcoal, #2c2c2c);
+    background: var(--cream, #f8f5f0);
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--sage, #7a9e7e);
+      box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.15);
+    }
+  }
+
+  ::ng-deep {
+    .w-full { width: 100%; }
+
+    // multiselect, datepicker, inputnumber largura total
+    .p-multiselect,
+    .p-datepicker-input-icon-container,
+    .p-inputnumber { width: 100%; }
+
+    .ng-invalid .p-inputtext,
+    .ng-invalid.p-multiselect,
+    .ng-invalid .p-datepicker-input { border-color: var(--danger, #c06060) !important; }
+  }
+}
+
+// Chips dos alunos selecionados no multiselect
+.selected-chip {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(196, 149, 106, 0.15);
+  color: #8a5a2a;
+  border: 1px solid rgba(196, 149, 106, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin: 2px 3px;
+}
+
+// Resumo dinâmico do lançamento
+.avulso-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(196, 149, 106, 0.1);
+  border: 1px solid rgba(196, 149, 106, 0.3);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #7a4f1e;
+  line-height: 1.5;
+
+  i { font-size: 1rem; margin-top: 1px; flex-shrink: 0; color: #c4956a; }
+
+  strong { color: #8a5a2a; }
+}
+
+// Footer do dialog
+.avulso-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  ::ng-deep .avulso-confirm-btn.p-button {
+    background: linear-gradient(135deg, #c4956a, #b07d52);
+    border-color: #b07d52;
+    font-weight: 600;
+
+    &:hover { background: linear-gradient(135deg, #b07d52, #9a6b42); }
+  }
+}
+
+.patient-item.avulso-item {
+  border-left: 3px solid #c4956a;
+  background: rgba(196, 149, 106, 0.04);
+
+  .badge-avulso-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    background: rgba(196, 149, 106, 0.15);
+    border: 1px solid rgba(196, 149, 106, 0.35);
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #8a5a2a;
+    i { font-size: 0.68rem; }
+  }
+
+  .avulso-valor-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.8rem;
+    color: #8a5a2a;
+    font-weight: 600;
+    i { font-size: 0.75rem; color: #c4956a; }
+  }
+}
+
+/* Separador de seção avulsas */
+.avulsos-section-header {
+  padding: 0.6rem 1.5rem;
+  background: rgba(196, 149, 106, 0.08);
+  border-bottom: 1px solid rgba(196, 149, 106, 0.2);
+  border-top: 1px solid rgba(196, 149, 106, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8a5a2a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i { font-size: 0.85rem; color: #c4956a; }
+}
+
+// ── Responsivo ───────────────────────────────────────────────
 @media (max-width: 1200px) {
   .patient-item {
     flex-wrap: wrap;
-    
-    .patient-info-section {
-      flex: 1 1 100%;
-    }
-    
-    .patient-actions {
-      flex: 1 1 100%;
-      justify-content: space-between;
-    }
+    .patient-info-section { flex: 1 1 100%; }
+    .patient-actions { flex: 1 1 100%; justify-content: space-between; }
   }
 }
 
 @media (max-width: 768px) {
-  .attendance-container {
-    padding: 1rem;
-  }
+  .attendance-container { padding: 1rem; }
   
   .attendance-header {
     flex-direction: column;
@@ -470,59 +604,46 @@
       ::ng-deep {
         .date-selector,
         .filter-dropdown,
-        .view-mode-toggle {
-          width: 100%;
-        }
+        .view-mode-toggle { width: 100%; }
         
         .view-mode-toggle .p-buttonset {
           width: 100%;
-          
-          .p-button {
-            flex: 1;
-          }
+          .p-button { flex: 1; }
         }
+
+        .avulso-btn.p-button { width: 100%; justify-content: center; }
       }
     }
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
+  .stats-grid { grid-template-columns: 1fr; }
   
   .bulk-actions {
     justify-content: stretch;
-    
-    button {
-      width: 100%;
-    }
+    button { width: 100%; }
   }
   
   .patient-item {
     padding: 1rem;
     
-    .patient-info-section {
-      flex: 1 1 100%;
-    }
+    .patient-info-section { flex: 1 1 100%; }
     
     .patient-actions {
       flex-direction: column;
       align-items: stretch;
       width: 100%;
       
-      .current-status {
-        width: 100%;
-        justify-content: space-between;
-      }
+      .current-status { width: 100%; justify-content: space-between; }
       
       .action-buttons {
         width: 100%;
         flex-direction: column;
-        
-        .action-btn {
-          width: 100%;
-          justify-content: center;
-        }
+        .action-btn { width: 100%; justify-content: center; }
       }
     }
+  }
+
+  ::ng-deep .avulso-dialog {
+    .p-dialog { width: 95vw !important; margin: 0 auto; }
   }
 }

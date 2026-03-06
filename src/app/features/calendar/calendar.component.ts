@@ -12,19 +12,19 @@ import { DividerModule } from 'primeng/divider';
 import { PatientService } from '../../core/services/patient.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
-import { Attendance } from '../../core/models/attendance.model';
+import { Attendance, AvulsoAttendance } from '../../core/models/attendance.model';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 
-interface CalendarEvent  { date: Date; patients: PatientWithTime[]; dayOfWeek: string; }
-interface MonthDay       { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; }
+interface CalendarEvent  { date: Date; patients: PatientWithTime[]; avulsos: AvulsoAttendance[]; dayOfWeek: string; }
+interface MonthDay       { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; avulsos: AvulsoAttendance[]; }
 
 interface PatientWithTime extends Patient {
   displayTime?: string;
-  isNew?: boolean;                // iniciou nos últimos 7 dias
-  isExp?: boolean;                // é aluno experimental
+  isNew?: boolean;
+  isExp?: boolean;
   lastAttendanceStatus?: 'present' | 'absent' | 'makeup' | null;
-  makeupPending?: boolean;        // tem falta sem reposição registrada
+  makeupPending?: boolean;
 }
 
 interface ProfessionalSummary {
@@ -51,20 +51,17 @@ interface ProfessionalSummary {
 export class CalendarComponent implements OnInit {
   selectedDate         = signal<Date>(new Date());
   selectedProfessional = signal<number | null>(null);
-  // gestor abre na semana; profissional abre no dia de hoje
   viewMode             = signal<'month' | 'week' | 'day'>('week');
 
   patients       = signal<Patient[]>([]);
   attendances    = signal<Attendance[]>([]);
+  avulsos        = signal<AvulsoAttendance[]>([]);   // ← avulsas do período visível
   calendarEvents = signal<CalendarEvent[]>([]);
   monthDays      = signal<MonthDay[]>([]);
 
-  // Gestor
   gestorViewMode    = signal<'overview' | 'detail'>('overview');
   profissionalStats = signal<ProfessionalSummary[]>([]);
-
-  // Semana: dias vazios podem ser expandidos manualmente
-  expandedDays = signal<Set<string>>(new Set());
+  expandedDays      = signal<Set<string>>(new Set());
 
   professionalsOptions = computed(() => [
     { label: 'Todos', value: null },
@@ -90,9 +87,7 @@ export class CalendarComponent implements OnInit {
   constructor(private patientService: PatientService, public authService: AuthService) {}
 
   ngOnInit(): void {
-    if (!this.authService.isGestor()) {
-      this.viewMode.set('day');
-    }
+    if (!this.authService.isGestor()) this.viewMode.set('day');
 
     this.patientService.loadPatients();
     this.authService.loadProfessionals();
@@ -106,6 +101,10 @@ export class CalendarComponent implements OnInit {
     });
   }
 
+  // ─────────────────────────────────────────────
+  // CARREGAMENTO
+  // ─────────────────────────────────────────────
+
   private loadAttendances(patients: Patient[]): void {
     const relevantPatients = this.authService.isGestor()
       ? patients.filter(p => this.isPatientCurrentlyActive(p))
@@ -114,19 +113,34 @@ export class CalendarComponent implements OnInit {
           p.profissional_id === Number(this.authService.getCurrentUser()?.id)
         );
 
+    const loadAvulsos$ = this.patientService.getAvulsoByPeriod(
+      ...this.getPeriodRange()
+    );
+
     if (relevantPatients.length === 0) {
-      this.generateCalendarEvents();
-      if (this.authService.isGestor()) this.computeProfissionalStats();
+      loadAvulsos$.subscribe({
+        next: (avulsos) => {
+          this.avulsos.set(avulsos);
+          this.generateCalendarEvents();
+          if (this.authService.isGestor()) this.computeProfissionalStats();
+        },
+        error: () => {
+          this.generateCalendarEvents();
+          if (this.authService.isGestor()) this.computeProfissionalStats();
+        }
+      });
       return;
     }
 
-    // Limita a 20 pacientes para não sobrecarregar
-    const requests = relevantPatients.slice(0, 20)
+    const attendanceRequests = relevantPatients.slice(0, 20)
       .map(p => this.patientService.getAttendanceByPatient(p.id));
 
-    forkJoin(requests).subscribe({
+    forkJoin([...attendanceRequests, loadAvulsos$]).subscribe({
       next: (results) => {
-        this.attendances.set(results.flat());
+        // Os N-1 primeiros são Attendance[], o último é AvulsoAttendance[]
+        const avulsos = results.pop() as AvulsoAttendance[];
+        this.attendances.set((results as Attendance[][]).flat());
+        this.avulsos.set(avulsos);
         this.generateCalendarEvents();
         if (this.authService.isGestor()) this.computeProfissionalStats();
       },
@@ -134,6 +148,45 @@ export class CalendarComponent implements OnInit {
         this.generateCalendarEvents();
         if (this.authService.isGestor()) this.computeProfissionalStats();
       }
+    });
+  }
+
+  /**
+   * Retorna [startDate, endDate] como strings YYYY-MM-DD
+   * cobrindo o período visível atual (mês, semana ou dia).
+   */
+  getPeriodRange(): [string, string] {
+    const d = this.selectedDate();
+    const fmt = (dt: Date) => dt.toISOString().split('T')[0];
+
+    if (this.viewMode() === 'month') {
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end   = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      return [fmt(start), fmt(end)];
+    }
+    if (this.viewMode() === 'week') {
+      const start = this.getWeekStart(d);
+      const end   = new Date(start); end.setDate(start.getDate() + 5);
+      return [fmt(start), fmt(end)];
+    }
+    // day
+    return [fmt(d), fmt(d)];
+  }
+
+  // ─────────────────────────────────────────────
+  // AVULSAS: helpers
+  // ─────────────────────────────────────────────
+
+  /** Avulsas do dia informado (filtra por profissional se necessário) */
+  getAvulsosForDate(date: Date): AvulsoAttendance[] {
+    const dateStr = date.toISOString().split('T')[0];
+    return this.avulsos().filter(a => {
+      const aDate = new Date(a.date); aDate.setHours(0,0,0,0);
+      const matches = aDate.toISOString().split('T')[0] === dateStr;
+      if (!matches) return false;
+      if (this.selectedProfessional())
+        return a.profissional_id === this.selectedProfessional();
+      return true;
     });
   }
 
@@ -151,7 +204,6 @@ export class CalendarComponent implements OnInit {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const lastAttendanceStatus = patientAttendances[0]?.status ?? null;
-
     const lastAbsent = patientAttendances.find(a => a.status === 'absent');
     const lastMakeup = patientAttendances.find(a => a.status === 'makeup');
     const makeupPending = !!lastAbsent && (
@@ -178,9 +230,9 @@ export class CalendarComponent implements OnInit {
       const active = this.patients()
         .filter(p => p.profissional_id === Number(prof.id) && this.isPatientCurrentlyActive(p));
 
-      const totalAulas    = weekDays.reduce((s, d) => s + active.filter(p => p.dias.includes(d)).length, 0);
-      const diasAtivos    = weekDays.filter(d => active.some(p => p.dias.includes(d)));
-      const receitaBruta  = active.reduce((s, p) => s + (p.valor || 0), 0);
+      const totalAulas     = weekDays.reduce((s, d) => s + active.filter(p => p.dias.includes(d)).length, 0);
+      const diasAtivos     = weekDays.filter(d => active.some(p => p.dias.includes(d)));
+      const receitaBruta   = active.reduce((s, p) => s + (p.valor || 0), 0);
       const receitaLiquida = active.reduce((s, p) => s + (p.ganho || 0), 0);
 
       return {
@@ -204,14 +256,12 @@ export class CalendarComponent implements OnInit {
     return true;
   }
 
-  totalAlunosGeral  = computed(() => this.patients().filter(p => this.isPatientCurrentlyActive(p)).length);
-  totalAulasSemanais = computed(() => this.profissionalStats().reduce((s, p) => s + p.totalAulas, 0));
-  receitaBrutaGeral  = computed(() => this.profissionalStats().reduce((s, p) => s + p.receitaBruta, 0));
+  totalAlunosGeral    = computed(() => this.patients().filter(p => this.isPatientCurrentlyActive(p)).length);
+  totalAulasSemanais  = computed(() => this.profissionalStats().reduce((s, p) => s + p.totalAulas, 0));
+  receitaBrutaGeral   = computed(() => this.profissionalStats().reduce((s, p) => s + p.receitaBruta, 0));
   receitaLiquidaGeral = computed(() => this.profissionalStats().reduce((s, p) => s + p.receitaLiquida, 0));
 
-  getOcupacaoPercent(prof: ProfessionalSummary): number {
-    return Math.min(Math.round((prof.totalAulas / 30) * 100), 100);
-  }
+  getOcupacaoPercent(prof: ProfessionalSummary): number { return Math.min(Math.round((prof.totalAulas / 30) * 100), 100); }
   getOcupacaoSeverity(pct: number): string {
     if (pct >= 80) return 'success';
     if (pct >= 40) return 'warning';
@@ -303,15 +353,15 @@ export class CalendarComponent implements OnInit {
     const prevLast = new Date(year, month, 0);
     for (let i = startDay - 1; i >= 0; i--) {
       const date = new Date(year, month - 1, prevLast.getDate() - i);
-      days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
+      days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)), avulsos: this.getAvulsosForDate(date) });
     }
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(year, month, day);
-      days.push({ date, isCurrentMonth: true, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
+      days.push({ date, isCurrentMonth: true, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)), avulsos: this.getAvulsosForDate(date) });
     }
     for (let day = 1; day <= 42 - days.length; day++) {
       const date = new Date(year, month + 1, day);
-      days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)) });
+      days.push({ date, isCurrentMonth: false, isToday: this.isToday(date), patients: this.getPatientsForDayWithTime(this.getDayKey(date)), avulsos: this.getAvulsosForDate(date) });
     }
     this.monthDays.set(days);
   }
@@ -322,14 +372,19 @@ export class CalendarComponent implements OnInit {
     for (let i = 0; i < 6; i++) {
       const date = new Date(ws); date.setDate(ws.getDate() + i);
       const dayOfWeek = this.getDayKey(date);
-      events.push({ date, patients: this.getPatientsForDayWithTime(dayOfWeek), dayOfWeek });
+      events.push({ date, patients: this.getPatientsForDayWithTime(dayOfWeek), avulsos: this.getAvulsosForDate(date), dayOfWeek });
     }
     this.calendarEvents.set(events);
   }
 
   generateDayView(): void {
     const dayOfWeek = this.getDayKey(this.selectedDate());
-    this.calendarEvents.set([{ date: this.selectedDate(), patients: this.getPatientsForDayWithTime(dayOfWeek), dayOfWeek }]);
+    this.calendarEvents.set([{
+      date: this.selectedDate(),
+      patients: this.getPatientsForDayWithTime(dayOfWeek),
+      avulsos: this.getAvulsosForDate(this.selectedDate()),
+      dayOfWeek
+    }]);
   }
 
   getPatientsForDay(dayKey: string): Patient[] {
@@ -366,25 +421,41 @@ export class CalendarComponent implements OnInit {
     return d;
   }
 
-  onDateSelect(d: Date):                    void { this.selectedDate.set(d);          this.generateCalendarEvents(); }
-  onProfessionalChange(v: number | null):   void { this.selectedProfessional.set(v);  this.generateCalendarEvents(); }
-  onViewModeChange(m: 'month'|'week'|'day'): void { this.viewMode.set(m);             this.generateCalendarEvents(); }
+  onDateSelect(d: Date): void {
+    this.selectedDate.set(d);
+    this.avulsos.set([]); // limpa para recarregar no novo período
+    this.loadAttendances(this.patients());
+  }
+  onProfessionalChange(v: number | null): void { this.selectedProfessional.set(v); this.generateCalendarEvents(); }
+  onViewModeChange(m: 'month'|'week'|'day'): void {
+    this.viewMode.set(m);
+    this.avulsos.set([]);
+    this.loadAttendances(this.patients());
+  }
 
   previousPeriod(): void {
     const d = new Date(this.selectedDate());
     if      (this.viewMode() === 'week') d.setDate(d.getDate() - 7);
     else if (this.viewMode() === 'day')  d.setDate(d.getDate() - 1);
     else                                 d.setMonth(d.getMonth() - 1);
-    this.selectedDate.set(d); this.generateCalendarEvents();
+    this.selectedDate.set(d);
+    this.avulsos.set([]);
+    this.loadAttendances(this.patients());
   }
   nextPeriod(): void {
     const d = new Date(this.selectedDate());
     if      (this.viewMode() === 'week') d.setDate(d.getDate() + 7);
     else if (this.viewMode() === 'day')  d.setDate(d.getDate() + 1);
     else                                 d.setMonth(d.getMonth() + 1);
-    this.selectedDate.set(d); this.generateCalendarEvents();
+    this.selectedDate.set(d);
+    this.avulsos.set([]);
+    this.loadAttendances(this.patients());
   }
-  goToToday(): void { this.selectedDate.set(new Date()); this.generateCalendarEvents(); }
+  goToToday(): void {
+    this.selectedDate.set(new Date());
+    this.avulsos.set([]);
+    this.loadAttendances(this.patients());
+  }
 
   getPeriodLabel(): string {
     const date = this.selectedDate();
@@ -403,8 +474,9 @@ export class CalendarComponent implements OnInit {
   }
 
   getTotalClasses(): number {
-    if (this.viewMode() === 'month') return this.monthDays().reduce((s, d) => s + d.patients.length, 0);
-    return this.calendarEvents().reduce((s, e) => s + e.patients.length, 0);
+    if (this.viewMode() === 'month')
+      return this.monthDays().reduce((s, d) => s + d.patients.length + d.avulsos.length, 0);
+    return this.calendarEvents().reduce((s, e) => s + e.patients.length + e.avulsos.length, 0);
   }
 
   isToday(date: Date): boolean {
@@ -440,10 +512,11 @@ export class CalendarComponent implements OnInit {
   }
 
   onMonthDayClick(day: MonthDay): void {
-    if (day.patients.length > 0) {
+    if (day.patients.length > 0 || day.avulsos.length > 0) {
       this.selectedDate.set(day.date);
       this.viewMode.set('day');
-      this.generateCalendarEvents();
+      this.avulsos.set([]);
+      this.loadAttendances(this.patients());
     }
   }
 

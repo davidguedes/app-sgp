@@ -10,7 +10,7 @@ import {
   PatientStats,
   PatientStatsHttpResponse
 } from '../models/patient.model';
-import { Attendance, AttendanceFormData, AttendanceHttpResponse, AttendancesHttpResponse  } from '../models/attendance.model';
+import { Attendance, AttendanceFormData, AttendanceHttpResponse, AttendancesHttpResponse, AvulsoAttendance, AvulsoFormData  } from '../models/attendance.model';
 import { Evolution, EvolutionFormData, EvolutionHttpResponse, EvolutionsHttpResponse } from '../models/evolution.model';
 import { environment } from '../../../environments/environment';
 
@@ -112,6 +112,29 @@ export class PatientService {
     return this.http.get<AttendancesHttpResponse>(`${this.API_URL}/attendance?date=${date}`).pipe(
       map(r => r.data)
     );
+  }
+
+  createAvulso(data: AvulsoFormData): Observable<Attendance[]> {
+    return this.http
+      .post<{ success: boolean; data: Attendance[] }>(
+        `${this.API_URL}/attendance/avulso`,
+        {
+          ...data,
+          // Garante formato YYYY-MM-DD independente do timezone
+          date: data.date instanceof Date
+            ? data.date.toISOString().split('T')[0]
+            : data.date
+        }
+      )
+      .pipe(map(r => r.data));
+  }
+
+  getAvulsoByPeriod(start: string, end: string): Observable<AvulsoAttendance[]> {
+    return this.http
+      .get<{ success: boolean; data: AvulsoAttendance[] }>(
+        `${this.API_URL}/attendance/avulso?start=${start}&end=${end}`
+      )
+      .pipe(map(r => r.data));
   }
 
   // ─────────────────────────────────────────────

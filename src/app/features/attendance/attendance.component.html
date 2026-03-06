@@ -26,16 +26,7 @@
           styleClass="filter-dropdown">
         </p-select>
       }
-      <!-- @else {
-        <input
-          type="text"
-          pInputText
-          placeholder="{{ profissionalNome() }}"
-          [disabled]="true"
-        />
-      } -->
       
-      <!-- NOVO: Toggle de visualização -->
       <p-selectButton
         [options]="viewModeOptions"
         [(ngModel)]="showMarkedStudents"
@@ -48,6 +39,15 @@
           <span>{{ item.label }}</span>
         </ng-template>
       </p-selectButton>
+
+      <!-- Botão Aula Avulsa -->
+      <p-button
+        label="Aula Avulsa"
+        icon="pi pi-plus-circle"
+        styleClass="avulso-btn"
+        (onClick)="openAvulsoDialog()"
+        pTooltip="Lançar aula avulsa para aluno(s) selecionado(s)">
+      </p-button>
     </div>
   </div>
   
@@ -55,14 +55,19 @@
   @let stats = getStats();
   <div class="stats-grid">
     <p-card styleClass="stat-card total">
-      <div class="stat-content">
-        <i class="pi pi-users"></i>
-        <div class="stat-info">
-          <span class="stat-label">Total de Aulas</span>
-          <span class="stat-value">{{ stats.total }}</span>
-        </div>
+    <div class="stat-content">
+      <i class="pi pi-users"></i>
+      <div class="stat-info">
+        <span class="stat-label">Total de Aulas</span>
+        <span class="stat-value">{{ stats.total }}</span>
+        @if (stats.avulsos > 0) {
+          <span class="stat-avulso-hint">
+            <i class="pi pi-bolt"></i> {{ stats.avulsos }} avulsa(s)
+          </span>
+        }
       </div>
-    </p-card>
+    </div>
+  </p-card>
     
     <p-card styleClass="stat-card present">
       <div class="stat-content">
@@ -141,100 +146,154 @@
       
       <div class="patients-list">
         @for (patient of filteredPatients(); track patient.id) {
-          <div 
-            class="patient-item"
-            [class.has-status]="patient.todayStatus">
-            <div class="patient-info-section">
-              <div 
-                class="patient-avatar"
-                [style.background]="getAvatarColor(patient.nome)">
-                {{ getInitials(patient.nome) }}
-              </div>
-              
-              <div class="patient-details">
-                <div class="patient-name-row">
-                  <h4>{{ patient.nome }}</h4>
-                  @if(patient.tipo === 'experimental') {
-                    <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
-                  }
-                </div>
-                <div class="patient-meta">
-                  @if(isGestor()) { 
-                    <span>
-                      <i class="pi pi-user"></i>
-                      {{ getProfessionalName(patient.profissional_id) }}
-                    </span>
-                  }
-                  <span>
-                    <i class="pi pi-dollar"></i>
-                    {{ patient.valor | currency:'BRL' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="patient-actions">
-              @if (patient.todayStatus) {
-                <div class="current-status">
-                  <span class="status-label">Status atual:</span>
+          @if (!patient.isAvulso) {
+            <div 
+              class="patient-item"
+              [class.has-status]="patient.todayStatus">
+                <div class="patient-info-section">
                   <div 
-                    class="status-badge"
-                    [class]="patient.todayStatus">
-                    <i [class]="attendanceConfig[patient.todayStatus].icon"></i>
-                    {{ attendanceConfig[patient.todayStatus].label }}
+                    class="patient-avatar"
+                    [style.background]="getAvatarColor(patient.nome)">
+                    {{ getInitials(patient.nome) }}
+                  </div>
+                  
+                  <div class="patient-details">
+                    <div class="patient-name-row">
+                      <h4>{{ patient.nome }}</h4>
+                      @if(patient.tipo === 'experimental') {
+                        <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
+                      }
+                    </div>
+                    <div class="patient-meta">
+                      @if(isGestor()) { 
+                        <span>
+                          <i class="pi pi-user"></i>
+                          {{ getProfessionalName(patient.profissional_id) }}
+                        </span>
+                      }
+                      <span>
+                        <i class="pi pi-dollar"></i>
+                        {{ patient.valor | currency:'BRL' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
+                <div class="patient-actions">
+                  @if (patient.todayStatus) {
+                    <div class="current-status">
+                      <span class="status-label">Status atual:</span>
+                      <div 
+                        class="status-badge"
+                        [class]="patient.todayStatus">
+                        <i [class]="attendanceConfig[patient.todayStatus].icon"></i>
+                        {{ attendanceConfig[patient.todayStatus].label }}
+                      </div>
+                    </div>
+                    
+                    <p-button
+                      icon="pi pi-times"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      (onClick)="clearAttendance(patient)"
+                      pTooltip="Limpar registro">
+                    </p-button>
+                  }
+                  
+                  <div class="action-buttons">
+                    <button
+                      class="action-btn present"
+                      [class.active]="patient.todayStatus === 'present'"
+                      (click)="markAttendance(patient, 'present')"
+                      [disabled]="saving()">
+                      <i class="pi pi-check"></i>
+                      <span>Presente</span>
+                    </button>
+                    
+                    <button
+                      class="action-btn absent"
+                      [class.active]="patient.todayStatus === 'absent'"
+                      (click)="markAttendance(patient, 'absent')"
+                      [disabled]="saving()">
+                      <i class="pi pi-times"></i>
+                      <span>Falta</span>
+                    </button>
+                    
+                    <button
+                      class="action-btn makeup"
+                      [class.active]="patient.todayStatus === 'makeup'"
+                      (click)="markAttendance(patient, 'makeup')"
+                      [disabled]="saving()">
+                      <i class="pi pi-replay"></i>
+                      <span>Reposição</span>
+                    </button>
+                  </div>
+                  
+                  <p-button
+                    icon="pi pi-eye"
+                    severity="info"
+                    [text]="true"
+                    [rounded]="true"
+                    [routerLink]="['/patients', patient.id]"
+                    pTooltip="Ver detalhes">
+                  </p-button>
+                </div>
+            </div>
+          }
+        }
+
+        @if (avulsoList().length > 0) {
+          <div class="avulsos-section-header">
+            <i class="pi pi-bolt"></i>
+            Aulas Avulsas ({{ avulsoList().length }})
+          </div>
+
+          @for (patient of avulsoList(); track patient.id) {
+            <div class="patient-item avulso-item has-status">
+              <div class="patient-info-section">
+                <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">
+                  {{ getInitials(patient.nome) }}
+                </div>
+                <div class="patient-details">
+                  <div class="patient-name-row">
+                    <h4>{{ patient.nome }}</h4>
+                    <span class="badge-avulso-inline"><i class="pi pi-bolt"></i> Avulsa</span>
+                  </div>
+                  <div class="patient-meta">
+                    @if(isGestor()) {
+                      <span><i class="pi pi-user"></i> {{ getProfessionalName(patient.profissional_id) }}</span>
+                    }
+                    <span class="avulso-valor-badge">
+                      <i class="pi pi-dollar"></i>
+                      {{ patient.avulsoValor | currency:'BRL' }}
+                    </span>
+                    @if (patient.avulsoNotes) {
+                      <span><i class="pi pi-pencil"></i> {{ patient.avulsoNotes }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="patient-actions">
+                <div class="current-status">
+                  <div class="status-badge present">
+                    <i class="pi pi-check-circle"></i>
+                    Presente
+                  </div>
+                </div>
                 <p-button
-                  icon="pi pi-times"
-                  severity="secondary"
+                  icon="pi pi-eye"
+                  severity="info"
                   [text]="true"
                   [rounded]="true"
-                  (onClick)="clearAttendance(patient)"
-                  pTooltip="Limpar registro">
+                  [routerLink]="['/patients', patient.id]"
+                  pTooltip="Ver detalhes">
                 </p-button>
-              }
-              
-              <div class="action-buttons">
-                <button
-                  class="action-btn present"
-                  [class.active]="patient.todayStatus === 'present'"
-                  (click)="markAttendance(patient, 'present')"
-                  [disabled]="saving()">
-                  <i class="pi pi-check"></i>
-                  <span>Presente</span>
-                </button>
-                
-                <button
-                  class="action-btn absent"
-                  [class.active]="patient.todayStatus === 'absent'"
-                  (click)="markAttendance(patient, 'absent')"
-                  [disabled]="saving()">
-                  <i class="pi pi-times"></i>
-                  <span>Falta</span>
-                </button>
-                
-                <button
-                  class="action-btn makeup"
-                  [class.active]="patient.todayStatus === 'makeup'"
-                  (click)="markAttendance(patient, 'makeup')"
-                  [disabled]="saving()">
-                  <i class="pi pi-replay"></i>
-                  <span>Reposição</span>
-                </button>
               </div>
-              
-              <p-button
-                icon="pi pi-eye"
-                severity="info"
-                [text]="true"
-                [rounded]="true"
-                [routerLink]="['/patients', patient.id]"
-                pTooltip="Ver detalhes">
-              </p-button>
             </div>
-          </div>
-        }
+          }
+        }        
       </div>
     }
   </p-card>
@@ -251,3 +310,141 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════
+     DIALOG — AULA AVULSA
+     ═══════════════════════════════════════════════════════ -->
+<p-dialog
+  header="Lançar Aula Avulsa"
+  [visible]="showAvulsoDialog()"
+  (visibleChange)="showAvulsoDialog.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="avulso-dialog"
+  [style]="{ width: '520px' }">
+
+  <ng-template pTemplate="header">
+    <div class="avulso-dialog-header">
+      <span class="avulso-dialog-icon"><i class="pi pi-plus-circle"></i></span>
+      <div>
+        <h3>Lançar Aula Avulsa</h3>
+        <p>Registre uma aula fora do calendário fixo com valor próprio</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <form [formGroup]="avulsoForm" class="avulso-form">
+
+    <!-- Alunos -->
+    <div class="form-field">
+      <label class="field-label">
+        <i class="pi pi-users"></i>
+        Aluno(s) <span class="required">*</span>
+      </label>
+      <p-multiSelect
+  formControlName="patient_ids"
+  [options]="allPatients()"
+  optionLabel="nome"
+  optionValue="id"
+  placeholder="Selecione um ou mais alunos"
+  [filter]="true"
+  filterPlaceholder="Buscar aluno..."
+  [showClear]="true"
+  styleClass="w-full"
+  [class.ng-invalid]="avulsoForm.controls.patient_ids.invalid && avulsoForm.controls.patient_ids.touched">
+</p-multiSelect>
+      @if (avulsoForm.controls.patient_ids.invalid && avulsoForm.controls.patient_ids.touched) {
+        <small class="field-error">Selecione ao menos um aluno</small>
+      }
+    </div>
+
+    <!-- Data -->
+    <div class="form-field">
+      <label class="field-label">
+        <i class="pi pi-calendar"></i>
+        Data da Aula <span class="required">*</span>
+      </label>
+      <p-datepicker
+        formControlName="date"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        styleClass="w-full"
+        [class.ng-invalid]="avulsoForm.controls.date.invalid && avulsoForm.controls.date.touched">
+      </p-datepicker>
+      @if (avulsoForm.controls.date.invalid && avulsoForm.controls.date.touched) {
+        <small class="field-error">Informe a data da aula</small>
+      }
+    </div>
+
+    <!-- Valor -->
+    <div class="form-field">
+      <label class="field-label">
+        <i class="pi pi-dollar"></i>
+        Valor por Aluno <span class="required">*</span>
+      </label>
+      <p-inputNumber
+        formControlName="valor"
+        mode="currency"
+        currency="BRL"
+        locale="pt-BR"
+        placeholder="R$ 0,00"
+        styleClass="w-full"
+        [class.ng-invalid]="avulsoForm.controls.valor.invalid && avulsoForm.controls.valor.touched">
+      </p-inputNumber>
+      @if (avulsoForm.controls.valor.invalid && avulsoForm.controls.valor.touched) {
+        <small class="field-error">Informe um valor maior que zero</small>
+      }
+    </div>
+
+    <!-- Observações -->
+    <div class="form-field">
+      <label class="field-label">
+        <i class="pi pi-pencil"></i>
+        Observações
+      </label>
+      <textarea
+        pInputTextarea
+        formControlName="notes"
+        rows="3"
+        placeholder="Motivo, tipo de aula, instruções especiais..."
+        class="w-full notes-textarea">
+      </textarea>
+    </div>
+
+    <!-- Resumo de lançamento -->
+    @let ids = avulsoForm.controls.patient_ids.value;
+    @let val = avulsoForm.controls.valor.value;
+    @if (ids && ids.length > 0 && val && val > 0) {
+      <div class="avulso-summary">
+        <i class="pi pi-info-circle"></i>
+        <span>
+          Serão lançadas <strong>{{ ids.length }} aula(s)</strong> avulsa(s)
+          no valor de <strong>{{ val | currency:'BRL' }}</strong> cada,
+          totalizando <strong>{{ ids.length * val | currency:'BRL' }}</strong>.
+        </span>
+      </div>
+    }
+
+  </form>
+
+  <ng-template pTemplate="footer">
+    <div class="avulso-footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showAvulsoDialog.set(false)"
+        [disabled]="savingAvulso()">
+      </p-button>
+      <p-button
+        label="Registrar Aula Avulsa"
+        icon="pi pi-check"
+        styleClass="avulso-confirm-btn"
+        [loading]="savingAvulso()"
+        (onClick)="saveAvulso()">
+      </p-button>
+    </div>
+  </ng-template>
+
+</p-dialog>

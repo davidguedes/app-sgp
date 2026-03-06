@@ -34,9 +34,7 @@
     </div>
   </div>
 
-  <!-- ================================================================ -->
-  <!-- BARRA DE STATUS RÁPIDO — só para profissional                     -->
-  <!-- ================================================================ -->
+  <!-- ── BARRA DE STATUS (profissional) ── -->
   @if (!authService.isGestor()) {
     <div class="prof-status-bar">
       <div class="status-pill today-pill">
@@ -58,9 +56,7 @@
     </div>
   }
 
-  <!-- ================================================================ -->
-  <!-- VISÃO GERENCIAL (gestor, overview)                                -->
-  <!-- ================================================================ -->
+  <!-- ── VISÃO GERENCIAL ── -->
   @if (authService.isGestor() && gestorViewMode() === 'overview') {
     <div class="gestor-overview">
 
@@ -227,9 +223,7 @@
     </div>
   }
 
-  <!-- ================================================================ -->
-  <!-- VISÃO DETALHADA: profissional OU gestor em drill-down             -->
-  <!-- ================================================================ -->
+  <!-- ── VISÃO DETALHADA (profissional ou gestor drill-down) ── -->
   @if (!authService.isGestor() || gestorViewMode() === 'detail') {
     <p-card styleClass="calendar-card">
       <div class="calendar-toolbar">
@@ -265,19 +259,28 @@
               <div class="month-day-cell"
                 [class.other-month]="!day.isCurrentMonth"
                 [class.today]="day.isToday"
-                [class.has-events]="day.patients.length > 0"
+                [class.has-events]="day.patients.length > 0 || day.avulsos.length > 0"
                 (click)="onMonthDayClick(day)">
                 <div class="day-number">{{ day.date.getDate() }}</div>
                 <div class="day-events">
-                  @for (patient of day.patients.slice(0, 3); track patient.id) {
-                    <div class="event-item" [ngClass]="patient.tipo === 'experimental' ? 'event-item-experimental' : ''" [style.background]="getAvatarColor(patient.nome)"
+                  @for (patient of day.patients.slice(0, 2); track patient.id) {
+                    <div class="event-item" [ngClass]="patient.tipo === 'experimental' ? 'event-item-experimental' : ''"
+                      [style.background]="getAvatarColor(patient.nome)"
                       [routerLink]="['/patients', patient.id]" (click)="$event.stopPropagation()">
                       <span class="event-time">{{ patient.displayTime }}</span>
                       <span class="event-name">{{ patient.nome }}</span>
                     </div>
                   }
-                  @if (day.patients.length > 3) {
-                    <div class="more-events">+{{ day.patients.length - 3 }} mais</div>
+                  <!-- Avulsas no mês -->
+                  @for (av of day.avulsos.slice(0, 1); track av.id) {
+                    <div class="event-item event-item-avulso" (click)="$event.stopPropagation()">
+                      <span class="event-avulso-badge">AVU</span>
+                      <span class="event-name">{{ av.patient_nome }}</span>
+                    </div>
+                  }
+                  @let total = day.patients.length + day.avulsos.length;
+                  @if (total > 3) {
+                    <div class="more-events">+{{ total - 3 }} mais</div>
                   }
                 </div>
               </div>
@@ -290,20 +293,20 @@
       @if (viewMode() === 'week') {
         <div class="week-view">
           @for (event of calendarEvents(); track event.date) {
-            @let hasPatients = event.patients.length > 0;
-            @let expanded = isDayExpanded(event.dayOfWeek, hasPatients);
+            @let hasContent = event.patients.length > 0 || event.avulsos.length > 0;
+            @let expanded = isDayExpanded(event.dayOfWeek, hasContent);
             <div class="day-column"
               [class.today]="isToday(event.date)"
               [class.collapsed]="!expanded"
-              [class.has-patients]="hasPatients">
+              [class.has-patients]="hasContent">
 
-              <div class="day-header" (click)="!hasPatients && toggleDay(event.dayOfWeek)">
+              <div class="day-header" (click)="!hasContent && toggleDay(event.dayOfWeek)">
                 <div class="day-header-main">
                   <span class="day-name">{{ getDayShortLabel(event.dayOfWeek) }}</span>
                   <span class="day-date">{{ event.date.getDate() }}</span>
                 </div>
-                @if (hasPatients) {
-                  <p-badge [value]="event.patients.length.toString()" severity="info" styleClass="day-badge"></p-badge>
+                @if (hasContent) {
+                  <p-badge [value]="(event.patients.length + event.avulsos.length).toString()" severity="info" styleClass="day-badge"></p-badge>
                 } @else {
                   <i class="pi" [class]="expanded ? 'pi-chevron-up' : 'pi-chevron-down'" style="font-size:0.75rem; color: var(--text-color-secondary)"></i>
                 }
@@ -311,39 +314,45 @@
 
               @if (expanded) {
                 <div class="day-content">
-                  @if (hasPatients) {
+                  @if (hasContent) {
+                    <!-- Alunos regulares -->
                     @for (patient of event.patients; track patient.id) {
                       <div class="class-card" [routerLink]="['/patients', patient.id]"
                         [class.card-new]="patient.isNew"
                         [class.card-makeup]="patient.makeupPending">
-
                         <div class="class-time">
                           <i class="pi pi-clock"></i>
                           <span>{{ patient.displayTime || '--:--' }}</span>
-                          <!-- badges de status -->
-                          @if (patient.isNew) {
-                            <span class="badge-new" pTooltip="Aluno novo (iniciou nos últimos 7 dias)">NOVO</span>
-                          }
-                          @if (patient.makeupPending) {
-                            <span class="badge-makeup" pTooltip="Reposição pendente"><i class="pi pi-replay"></i></span>
-                          }
-                          @if(patient.isExp) {
-                            <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i></span>
-                          }
+                          @if (patient.isNew) { <span class="badge-new" pTooltip="Aluno novo">NOVO</span> }
+                          @if (patient.makeupPending) { <span class="badge-makeup" pTooltip="Reposição pendente"><i class="pi pi-replay"></i></span> }
+                          @if (patient.isExp) { <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i></span> }
                         </div>
-
                         <div class="class-main">
-                          <div class="class-avatar" [style.background]="getAvatarColor(patient.nome)">
-                            {{ getInitials(patient.nome) }}
-                          </div>
+                          <div class="class-avatar" [style.background]="getAvatarColor(patient.nome)">{{ getInitials(patient.nome) }}</div>
                           <div class="class-info">
                             <span class="class-name">{{ patient.nome }}</span>
-                            <!-- status da última presença -->
                             <span class="att-status" [class]="getAttendanceClass(patient.lastAttendanceStatus)"
                               [pTooltip]="getAttendanceLabel(patient.lastAttendanceStatus)">
                               <i [class]="getAttendanceIcon(patient.lastAttendanceStatus)"></i>
                               <span>{{ getAttendanceLabel(patient.lastAttendanceStatus) }}</span>
                             </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    <!-- Avulsas da semana -->
+                    @for (av of event.avulsos; track av.id) {
+                      <div class="class-card card-avulso" [routerLink]="['/patients', av.patient_id]">
+                        <div class="class-time">
+                          <i class="pi pi-bolt"></i>
+                          <span class="avulso-label-sm">Avulsa</span>
+                          <span class="avulso-valor-sm">{{ av.valor | currency:'BRL' }}</span>
+                        </div>
+                        <div class="class-main">
+                          <div class="class-avatar avulso-avatar" [style.background]="getAvatarColor(av.patient_nome)">{{ getInitials(av.patient_nome) }}</div>
+                          <div class="class-info">
+                            <span class="class-name">{{ av.patient_nome }}</span>
+                            <span class="avulso-tag">Aula Avulsa</span>
                           </div>
                         </div>
                       </div>
@@ -365,6 +374,7 @@
       @if (viewMode() === 'day') {
         <div class="day-view">
           @for (event of calendarEvents(); track event.date) {
+            @let totalDia = event.patients.length + event.avulsos.length;
             <div class="day-detail">
               <div class="day-detail-header">
                 <div>
@@ -374,7 +384,12 @@
                   </span>
                 </div>
                 <div class="day-detail-badges">
-                  <p-badge [value]="event.patients.length + ' aulas'" severity="info"></p-badge>
+                  <p-badge [value]="totalDia + ' aulas'" severity="info"></p-badge>
+                  @if (event.avulsos.length > 0) {
+                    <span class="badge-avulso-header">
+                      <i class="pi pi-bolt"></i> {{ event.avulsos.length }} avulsa(s)
+                    </span>
+                  }
                   @if (getMakeupPendingCount() > 0 && !authService.isGestor()) {
                     <span class="badge-makeup-header">
                       <i class="pi pi-replay"></i> {{ getMakeupPendingCount() }} reposição pendente
@@ -383,46 +398,31 @@
                 </div>
               </div>
 
-              @if (event.patients.length > 0) {
+              @if (totalDia > 0) {
                 <div class="patients-timeline">
+
+                  <!-- Alunos regulares -->
                   @for (patient of event.patients; track patient.id) {
                     <div class="timeline-item">
                       <div class="timeline-time">
                         <span class="time-value">{{ patient.displayTime || '--:--' }}</span>
                       </div>
-
                       <div class="timeline-content" [class.tl-new]="patient.isNew" [class.tl-makeup]="patient.makeupPending">
                         <div class="tl-card">
-                          <!-- Linha superior: avatar + nome + badges -->
                           <div class="tl-main">
-                            <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">
-                              {{ getInitials(patient.nome) }}
-                            </div>
+                            <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">{{ getInitials(patient.nome) }}</div>
                             <div class="patient-info">
                               <div class="patient-name-row">
                                 <h4>{{ patient.nome }}</h4>
-                                @if (patient.isNew) {
-                                  <span class="badge-new">NOVO</span>
-                                }
-                                @if(patient.isExp) {
-                                  <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
-                                }
-                                @if (patient.makeupPending) {
-                                  <span class="badge-makeup" pTooltip="Reposição pendente">
-                                    <i class="pi pi-replay"></i> Reposição
-                                  </span>
-                                }
+                                @if (patient.isNew) { <span class="badge-new">NOVO</span> }
+                                @if (patient.isExp) { <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span> }
+                                @if (patient.makeupPending) { <span class="badge-makeup" pTooltip="Reposição pendente"><i class="pi pi-replay"></i> Reposição</span> }
                               </div>
                               @if (authService.isGestor()) {
-                                <span class="patient-prof">
-                                  <i class="pi pi-user"></i>
-                                  {{ getProfessionalName(patient.profissional_id) }}
-                                </span>
+                                <span class="patient-prof"><i class="pi pi-user"></i> {{ getProfessionalName(patient.profissional_id) }}</span>
                               }
                             </div>
                           </div>
-
-                          <!-- Status da última presença -->
                           <div class="tl-attendance">
                             <span class="att-label">Última aula:</span>
                             <span class="att-status" [class]="getAttendanceClass(patient.lastAttendanceStatus)">
@@ -430,8 +430,6 @@
                               {{ getAttendanceLabel(patient.lastAttendanceStatus) }}
                             </span>
                           </div>
-
-                          <!-- Ações -->
                           <div class="tl-actions">
                             <p-button label="Ver detalhes" icon="pi pi-arrow-right" [text]="true" size="small"
                               [routerLink]="['/patients', patient.id]">
@@ -441,6 +439,51 @@
                       </div>
                     </div>
                   }
+
+                  <!-- Avulsas do dia -->
+                  @for (av of event.avulsos; track av.id) {
+                    <div class="timeline-item timeline-item-avulso">
+                      <div class="timeline-time">
+                        <span class="time-value avulso-time">
+                          <i class="pi pi-bolt"></i>
+                        </span>
+                      </div>
+                      <div class="timeline-content tl-avulso">
+                        <div class="tl-card">
+                          <div class="tl-main">
+                            <div class="patient-avatar avulso-avatar" [style.background]="getAvatarColor(av.patient_nome)">
+                              {{ getInitials(av.patient_nome) }}
+                            </div>
+                            <div class="patient-info">
+                              <div class="patient-name-row">
+                                <h4>{{ av.patient_nome }}</h4>
+                                <span class="badge-avulso"><i class="pi pi-bolt"></i> Avulsa</span>
+                              </div>
+                              <span class="avulso-valor-detail">
+                                <i class="pi pi-dollar"></i>
+                                Valor: <strong>{{ av.valor | currency:'BRL' }}</strong>
+                              </span>
+                              @if (authService.isGestor()) {
+                                <span class="patient-prof"><i class="pi pi-user"></i> {{ getProfessionalName(av.profissional_id) }}</span>
+                              }
+                            </div>
+                          </div>
+                          @if (av.notes) {
+                            <div class="tl-attendance">
+                              <span class="att-label"><i class="pi pi-pencil"></i> Obs:</span>
+                              <span class="avulso-notes">{{ av.notes }}</span>
+                            </div>
+                          }
+                          <div class="tl-actions">
+                            <p-button label="Ver aluno" icon="pi pi-arrow-right" [text]="true" size="small"
+                              [routerLink]="['/patients', av.patient_id]">
+                            </p-button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
                 </div>
               } @else {
                 <div class="empty-state">

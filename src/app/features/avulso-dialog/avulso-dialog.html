@@ -1,0 +1,49 @@
+<p-dialog header="Lançar Aula Avulsa" [(visible)]="visible" [modal]="true" [style]="{width:'480px'}">
+  <div class="flex flex-column gap-3 pt-2">
+
+    <div class="field">
+      <label>Alunos *</label>
+      <p-multiSelect
+        [options]="patients()"
+        optionLabel="nome"
+        optionValue="id"
+        placeholder="Selecione os alunos"
+        [formControl]="form.controls.patient_ids"
+        [filter]="true"
+        styleClass="w-full">
+      </p-multiSelect>
+    </div>
+
+    <div class="field">
+      <label>Data *</label>
+      <p-datepicker
+        [formControl]="form.controls.date"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        styleClass="w-full">
+      </p-datepicker>
+    </div>
+
+    <div class="field">
+      <label>Valor por aluno (R$) *</label>
+      <p-inputNumber
+        [formControl]="form.controls.valor"
+        mode="currency" currency="BRL" locale="pt-BR"
+        styleClass="w-full">
+      </p-inputNumber>
+    </div>
+
+    <div class="field">
+      <label>Observações</label>
+      <textarea pInputTextarea [formControl]="form.controls.notes"
+        rows="2" class="w-full"></textarea>
+    </div>
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="visibleChange.emit(false)" />
+    <p-button label="Registrar" icon="pi pi-check"
+      [loading]="saving()" (onClick)="save()" />
+  </ng-template>
+</p-dialog>
