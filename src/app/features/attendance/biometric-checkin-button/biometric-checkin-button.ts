@@ -13,7 +13,6 @@ import { Component, Input, Output, EventEmitter, signal, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService } from 'primeng/api';
 
 import { BiometricService } from '../../../core/services/biometric.service';
 import { Attendance } from '../../../core/models/attendance.model';
@@ -33,7 +32,7 @@ import { Attendance } from '../../../core/models/attendance.model';
         @if (loading()) {
           <i class="pi pi-spin pi-spinner"></i>
         } @else {
-          <i class="pi pi-fingerprint"></i>
+          <i class="fa-thin fa-fingerprint"></i>
         }
       </button>
     }
