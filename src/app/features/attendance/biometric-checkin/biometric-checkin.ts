@@ -1,5 +1,3 @@
-// features/attendance/biometric-checkin.component.ts
-//
 // Painel de check-in "modo academia" — o professor abre esta tela,
 // o aluno passa a digital e o sistema descobre quem é e marca presença.
 //
@@ -10,9 +8,11 @@ import {
   Component, Output, EventEmitter, signal, inject, OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -21,7 +21,6 @@ import { BiometricService } from '../../../core/services/biometric.service';
 import { PatientService } from '../../../core/services/patient.service';
 import { Attendance } from '../../../core/models/attendance.model';
 import { AvulsoFormData } from '../../../core/models/attendance.model';
-import { TooltipModule } from 'primeng/tooltip';
 
 type CheckinState =
   | 'idle'        // aguardando o professor iniciar
@@ -42,8 +41,8 @@ interface CheckinResult {
   selector: 'app-biometric-checkin',
   standalone: true,
   imports: [
-    CommonModule, ButtonModule, DialogModule,
-    TagModule, ToastModule, ConfirmDialogModule, TooltipModule
+    CommonModule, FormsModule, ButtonModule, DialogModule,
+    TagModule, ToastModule, ConfirmDialogModule, InputNumberModule
   ],
   providers: [MessageService, ConfirmationService],
   template: `
@@ -134,12 +133,26 @@ interface CheckinResult {
             <p class="checkin-hint">{{ result()?.message }}</p>
             <p class="checkin-hint muted">O que deseja fazer?</p>
             <div class="no-class-actions">
+              <div class="avulso-valor-field">
+                <label for="avulsoValor">Valor da aula avulsa (R$)</label>
+                <p-inputNumber
+                  inputId="avulsoValor"
+                  [ngModel]="avulsoValor()"
+                  (ngModelChange)="avulsoValor.set($event)"
+                  mode="currency"
+                  currency="BRL"
+                  locale="pt-BR"
+                  [minFractionDigits]="2"
+                  placeholder="0,00"
+                  styleClass="w-full" />
+              </div>
               <p-button
                 label="Lançar como Avulsa"
                 icon="pi pi-plus"
                 severity="info"
                 styleClass="w-full"
                 [loading]="saving()"
+                [disabled]="avulsoValor() === null"
                 (onClick)="confirmAvulso()" />
               <p-button
                 label="Ignorar"
@@ -231,6 +244,18 @@ interface CheckinResult {
       width: 100%;
       margin-top: .5rem;
     }
+    .avulso-valor-field {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      width: 100%;
+    }
+    .avulso-valor-field label {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text-color-secondary);
+      text-align: left;
+    }
   `]
 })
 export class BiometricCheckinComponent implements OnDestroy {
@@ -245,6 +270,7 @@ export class BiometricCheckinComponent implements OnDestroy {
   state        = signal<CheckinState>('idle');
   result       = signal<CheckinResult | null>(null);
   saving       = signal(false);
+  avulsoValor  = signal(null);
 
   constructor() {
     this.biometricService.isSupported().then(s => this.supported.set(s));
@@ -266,6 +292,7 @@ export class BiometricCheckinComponent implements OnDestroy {
     this.state.set('idle');
     this.result.set(null);
     this.saving.set(false);
+    this.avulsoValor.set(null);
   }
 
   startCheckin() {
@@ -305,17 +332,16 @@ export class BiometricCheckinComponent implements OnDestroy {
   }
 
   confirmAvulso() {
-    const r = this.result();
-    if (!r?.patientId) return;
+    const r     = this.result();
+    const valor = this.avulsoValor();
+    if (!r?.patientId || valor === null) return;
 
     this.saving.set(true);
 
-    // Lança como aula avulsa com valor 0 (professor ajusta depois se precisar)
-    // Reutiliza o endpoint /attendance/avulso já existente no sistema
     const avulsoData: AvulsoFormData = {
       patient_ids: [r.patientId],
       date:        new Date(),
-      valor:       0,
+      valor,
       notes:       'Lançada via check-in biométrico (sem aula regular no dia)',
     };
 
