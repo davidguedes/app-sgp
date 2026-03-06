@@ -38,7 +38,7 @@ import { BiometricCredential } from '../../../core/models/biometric.model';
       <!-- Header com status de suporte -->
       <div class="bm-header">
         <h3 class="bm-title">
-          <i class="fa fa-fingerprint"></i>
+          <i class="fas fa-fingerprint"></i>
           Autenticação Biométrica
         </h3>
 
@@ -61,7 +61,7 @@ import { BiometricCredential } from '../../../core/models/biometric.model';
       @if (!loading()) {
         @if (credentials().length === 0) {
           <div class="bm-empty">
-            <i class="fa fa-fingerprint" style="font-size: 2rem; opacity: .3"></i>
+            <i class="fas fa-fingerprint" style="font-size: 2rem; opacity: .3"></i>
             <p>Nenhuma biometria cadastrada para este aluno.</p>
           </div>
         } @else {
@@ -104,7 +104,7 @@ import { BiometricCredential } from '../../../core/models/biometric.model';
           @if (credentials().length > 0) {
             <p-button
               label="Testar biometria"
-              icon="fa fa-fingerprint"
+              icon="fas fa-fingerprint"
               severity="info"
               [outlined]="true"
               [disabled]="supported() === false || saving()"
@@ -147,7 +147,7 @@ import { BiometricCredential } from '../../../core/models/biometric.model';
           (onClick)="showRegisterDialog = false" />
         <p-button
           label="Cadastrar Digital"
-          icon="fa fa-fingerprint"
+          icon="fas fa-fingerprint"
           [loading]="saving()"
           [disabled]="!deviceName.trim()"
           (onClick)="registerBiometric()" />

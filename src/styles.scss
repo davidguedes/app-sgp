@@ -1,5 +1,6 @@
 // ─── 4. Variáveis de tema (light + dark) ─────────────────────────────────────
 @use 'theme' as *;
+@import "@fortawesome/fontawesome-free/css/all.min.css";
 
 // ============================================================
 // styles.scss  ←  ponto de entrada global (angular.json > styles)

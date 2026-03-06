@@ -32,7 +32,7 @@ import { Attendance } from '../../../core/models/attendance.model';
         @if (loading()) {
           <i class="pi pi-spin pi-spinner"></i>
         } @else {
-          <i class="fa fa-fingerprint"></i>
+          <i class="fas fa-fingerprint"></i>
         }
       </button>
     }
