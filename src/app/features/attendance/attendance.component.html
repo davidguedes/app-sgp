@@ -112,7 +112,14 @@
       </p-button>
     </div>
   }
-  
+
+  @if(biometricSupported()) {
+    <div class="bulk-actions">
+      <app-biometric-checkin
+        (onAttendanceMarked)="onCheckinSuccess($event)" />
+    </div>
+  }
+
   <!-- Lista de Alunos -->
   <p-card styleClass="attendance-card">
     @if (loading()) {

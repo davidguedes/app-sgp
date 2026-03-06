@@ -1,3 +1,5 @@
+// services/biometric.service.ts
+//
 // Este service encapsula TODA a lógica WebAuthn do lado do cliente:
 //   1. Verifica suporte do browser
 //   2. Faz as chamadas begin/complete ao backend
@@ -202,5 +204,23 @@ export class BiometricService {
       bytes[i] = binary.charCodeAt(i);
     }
     return buffer;
+  }
+
+  // ─── CHECK-IN DISCOVERABLE ("modo academia") ─────────────────────────────
+
+  /**
+   * Fluxo de check-in sem patientId conhecido.
+   * allowCredentials vazio → o autenticador exibe as credenciais disponíveis
+   * e o aluno autentica. O backend identifica quem é, verifica a aula e
+   * marca presença (ou retorna hasClass: false para o professor decidir).
+   */
+  checkin(date?: string): Observable<any> {
+    return this.http.post<any>(`${this.API}/biometric/checkin/begin`, {}).pipe(
+      switchMap(({ data }) => from(this._getAssertion(data))),
+      switchMap(credential => this.http.post<any>(
+        `${this.API}/biometric/checkin/complete`,
+        { credential, date }
+      ))
+    );
   }
 }

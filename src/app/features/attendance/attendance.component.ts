@@ -20,6 +20,8 @@ import { Patient } from '../../core/models/patient.model';
 import { Attendance, AttendanceFormData, AvulsoFormData, ATTENDANCE_STATUS_CONFIG } from '../../core/models/attendance.model';
 import { forkJoin } from 'rxjs';
 import { BiometricCheckinButtonComponent } from './biometric-checkin-button/biometric-checkin-button';
+import { BiometricService } from '../../core/services/biometric.service';
+import { BiometricCheckinComponent } from './biometric-checkin/biometric-checkin';
 
 interface PatientAttendance extends Patient {
   todayStatus?: 'present' | 'absent' | 'makeup' | null;
@@ -37,16 +39,23 @@ interface PatientAttendance extends Patient {
     CommonModule, FormsModule, ReactiveFormsModule, RouterLink,
     CardModule, ButtonModule, DatePickerModule, SelectModule,
     SelectButtonModule, ToastModule, DialogModule, MultiSelectModule,
-    InputNumberModule, TextareaModule, TooltipModule, BiometricCheckinButtonComponent
+    InputNumberModule, TextareaModule, TooltipModule, BiometricCheckinButtonComponent,
+    BiometricCheckinComponent
   ],
   providers: [MessageService],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.scss']
 })
 export class AttendanceComponent implements OnInit {
+  private biometricService = inject(BiometricService);
+  private patientService = inject(PatientService);
+  private authService = inject(AuthService);
+  private messageService = inject(MessageService);
+
   selectedDate = signal<Date>(new Date());
   selectedProfessional = signal<number | null>(null);
   showMarkedStudents = signal<boolean>(false);
+  biometricSupported = signal<boolean | null>(null);
 
   patients = signal<PatientAttendance[]>([]);
   allPatients = signal<Patient[]>([]);           // lista completa para o multiselect do avulso
@@ -92,13 +101,9 @@ export class AttendanceComponent implements OnInit {
   this.filteredPatients().filter(p => p.isAvulso === true)
 );
 
-  constructor(
-    private patientService: PatientService,
-    private authService: AuthService,
-    private messageService: MessageService
-  ) {}
-
   ngOnInit(): void {
+    // Verifica suporte ao WebAuthn no dispositivo atual
+    this.biometricService.isSupported().then(s => this.biometricSupported.set(s));
     const user = this.authService.getCurrentUser();
     const gestor = user?.role === 'gestor';
     this.isGestor.set(gestor);
@@ -397,4 +402,9 @@ export class AttendanceComponent implements OnInit {
     return ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'][name.charCodeAt(0) % 5];
   }
   getProfessionalName(id: number): string { return this.authService.getProfessionalName(id); }
+
+  onCheckinSuccess(attendance: Attendance): void {
+    // Força reload da lista do dia para refletir a nova presença
+    this.loadDayAttendance();
+  }
 }
