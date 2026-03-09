@@ -22,11 +22,8 @@
           styleClass="filter-dropdown">
         </p-select>
       }
-      <p-button
-        label="Exportar Excel"
-        icon="pi pi-file-excel"
-        severity="success"
-        (onClick)="exportToExcel()">
+      <p-button label="Exportar Excel" icon="pi pi-file-excel"
+        severity="success" (onClick)="openExportDialog()">
       </p-button>
     </div>
   </div>
@@ -380,3 +377,88 @@
 
   } <!-- /loading -->
 </div>
+
+<!-- ── DIALOG: Selecionar período de exportação ── -->
+<p-dialog
+  header="Exportar Fechamento"
+  [modal]="true"
+  [visible]="showExportDialog()"
+  (visibleChange)="showExportDialog.set($event)"
+  [style]="{ width: '420px' }"
+  [draggable]="false">
+
+  <!-- Seleção do modo -->
+  <div class="export-mode-options">
+    <div class="export-mode-item">
+      <p-radiobutton
+        name="exportMode"
+        value="month"
+        [(ngModel)]="exportMode"
+        inputId="modeMonth">
+      </p-radiobutton>
+      <label for="modeMonth">Fechamento mensal</label>
+    </div>
+
+    @if (exportMode === 'month') {
+      <p-datepicker
+        [(ngModel)]="exportMonthDate"
+        view="month"
+        dateFormat="mm/yy"
+        [showIcon]="true"
+        placeholder="Selecione o mês"
+        appendTo="body"
+      >
+      </p-datepicker>
+    }
+
+    <div class="export-mode-item" style="margin-top: 1rem;">
+      <p-radiobutton
+        name="exportMode"
+        value="custom"
+        [(ngModel)]="exportMode"
+        inputId="modeCustom">
+      </p-radiobutton>
+      <label for="modeCustom">Período livre</label>
+    </div>
+
+    @if (exportMode === 'custom') {
+      <div class="export-date-range">
+        <p-datepicker
+          [(ngModel)]="exportStartDate"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          placeholder="Data início"
+          appendTo="body"
+        >
+        </p-datepicker>
+        <span>até</span>
+        <p-datepicker
+          [(ngModel)]="exportEndDate"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          placeholder="Data fim"
+          [minDate]="exportStartDate ?? undefined"
+          appendTo="body"
+        >
+        </p-datepicker>
+      </div>
+    }
+  </div>
+
+  <!-- Footer do dialog -->
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [text]="true"
+      (onClick)="showExportDialog.set(false)">
+    </p-button>
+    <p-button
+      label="Exportar"
+      icon="pi pi-file-excel"
+      severity="success"
+      [disabled]="exportMode === 'custom' && (!exportStartDate || !exportEndDate)"
+      (onClick)="confirmExport()">
+    </p-button>
+  </ng-template>
+</p-dialog>

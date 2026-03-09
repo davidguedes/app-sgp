@@ -85,14 +85,29 @@ export class ExportService {
    *  - Cálculo pro-rata quando data_inicio está no mês atual
    *    → exibe "Pacote (pro-rata)" com o valor proporcional e uma observação na célula
    */
-  exportPatientsToExcel(patients: Patient[], userName: string, userRole: string, avulsos: AvulsoAttendance[] = []): void {
+  exportPatientsToExcel(
+    patients: Patient[],
+    userName: string,
+    userRole: string,
+    avulsos: AvulsoAttendance[] = [],
+    startDate?: Date,
+    endDate?:   Date
+  ): void {
     if (!patients?.length) { console.warn('Nenhum paciente para exportar'); return; }
 
-    const hoje = new Date();
+    const hoje    = new Date();
+    const refStart = startDate ?? new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const refEnd   = endDate   ?? new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+    const periodoLabel = refStart.getMonth() === refEnd.getMonth() && refStart.getFullYear() === refEnd.getFullYear()
+      ? refStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })  // "março de 2025"
+      : `${refStart.toLocaleDateString('pt-BR')} a ${refEnd.toLocaleDateString('pt-BR')}`;
+
 
     // ── Aba 1: Alunos regulares ───────────────────────────────────────────
     const data: any[][] = [
-      ['STUDIO PILATES - RELATÓRIO COMPLETO'],
+      ['STUDIO PILATES - FECHAMENTO FINANCEIRO'],
+      [`Período: ${periodoLabel}`],
       [`Usuário: ${userName} (${userRole === 'gestor' ? 'Gestor' : 'Profissional'})`],
       [`Gerado em: ${hoje.toLocaleString('pt-BR')}`],
       [],
@@ -103,7 +118,7 @@ export class ExportService {
     let totalLiquidoMes = 0;
 
     patients.forEach(p => {
-      const { totalAulasNoMes, aulasAPartirDoInicio, fatorProRata } = this.calcProRata(p, hoje);
+      const { totalAulasNoMes, aulasAPartirDoInicio, fatorProRata } = this.calcProRata(p, refStart);
 
       const inicio = new Date(p.data_inicio);
       const entrandoNesteMes =
@@ -203,7 +218,11 @@ export class ExportService {
       XLSX.utils.book_append_sheet(wb, wsAv, 'Avulsas');
     }
 
-    this.writeFileAsync(wb, `pilates-${hoje.toISOString().split('T')[0]}.xlsx`);
+    const fileTag = refStart.getMonth() === refEnd.getMonth()
+    ? `${String(refStart.getMonth() + 1).padStart(2, '0')}-${refStart.getFullYear()}`
+    : `${refStart.toISOString().split('T')[0]}_${refEnd.toISOString().split('T')[0]}`;
+
+    this.writeFileAsync(wb, `pilates-fechamento-${fileTag}.xlsx`);
   }
 
   /**

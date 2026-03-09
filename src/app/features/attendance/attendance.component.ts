@@ -19,7 +19,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
 import { Attendance, AttendanceFormData, AvulsoFormData, ATTENDANCE_STATUS_CONFIG } from '../../core/models/attendance.model';
 import { forkJoin } from 'rxjs';
-import { BiometricCheckinButtonComponent } from './biometric-checkin-button/biometric-checkin-button';
 import { BiometricService } from '../../core/services/biometric.service';
 import { BiometricCheckinComponent } from './biometric-checkin/biometric-checkin';
 
@@ -39,7 +38,7 @@ interface PatientAttendance extends Patient {
     CommonModule, FormsModule, ReactiveFormsModule, RouterLink,
     CardModule, ButtonModule, DatePickerModule, SelectModule,
     SelectButtonModule, ToastModule, DialogModule, MultiSelectModule,
-    InputNumberModule, TextareaModule, TooltipModule, BiometricCheckinButtonComponent,
+    InputNumberModule, TextareaModule, TooltipModule,
     BiometricCheckinComponent
   ],
   providers: [MessageService],

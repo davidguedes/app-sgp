@@ -13,7 +13,9 @@
         dateFormat="dd/mm/yy"
         [showIcon]="true"
         placeholder="Selecione a data"
-        styleClass="date-selector">
+        styleClass="date-selector"
+        appendTo="body"
+      >
       </p-datepicker>
       
       @if(isGestor()) {
@@ -392,6 +394,8 @@
         dateFormat="dd/mm/yy"
         [showIcon]="true"
         styleClass="w-full"
+        placeholder="Selecione uma data"
+        appendTo="body"
         [class.ng-invalid]="avulsoForm.controls.date.invalid && avulsoForm.controls.date.touched">
       </p-datepicker>
       @if (avulsoForm.controls.date.invalid && avulsoForm.controls.date.touched) {

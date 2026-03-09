@@ -12,7 +12,9 @@ import { PatientService } from '../../core/services/patient.service';
 import { ExportService } from '../../core/services/export.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
-import { AvulsoAttendance } from '../../core/models/attendance.model';
+import { DialogModule } from 'primeng/dialog';
+import { DatePickerModule } from 'primeng/datepicker';
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 interface FinancialStats {
   totalPatients: number;
@@ -40,7 +42,7 @@ interface ProfessionalStats {
 @Component({
   selector: 'app-financial',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, ButtonModule, SelectModule, TagModule, ChartModule],
+  imports: [CommonModule, FormsModule, CardModule, ButtonModule, SelectModule, TagModule, ChartModule, DialogModule, DatePickerModule, RadioButtonModule],
   templateUrl: './financial.component.html',
   styleUrls: ['./financial.component.scss']
 })
@@ -50,6 +52,17 @@ export class FinancialComponent implements OnInit {
   loading     = signal(false);
   isGestor    = signal(false);
   userName    = signal('');
+
+  // ── Dialog de exportação ──────────────────────────
+  showExportDialog = signal(false);
+  exportMode: 'month' | 'custom' = 'month';
+
+  // Para o modo "mês": qual mês/ano o usuário escolheu
+  exportMonthDate: Date = new Date(); // o Date picker de mês aponta aqui
+
+  // Para o modo "período livre"
+  exportStartDate: Date | null = null;
+  exportEndDate:   Date | null = null;
 
   // Gestor: filtro por profissional
   selectedProfessional = signal<number | null>(null);
@@ -253,28 +266,55 @@ export class FinancialComponent implements OnInit {
   // EXPORT
   // ─────────────────────────────────────────────
 
-  exportToExcel(): void {
+  // Abre o dialog — o botão no HTML chama este
+  openExportDialog(): void {
+    // Resetar para o mês atual toda vez que abrir
+    this.exportMode = 'month';
+    this.exportMonthDate = new Date();
+    this.exportStartDate = null;
+    this.exportEndDate   = null;
+    this.showExportDialog.set(true);
+  }
+
+  // Chamado pelo botão "Exportar" dentro do dialog
+  confirmExport(): void {
     const user = this.authService.getCurrentUser();
     if (!user) return;
     const patients = this.sortedPatients();
     if (!patients.length) return;
 
-    // Monta o intervalo do mês atual: primeiro e último dia
-    const hoje = new Date();
-    const start = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
-      .toISOString().split('T')[0];
-    const end = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
-      .toISOString().split('T')[0];
+    // Calcula start/end conforme o modo escolhido
+    let start: string, end: string;
 
-    // Busca avulsas do mês e só então gera o Excel
-    // Dessa forma o fechamento já inclui tudo que aconteceu no período
+    if (this.exportMode === 'month') {
+      const ref = this.exportMonthDate ?? new Date();
+      start = new Date(ref.getFullYear(), ref.getMonth(), 1)
+        .toISOString().split('T')[0];
+      end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0)
+        .toISOString().split('T')[0];
+    } else {
+      // Período livre — valida se ambas as datas foram preenchidas
+      if (!this.exportStartDate || !this.exportEndDate) return;
+      start = this.exportStartDate.toISOString().split('T')[0];
+      end   = this.exportEndDate.toISOString().split('T')[0];
+    }
+
+    this.showExportDialog.set(false);
+
     this.patientService.getAvulsoByPeriod(start, end).subscribe({
       next: (avulsos) => {
-        this.exportService.exportPatientsToExcel(patients, user.nome, user.role, avulsos);
+        this.exportService.exportPatientsToExcel(
+          patients, user.nome, user.role, avulsos,
+          new Date(start + 'T00:00:00'),   // <-- passa o período para o Excel
+          new Date(end   + 'T00:00:00')
+        );
       },
       error: () => {
-        // Mesmo se falhar, exporta sem avulsas (não bloqueia o usuário)
-        this.exportService.exportPatientsToExcel(patients, user.nome, user.role, []);
+        this.exportService.exportPatientsToExcel(
+          patients, user.nome, user.role, [],
+          new Date(start + 'T00:00:00'),
+          new Date(end   + 'T00:00:00')
+        );
       }
     });
   }

@@ -749,3 +749,23 @@
     height: 180px !important;
   }
 }
+
+.export-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.export-mode-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  label { cursor: pointer; }
+}
+.export-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
