@@ -44,6 +44,21 @@ export class PatientService {
     return this.patients$;
   }
 
+  getPatientsByPeriod(start: string, end: string): Observable<Patient[]> {
+    return this.http
+      .get<PatientsHttpResponse>(`${this.API_URL}/patients/financial?start=${start}&end=${end}`)
+      .pipe(map(r => r.data));
+  }
+
+  // Utilitário para montar start/end de um mês
+  static monthRange(ref: Date): { start: string; end: string } {
+    const y = ref.getFullYear();
+    const m = ref.getMonth();
+    const start = new Date(y, m, 1).toISOString().split('T')[0];
+    const end   = new Date(y, m + 1, 0).toISOString().split('T')[0];
+    return { start, end };
+  }
+
   /** Carrega paciente com attendance e evolutions — usar apenas na tela de detalhes */
   getPatientById(id: string): Observable<PatientDetail> {
     return forkJoin({

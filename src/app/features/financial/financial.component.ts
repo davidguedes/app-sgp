@@ -2,19 +2,18 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { DatePickerModule } from 'primeng/datepicker';
+import { RadioButtonModule } from 'primeng/radiobutton';
 import { PatientService } from '../../core/services/patient.service';
 import { ExportService } from '../../core/services/export.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
-import { DialogModule } from 'primeng/dialog';
-import { DatePickerModule } from 'primeng/datepicker';
-import { RadioButtonModule } from 'primeng/radiobutton';
 
 interface FinancialStats {
   totalPatients: number;
@@ -36,35 +35,43 @@ interface ProfessionalStats {
   totalAlunos: number;
   receitaBruta: number;
   liquidoTotal: number;
-  share: number; // % da receita total do estúdio
+  share: number;
 }
 
 @Component({
   selector: 'app-financial',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, ButtonModule, SelectModule, TagModule, ChartModule, DialogModule, DatePickerModule, RadioButtonModule],
+  imports: [
+    CommonModule, FormsModule,
+    CardModule, ButtonModule, SelectModule, TagModule, ChartModule,
+    DialogModule, DatePickerModule, RadioButtonModule
+  ],
   templateUrl: './financial.component.html',
   styleUrls: ['./financial.component.scss']
 })
 export class FinancialComponent implements OnInit {
   protected authService = inject(AuthService);
-  patients    = signal<Patient[]>([]);
-  loading     = signal(false);
-  isGestor    = signal(false);
-  userName    = signal('');
 
-  // ── Dialog de exportação ──────────────────────────
-  showExportDialog = signal(false);
-  exportMode: 'month' | 'custom' = 'month';
+  patients     = signal<Patient[]>([]);
+  loading      = signal(false);
+  isGestor     = signal(false);
+  userName     = signal('');
 
-  // Para o modo "mês": qual mês/ano o usuário escolheu
-  exportMonthDate: Date = new Date(); // o Date picker de mês aponta aqui
+  // ── Filtro de período (visualização) ────────────────────────────────────
+  filterPanelOpen  = signal(false);
+  loadingPeriod    = signal(false);
+  activePeriodLabel = signal('');
 
-  // Para o modo "período livre"
-  exportStartDate: Date | null = null;
-  exportEndDate:   Date | null = null;
+  periodMode: 'month' | 'custom' = 'month';
+  periodMonthDate: Date = new Date();
+  periodStartDate: Date | null = null;
+  periodEndDate:   Date | null = null;
 
-  // Gestor: filtro por profissional
+  // Guarda o período ativo para reusar no export
+  private activePeriodStart = '';
+  private activePeriodEnd   = '';
+
+  // ── Filtro por profissional (gestor) ────────────────────────────────────
   selectedProfessional = signal<number | null>(null);
 
   professionalsOptions = computed(() => [
@@ -78,28 +85,30 @@ export class FinancialComponent implements OnInit {
     { key: 'sex', label: 'Sexta' },   { key: 'sab', label: 'Sábado' }
   ];
 
-  readonly TAX_RATE = 0.85;
+  // ── Diálogo de exportação ───────────────────────────────────────────────
+  showExportDialog = signal(false);
+  exportMode: 'month' | 'custom' = 'month';
+  exportMonthDate: Date = new Date();
+  exportStartDate: Date | null = null;
+  exportEndDate:   Date | null = null;
 
-  // ─────────────────────────────────────────────
-  // COMPUTED: pacientes filtrados
-  // ─────────────────────────────────────────────
-
+  // ── COMPUTED: pacientes filtrados por profissional ──────────────────────
+  //
+  // ATENÇÃO: removemos o filtro por data_fim aqui.
+  // A rota /patients/financial já retorna apenas os alunos que estavam ativos
+  // no período consultado — filtrar data_fim no frontend com "hoje" quebraria
+  // consultas históricas de meses anteriores.
+  //
   filteredPatients = computed<Patient[]>(() => {
     let list = this.patients();
+
     if (this.isGestor() && this.selectedProfessional()) {
       list = list.filter(p => p.profissional_id === this.selectedProfessional());
     }
-    list = list.filter(p => {
-      if(p.data_fim) {
-        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-        const fim = new Date(p.data_fim); fim.setHours(0, 0, 0, 0);
-        if (fim < hoje) return false;
-      }
-      if(p.tipo === 'experimental') {
-        return false;
-      }
-      return true;
-    })
+
+    // Exclui experimentais (não entram no financeiro)
+    list = list.filter(p => p.tipo !== 'experimental');
+
     return list;
   });
 
@@ -109,50 +118,53 @@ export class FinancialComponent implements OnInit {
     )
   );
 
-  // ─────────────────────────────────────────────
-  // COMPUTED: stats gerais
-  // ─────────────────────────────────────────────
-
+  // ── COMPUTED: cards de resumo ───────────────────────────────────────────
   stats = computed<FinancialStats>(() => {
     const p = this.filteredPatients();
     return {
       totalPatients: p.length,
       totalPackages: p.reduce((s, x) => s + x.valor, 0),
       totalBase:     p.reduce((s, x) => s + x.base, 0),
-      totalLiquid: p.reduce((s, x) => {
+      totalLiquid:   p.reduce((s, x) => {
+        // Convênio: usa ganho_convenio (aulas × valor/aula do período)
+        // Fixo: usa ganho do cadastro
         const ganho = x.tipo === 'convenio' ? (x.ganho_convenio ?? 0) : x.ganho;
         return s + ganho;
       }, 0),
     };
   });
 
+  // ── COMPUTED: gráfico de barras por dia da semana ──────────────────────
   dayStats = computed<DayStats[]>(() =>
     this.daysOfWeek.map(day => {
       const dp = this.filteredPatients().filter(p => p.dias.includes(day.key));
       return {
-        day: day.key,
+        day:      day.key,
         dayLabel: day.label,
         patients: dp.length,
-        liquid: dp.reduce((s, p) => s + p.ganho, 0)
+        liquid:   dp.reduce((s, p) => {
+          const ganho = p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho;
+          return s + ganho;
+        }, 0)
       };
     })
   );
 
-  // ─────────────────────────────────────────────
-  // COMPUTED: stats por profissional (só gestor)
-  // ─────────────────────────────────────────────
-
+  // ── COMPUTED: breakdown por profissional (gestor) ───────────────────────
   professionalStats = computed<ProfessionalStats[]>(() => {
     if (!this.isGestor()) return [];
 
-    const allPatients = this.patients();
-    const totalLiquidGeral = allPatients.reduce((s, p) => s + p.ganho, 0);
+    const allPatients = this.patients().filter(p => p.tipo !== 'experimental');
+    const totalLiquidGeral = allPatients.reduce((s, p) => {
+      return s + (p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho);
+    }, 0);
 
     const map = new Map<number, ProfessionalStats>();
 
     allPatients.forEach(p => {
-      const id = p.profissional_id;
+      const id   = p.profissional_id;
       const nome = this.authService.getProfessionalName(id);
+      const ganho = p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho;
 
       if (!map.has(id)) {
         map.set(id, { id, nome, totalAlunos: 0, receitaBruta: 0, liquidoTotal: 0, share: 0 });
@@ -161,10 +173,9 @@ export class FinancialComponent implements OnInit {
       const entry = map.get(id)!;
       entry.totalAlunos++;
       entry.receitaBruta += p.valor;
-      entry.liquidoTotal += p.ganho;
+      entry.liquidoTotal += ganho;
     });
 
-    // Calcula share de cada profissional
     map.forEach(entry => {
       entry.share = totalLiquidGeral > 0 ? (entry.liquidoTotal / totalLiquidGeral) * 100 : 0;
     });
@@ -172,13 +183,22 @@ export class FinancialComponent implements OnInit {
     return [...map.values()].sort((a, b) => b.liquidoTotal - a.liquidoTotal);
   });
 
-  // Receita bruta total do estúdio (sem filtro de profissional)
-  receitaEstudio = computed(() => this.patients().reduce((s, p) => s + p.valor, 0));
-  liquidoEstudio = computed(() => this.patients().reduce((s, p) => s + p.ganho, 0));
+  // Cards do estúdio inteiro (sem filtro de profissional)
+  receitaEstudio = computed(() =>
+    this.patients()
+      .filter(p => p.tipo !== 'experimental')
+      .reduce((s, p) => s + p.valor, 0)
+  );
 
-  // Chart por profissional
-  profChartData  = computed(() => this.buildProfChart());
-  profChartOpts  = {
+  liquidoEstudio = computed(() =>
+    this.patients()
+      .filter(p => p.tipo !== 'experimental')
+      .reduce((s, p) => s + (p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho), 0)
+  );
+
+  // ── Charts ──────────────────────────────────────────────────────────────
+  profChartData = computed(() => this.buildProfChart());
+  profChartOpts = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
       legend: { position: 'right' as const, labels: { font: { family: 'DM Sans', size: 11 }, padding: 16 } },
@@ -186,7 +206,6 @@ export class FinancialComponent implements OnInit {
     }
   };
 
-  // Chart por dia da semana
   dayChartData = computed(() => {
     const ds = this.dayStats();
     return {
@@ -225,22 +244,119 @@ export class FinancialComponent implements OnInit {
       this.isGestor.set(user.role === 'gestor');
       this.userName.set(user.nome);
     }
+    // Carrega o mês atual por padrão ao entrar na tela
+    this.applyPeriod();
+  }
 
+  // ── FILTRO DE PERÍODO ────────────────────────────────────────────────────
+
+  /**
+   * Monta start/end a partir do modo escolhido e dispara a requisição.
+   * É o único ponto que chama o backend — init e botão "Aplicar" usam ele.
+   */
+  applyPeriod(): void {
+    let start: string, end: string;
+
+    if (this.periodMode === 'month') {
+      const ref = this.periodMonthDate;
+      start = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().split('T')[0];
+      end   = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().split('T')[0];
+
+      this.activePeriodLabel.set(
+        ref.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      );
+    } else {
+      if (!this.periodStartDate || !this.periodEndDate) return;
+      start = this.periodStartDate.toISOString().split('T')[0];
+      end   = this.periodEndDate.toISOString().split('T')[0];
+
+      this.activePeriodLabel.set(
+        `${this.periodStartDate.toLocaleDateString('pt-BR')} → ${this.periodEndDate.toLocaleDateString('pt-BR')}`
+      );
+    }
+
+    // Guarda para reusar no export
+    this.activePeriodStart = start;
+    this.activePeriodEnd   = end;
+
+    this.filterPanelOpen.set(false);
+    this.loadingPeriod.set(true);
     this.loading.set(true);
-    this.patientService.loadPatients();
-    this.patientService.getPatients().subscribe({
-      next: (patients) => { this.patients.set(patients); this.loading.set(false); },
-      error: () => this.loading.set(false)
+
+    this.patientService.getPatientsByPeriod(start, end).subscribe({
+      next: (patients) => {
+        this.patients.set(patients); // ← signal atualizado → computed reagem automaticamente
+        this.loadingPeriod.set(false);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadingPeriod.set(false);
+        this.loading.set(false);
+      }
     });
+  }
+
+  /** Atalho para voltar ao mês atual sem precisar abrir o painel */
+  resetToCurrentMonth(): void {
+    this.periodMode      = 'month';
+    this.periodMonthDate = new Date();
+    this.applyPeriod();
   }
 
   onProfessionalChange(value: number | null): void {
     this.selectedProfessional.set(value);
   }
 
-  // ─────────────────────────────────────────────
-  // CHART HELPERS
-  // ─────────────────────────────────────────────
+  // ── EXPORT ───────────────────────────────────────────────────────────────
+
+  openExportDialog(): void {
+    // Pré-preenche o dialog com o período que está sendo visualizado
+    this.exportMode      = this.periodMode;
+    this.exportMonthDate = new Date(this.periodMonthDate);
+    this.exportStartDate = this.periodStartDate ? new Date(this.periodStartDate) : null;
+    this.exportEndDate   = this.periodEndDate   ? new Date(this.periodEndDate)   : null;
+    this.showExportDialog.set(true);
+  }
+
+  confirmExport(): void {
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
+    const patients = this.sortedPatients();
+    if (!patients.length) return;
+
+    let start: string, end: string;
+
+    if (this.exportMode === 'month') {
+      const ref = this.exportMonthDate ?? new Date();
+      start = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().split('T')[0];
+      end   = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().split('T')[0];
+    } else {
+      if (!this.exportStartDate || !this.exportEndDate) return;
+      start = this.exportStartDate.toISOString().split('T')[0];
+      end   = this.exportEndDate.toISOString().split('T')[0];
+    }
+
+    this.showExportDialog.set(false);
+
+    this.patientService.getAvulsoByPeriod(start, end).subscribe({
+      next: (avulsos) => {
+        this.exportService.exportPatientsToExcel(
+          patients, user.nome, user.role, avulsos,
+          new Date(start + 'T00:00:00'),
+          new Date(end   + 'T00:00:00')
+        );
+      },
+      error: () => {
+        this.exportService.exportPatientsToExcel(
+          patients, user.nome, user.role, [],
+          new Date(start + 'T00:00:00'),
+          new Date(end   + 'T00:00:00')
+        );
+      }
+    });
+  }
+
+  // ── CHART HELPERS ────────────────────────────────────────────────────────
 
   private buildProfChart() {
     const ps = this.professionalStats();
@@ -262,66 +378,7 @@ export class FinancialComponent implements OnInit {
     return Math.max(share, 2).toFixed(1) + '%';
   }
 
-  // ─────────────────────────────────────────────
-  // EXPORT
-  // ─────────────────────────────────────────────
-
-  // Abre o dialog — o botão no HTML chama este
-  openExportDialog(): void {
-    // Resetar para o mês atual toda vez que abrir
-    this.exportMode = 'month';
-    this.exportMonthDate = new Date();
-    this.exportStartDate = null;
-    this.exportEndDate   = null;
-    this.showExportDialog.set(true);
-  }
-
-  // Chamado pelo botão "Exportar" dentro do dialog
-  confirmExport(): void {
-    const user = this.authService.getCurrentUser();
-    if (!user) return;
-    const patients = this.sortedPatients();
-    if (!patients.length) return;
-
-    // Calcula start/end conforme o modo escolhido
-    let start: string, end: string;
-
-    if (this.exportMode === 'month') {
-      const ref = this.exportMonthDate ?? new Date();
-      start = new Date(ref.getFullYear(), ref.getMonth(), 1)
-        .toISOString().split('T')[0];
-      end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0)
-        .toISOString().split('T')[0];
-    } else {
-      // Período livre — valida se ambas as datas foram preenchidas
-      if (!this.exportStartDate || !this.exportEndDate) return;
-      start = this.exportStartDate.toISOString().split('T')[0];
-      end   = this.exportEndDate.toISOString().split('T')[0];
-    }
-
-    this.showExportDialog.set(false);
-
-    this.patientService.getAvulsoByPeriod(start, end).subscribe({
-      next: (avulsos) => {
-        this.exportService.exportPatientsToExcel(
-          patients, user.nome, user.role, avulsos,
-          new Date(start + 'T00:00:00'),   // <-- passa o período para o Excel
-          new Date(end   + 'T00:00:00')
-        );
-      },
-      error: () => {
-        this.exportService.exportPatientsToExcel(
-          patients, user.nome, user.role, [],
-          new Date(start + 'T00:00:00'),
-          new Date(end   + 'T00:00:00')
-        );
-      }
-    });
-  }
-
-  // ─────────────────────────────────────────────
-  // UTILS
-  // ─────────────────────────────────────────────
+  // ── UTILS ────────────────────────────────────────────────────────────────
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);

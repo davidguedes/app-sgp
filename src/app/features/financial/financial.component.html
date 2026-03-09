@@ -28,6 +28,91 @@
     </div>
   </div>
 
+  <!-- ── PAINEL DE FILTRO DE PERÍODO ──────────────── -->
+  <div class="period-filter-panel" [class.open]="filterPanelOpen()">
+
+    <!-- Barra sempre visível (clicável para expandir/colapsar) -->
+    <div class="period-filter-bar" (click)="filterPanelOpen.set(!filterPanelOpen())">
+      <div class="period-bar-left">
+        <i class="pi pi-calendar"></i>
+        <span class="period-label">{{ activePeriodLabel() }}</span>
+        @if (loadingPeriod()) {
+          <i class="pi pi-spin pi-spinner period-spinner"></i>
+        }
+      </div>
+      <div class="period-bar-right">
+        <span class="period-hint">Alterar período</span>
+        <i class="pi" [class.pi-chevron-down]="!filterPanelOpen()" [class.pi-chevron-up]="filterPanelOpen()"></i>
+      </div>
+    </div>
+
+    <!-- Conteúdo expansível -->
+    @if (filterPanelOpen()) {
+      <div class="period-filter-content">
+
+        <div class="period-mode-row">
+          <div class="period-mode-item">
+            <p-radiobutton name="periodMode" value="month"
+              [(ngModel)]="periodMode" inputId="periodMonth">
+            </p-radiobutton>
+            <label for="periodMonth">Mês de referência</label>
+          </div>
+
+          @if (periodMode === 'month') {
+            <p-datepicker
+              [(ngModel)]="periodMonthDate"
+              view="month" dateFormat="mm/yy"
+              [showIcon]="true"
+              placeholder="Selecione o mês"
+              appendTo="body"  
+            >
+            </p-datepicker>
+          }
+        </div>
+
+        <div class="period-mode-row">
+          <div class="period-mode-item">
+            <p-radiobutton name="periodMode" value="custom"
+              [(ngModel)]="periodMode" inputId="periodCustom">
+            </p-radiobutton>
+            <label for="periodCustom">Período livre</label>
+          </div>
+
+          @if (periodMode === 'custom') {
+            <div class="period-date-range">
+              <p-datepicker [(ngModel)]="periodStartDate"
+                dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Início"
+                [maxDate]="periodEndDate ?? undefined"
+                appendTo="body"  
+              >
+              </p-datepicker>
+              <span>até</span>
+              <p-datepicker [(ngModel)]="periodEndDate"
+                dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Fim"
+                [minDate]="periodStartDate ?? undefined"
+                appendTo="body"
+              >
+              </p-datepicker>
+            </div>
+          }
+        </div>
+
+        <div class="period-filter-actions">
+          <p-button label="Mês atual" icon="pi pi-refresh"
+            severity="secondary" [text]="true"
+            (onClick)="resetToCurrentMonth()">
+          </p-button>
+          <p-button label="Aplicar"
+            icon="pi pi-check"
+            [disabled]="periodMode === 'custom' && (!periodStartDate || !periodEndDate)"
+            (onClick)="applyPeriod()">
+          </p-button>
+        </div>
+
+      </div>
+    }
+  </div>
+
   @if (loading()) {
     <div class="loading-state">
       <i class="pi pi-spin pi-spinner"></i>
