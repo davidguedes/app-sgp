@@ -262,17 +262,20 @@
                       <span>Falta</span>
                     </button>
 
-                    <!-- Marca que o aluno faltou e deverá repor -->
-                    <button
-                      class="action-btn makeup"
-                      [class.active]="patient.todayStatus === 'makeup'"
-                      (click)="markAttendance(patient, 'makeup')"
-                      [disabled]="saving()"
-                      pTooltip="Falta — aluno deverá repor a aula"
-                      tooltipPosition="top">
-                      <i class="pi pi-replay"></i>
-                      <span>Repor depois</span>
-                    </button>
+                    @if(!showMarkedStudents()) {
+                      <!-- Marca que o aluno faltou e deverá repor -->
+                      <button
+                        class="action-btn makeup"
+                        [class.active]="patient.todayStatus === 'makeup'"
+                        (click)="markAttendance(patient, 'makeup')"
+                        [disabled]="saving()"
+                        pTooltip="Falta — aluno deverá repor a aula"
+                        tooltipPosition="top">
+                        <i class="pi pi-replay"></i>
+                        <span>Repor depois</span>
+                      </button>
+                    }
+
 
                     <!-- Só exibe "Registrar Reposição" se houver falta pendente para esse aluno -->
                     @let qtdPendentes = getMakeupCountForPatient(patient.id);
