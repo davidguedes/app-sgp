@@ -52,26 +52,23 @@ interface ProfessionalStats {
 export class FinancialComponent implements OnInit {
   protected authService = inject(AuthService);
 
-  patients     = signal<Patient[]>([]);
-  loading      = signal(false);
-  isGestor     = signal(false);
-  userName     = signal('');
+  patients  = signal<Patient[]>([]);
+  loading   = signal(false);
+  isGestor  = signal(false);
+  userName  = signal('');
 
-  // ── Filtro de período (visualização) ────────────────────────────────────
-  filterPanelOpen  = signal(false);
-  loadingPeriod    = signal(false);
+  filterPanelOpen   = signal(false);
+  loadingPeriod     = signal(false);
   activePeriodLabel = signal('');
 
-  periodMode: 'month' | 'custom' = 'month';
-  periodMonthDate: Date = new Date();
-  periodStartDate: Date | null = null;
-  periodEndDate:   Date | null = null;
+  periodMode:      'month' | 'custom' = 'month';
+  periodMonthDate: Date               = new Date();
+  periodStartDate: Date | null        = null;
+  periodEndDate:   Date | null        = null;
 
-  // Guarda o período ativo para reusar no export
   private activePeriodStart = '';
   private activePeriodEnd   = '';
 
-  // ── Filtro por profissional (gestor) ────────────────────────────────────
   selectedProfessional = signal<number | null>(null);
 
   professionalsOptions = computed(() => [
@@ -85,20 +82,18 @@ export class FinancialComponent implements OnInit {
     { key: 'sex', label: 'Sexta' },   { key: 'sab', label: 'Sábado' }
   ];
 
-  // ── Diálogo de exportação ───────────────────────────────────────────────
   showExportDialog = signal(false);
-  exportMode: 'month' | 'custom' = 'month';
-  exportMonthDate: Date = new Date();
-  exportStartDate: Date | null = null;
-  exportEndDate:   Date | null = null;
+  exportMode:      'month' | 'custom' = 'month';
+  exportMonthDate: Date               = new Date();
+  exportStartDate: Date | null        = null;
+  exportEndDate:   Date | null        = null;
 
-  // ── COMPUTED: pacientes filtrados por profissional ──────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // filteredPatients
   //
-  // ATENÇÃO: removemos o filtro por data_fim aqui.
-  // A rota /patients/financial já retorna apenas os alunos que estavam ativos
-  // no período consultado — filtrar data_fim no frontend com "hoje" quebraria
-  // consultas históricas de meses anteriores.
-  //
+  // Não precisa mais filtrar data_fim — o backend já faz isso em /financial.
+  // Aqui só aplicamos filtro de profissional (UI) e excluímos experimentais.
+  // ─────────────────────────────────────────────────────────────────────────
   filteredPatients = computed<Patient[]>(() => {
     let list = this.patients();
 
@@ -106,10 +101,7 @@ export class FinancialComponent implements OnInit {
       list = list.filter(p => p.profissional_id === this.selectedProfessional());
     }
 
-    // Exclui experimentais (não entram no financeiro)
-    list = list.filter(p => p.tipo !== 'experimental');
-
-    return list;
+    return list.filter(p => p.tipo !== 'experimental');
   });
 
   sortedPatients = computed<Patient[]>(() =>
@@ -118,23 +110,27 @@ export class FinancialComponent implements OnInit {
     )
   );
 
-  // ── COMPUTED: cards de resumo ───────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // stats
+  //
+  // ANTES: totalLiquid somava `p.ganho` para fixo e `p.ganho_convenio` para
+  // convênio — essa distinção ainda era feita no Angular.
+  //
+  // AGORA: usa ganho_liquido_periodo — campo calculado pelo backend que já
+  // resolve a lógica por modalidade. O Angular não precisa saber o tipo.
+  //
+  // Resultado: dashboard e financeiro usam a mesma fonte de cálculo → consistência.
+  // ─────────────────────────────────────────────────────────────────────────
   stats = computed<FinancialStats>(() => {
     const p = this.filteredPatients();
     return {
       totalPatients: p.length,
       totalPackages: p.reduce((s, x) => s + x.valor, 0),
-      totalBase:     p.reduce((s, x) => s + x.base, 0),
-      totalLiquid:   p.reduce((s, x) => {
-        // Convênio: usa ganho_convenio (aulas × valor/aula do período)
-        // Fixo: usa ganho do cadastro
-        const ganho = x.tipo === 'convenio' ? (x.ganho_convenio ?? 0) : x.ganho;
-        return s + ganho;
-      }, 0),
+      totalBase:     p.reduce((s, x) => s + x.base,  0),
+      totalLiquid:   p.reduce((s, x) => s + x.ganho_liquido_periodo, 0),
     };
   });
 
-  // ── COMPUTED: gráfico de barras por dia da semana ──────────────────────
   dayStats = computed<DayStats[]>(() =>
     this.daysOfWeek.map(day => {
       const dp = this.filteredPatients().filter(p => p.dias.includes(day.key));
@@ -142,29 +138,22 @@ export class FinancialComponent implements OnInit {
         day:      day.key,
         dayLabel: day.label,
         patients: dp.length,
-        liquid:   dp.reduce((s, p) => {
-          const ganho = p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho;
-          return s + ganho;
-        }, 0)
+        liquid:   dp.reduce((s, p) => s + p.ganho_liquido_periodo, 0)
       };
     })
   );
 
-  // ── COMPUTED: breakdown por profissional (gestor) ───────────────────────
   professionalStats = computed<ProfessionalStats[]>(() => {
     if (!this.isGestor()) return [];
 
     const allPatients = this.patients().filter(p => p.tipo !== 'experimental');
-    const totalLiquidGeral = allPatients.reduce((s, p) => {
-      return s + (p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho);
-    }, 0);
+    const totalLiquidGeral = allPatients.reduce((s, p) => s + p.ganho_liquido_periodo, 0);
 
     const map = new Map<number, ProfessionalStats>();
 
     allPatients.forEach(p => {
       const id   = p.profissional_id;
       const nome = this.authService.getProfessionalName(id);
-      const ganho = p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho;
 
       if (!map.has(id)) {
         map.set(id, { id, nome, totalAlunos: 0, receitaBruta: 0, liquidoTotal: 0, share: 0 });
@@ -172,8 +161,8 @@ export class FinancialComponent implements OnInit {
 
       const entry = map.get(id)!;
       entry.totalAlunos++;
-      entry.receitaBruta += p.valor;
-      entry.liquidoTotal += ganho;
+      entry.receitaBruta   += p.valor;
+      entry.liquidoTotal   += p.ganho_liquido_periodo;
     });
 
     map.forEach(entry => {
@@ -183,7 +172,6 @@ export class FinancialComponent implements OnInit {
     return [...map.values()].sort((a, b) => b.liquidoTotal - a.liquidoTotal);
   });
 
-  // Cards do estúdio inteiro (sem filtro de profissional)
   receitaEstudio = computed(() =>
     this.patients()
       .filter(p => p.tipo !== 'experimental')
@@ -193,10 +181,9 @@ export class FinancialComponent implements OnInit {
   liquidoEstudio = computed(() =>
     this.patients()
       .filter(p => p.tipo !== 'experimental')
-      .reduce((s, p) => s + (p.tipo === 'convenio' ? (p.ganho_convenio ?? 0) : p.ganho), 0)
+      .reduce((s, p) => s + p.ganho_liquido_periodo, 0)
   );
 
-  // ── Charts ──────────────────────────────────────────────────────────────
   profChartData = computed(() => this.buildProfChart());
   profChartOpts = {
     responsive: true, maintainAspectRatio: false,
@@ -215,8 +202,7 @@ export class FinancialComponent implements OnInit {
         data: ds.map(d => d.liquid),
         backgroundColor: 'rgba(122, 158, 126, 0.7)',
         borderColor: 'var(--sage-dark, #4e6e52)',
-        borderWidth: 1.5,
-        borderRadius: 6
+        borderWidth: 1.5, borderRadius: 6
       }]
     };
   });
@@ -244,16 +230,9 @@ export class FinancialComponent implements OnInit {
       this.isGestor.set(user.role === 'gestor');
       this.userName.set(user.nome);
     }
-    // Carrega o mês atual por padrão ao entrar na tela
     this.applyPeriod();
   }
 
-  // ── FILTRO DE PERÍODO ────────────────────────────────────────────────────
-
-  /**
-   * Monta start/end a partir do modo escolhido e dispara a requisição.
-   * É o único ponto que chama o backend — init e botão "Aplicar" usam ele.
-   */
   applyPeriod(): void {
     let start: string, end: string;
 
@@ -261,7 +240,6 @@ export class FinancialComponent implements OnInit {
       const ref = this.periodMonthDate;
       start = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().split('T')[0];
       end   = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().split('T')[0];
-
       this.activePeriodLabel.set(
         ref.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
       );
@@ -269,23 +247,20 @@ export class FinancialComponent implements OnInit {
       if (!this.periodStartDate || !this.periodEndDate) return;
       start = this.periodStartDate.toISOString().split('T')[0];
       end   = this.periodEndDate.toISOString().split('T')[0];
-
       this.activePeriodLabel.set(
         `${this.periodStartDate.toLocaleDateString('pt-BR')} → ${this.periodEndDate.toLocaleDateString('pt-BR')}`
       );
     }
 
-    // Guarda para reusar no export
     this.activePeriodStart = start;
     this.activePeriodEnd   = end;
-
     this.filterPanelOpen.set(false);
     this.loadingPeriod.set(true);
     this.loading.set(true);
 
     this.patientService.getPatientsByPeriod(start, end).subscribe({
       next: (patients) => {
-        this.patients.set(patients); // ← signal atualizado → computed reagem automaticamente
+        this.patients.set(patients);
         this.loadingPeriod.set(false);
         this.loading.set(false);
       },
@@ -296,7 +271,6 @@ export class FinancialComponent implements OnInit {
     });
   }
 
-  /** Atalho para voltar ao mês atual sem precisar abrir o painel */
   resetToCurrentMonth(): void {
     this.periodMode      = 'month';
     this.periodMonthDate = new Date();
@@ -307,10 +281,7 @@ export class FinancialComponent implements OnInit {
     this.selectedProfessional.set(value);
   }
 
-  // ── EXPORT ───────────────────────────────────────────────────────────────
-
   openExportDialog(): void {
-    // Pré-preenche o dialog com o período que está sendo visualizado
     this.exportMode      = this.periodMode;
     this.exportMonthDate = new Date(this.periodMonthDate);
     this.exportStartDate = this.periodStartDate ? new Date(this.periodStartDate) : null;
@@ -356,36 +327,24 @@ export class FinancialComponent implements OnInit {
     });
   }
 
-  // ── CHART HELPERS ────────────────────────────────────────────────────────
-
   private buildProfChart() {
     const ps = this.professionalStats();
     if (!ps.length) return null;
-
-    const colors = ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52', '#b8a090', '#8fb89a'];
+    const colors = ['#7a9e7e','#c4956a','#5a8f5a','#d4a574','#4e6e52','#b8a090','#8fb89a'];
     return {
       labels: ps.map(p => p.nome),
       datasets: [{
         data: ps.map(p => p.share),
         backgroundColor: colors.slice(0, ps.length),
-        borderWidth: 2,
-        borderColor: 'var(--surface-card, white)'
+        borderWidth: 2, borderColor: 'var(--surface-card, white)'
       }]
     };
   }
 
-  getShareBarWidth(share: number): string {
-    return Math.max(share, 2).toFixed(1) + '%';
-  }
-
-  // ── UTILS ────────────────────────────────────────────────────────────────
-
-  getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-  }
-
+  getShareBarWidth(share: number): string { return Math.max(share, 2).toFixed(1) + '%'; }
+  getInitials(name: string): string { return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2); }
   getAvatarColorFromId(id: number): string {
-    const colors = ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'];
+    const colors = ['#7a9e7e','#c4956a','#5a8f5a','#d4a574','#4e6e52'];
     return colors[id % colors.length];
   }
 }

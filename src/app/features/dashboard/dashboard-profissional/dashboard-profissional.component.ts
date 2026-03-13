@@ -1,3 +1,4 @@
+// src/app/features/dashboard/dashboard-profissional/dashboard-profissional.component.ts
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -10,8 +11,7 @@ import { MessageService } from 'primeng/api';
 import { PatientService } from '../../../core/services/patient.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Patient } from '../../../core/models/patient.model';
-import { Attendance } from '../../../core/models/attendance.model';
-import { ATTENDANCE_STATUS_CONFIG } from '../../../core/models/attendance.model';
+import { Attendance, ATTENDANCE_STATUS_CONFIG } from '../../../core/models/attendance.model';
 
 interface AulaHoje {
   patient: Patient;
@@ -24,30 +24,20 @@ interface AulaHoje {
 @Component({
   selector: 'app-dashboard-profissional',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    CardModule,
-    ButtonModule,
-    TagModule,
-    BadgeModule,
-    ToastModule
-  ],
+  imports: [CommonModule, RouterLink, CardModule, ButtonModule, TagModule, BadgeModule, ToastModule],
   providers: [MessageService],
   templateUrl: './dashboard-profissional.component.html',
   styleUrls: ['./dashboard-profissional.component.scss']
 })
 export class DashboardProfissionalComponent implements OnInit {
-
-  loading = signal(true);
-  savingId = signal<string | null>(null);
-
-  userName = signal('');
-  hoje = new Date();
-
-  aulaHoje = signal<AulaHoje[]>([]);
+  loading    = signal(true);
+  savingId   = signal<string | null>(null);
+  userName   = signal('');
+  hoje       = new Date();
+  aulaHoje   = signal<AulaHoje[]>([]);
   totalAlunos = signal(0);
-  ganhoMes = signal(0);
+  ganhoMes   = signal(0);
+  periodoLabel = '';  // ex: "março de 2025" — exibido junto ao ganho estimado
 
   attendanceConfig = ATTENDANCE_STATUS_CONFIG;
 
@@ -60,8 +50,7 @@ export class DashboardProfissionalComponent implements OnInit {
     qui: 'Quinta-feira', sex: 'Sexta-feira', sab: 'Sábado', dom: 'Domingo'
   };
 
-  diaKey = computed(() => this.diasSemana[this.hoje.getDay()] ?? '');
-
+  diaKey    = computed(() => this.diasSemana[this.hoje.getDay()] ?? '');
   pendentes = computed(() => this.aulaHoje().filter(a => !a.status).length);
   presentes = computed(() => this.aulaHoje().filter(a => a.status === 'present').length);
   faltas    = computed(() => this.aulaHoje().filter(a => a.status === 'absent').length);
@@ -83,40 +72,50 @@ export class DashboardProfissionalComponent implements OnInit {
     const user = this.authService.getCurrentUser();
     if (user) this.userName.set(user.nome.split(' ')[0]);
 
-    this.patientService.loadPatients();
-    this.patientService.getPatients().subscribe({
+    // ─────────────────────────────────────────────────────────────────────
+    // MUDANÇA: usa /patients/financial para o mês atual em vez de /patients.
+    //
+    // Motivo: o campo ganho_mes no dashboard do profissional mostrava
+    // ganho_convenio calculado sobre o histórico todo (findAll), não o mês.
+    // Com /financial, aulas_realizadas e ganho_liquido_periodo refletem
+    // exatamente o mês corrente.
+    //
+    // O backend já filtra por profissional_id quando o token é de 'profissional'.
+    // ─────────────────────────────────────────────────────────────────────
+    const { start, end } = PatientService.monthRange(this.hoje);
+
+    // Label do mês para exibir no template junto ao ganho estimado
+    this.periodoLabel = this.hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+    this.patientService.getPatientsByPeriod(start, end).subscribe({
       next: (patients) => {
-        const meus = patients.filter(p => {
-          if (p.profissional_id !== Number(user?.id)) return false;
-          const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-          const inicio = new Date(p.data_inicio); inicio.setHours(0, 0, 0, 0);
-          if (inicio > hoje) return false;
-          if (p.data_fim) {
-            const fim = new Date(p.data_fim); fim.setHours(0, 0, 0, 0);
-            if (fim < hoje) return false;
-          }
-          return true;
-        });
+        // Backend já retorna só os ativos no período — sem necessidade de isActive() no front
+        const meus = patients.filter(p =>
+          p.profissional_id === Number(user?.id) && p.tipo !== 'experimental'
+        );
 
         this.totalAlunos.set(meus.length);
-        this.ganhoMes.set(meus.reduce((s, p) => s + p.ganho, 0));
 
-        // Aulas de hoje
-        const dayKey = this.diaKey();
+        // CORRETO: ganho_liquido_periodo resolvido pelo backend para todas as modalidades
+        // Antes: if convenio → ganho_convenio (histórico errado), else → ganho
+        // Agora: ganho_liquido_periodo já faz essa distinção corretamente
+        this.ganhoMes.set(
+          meus.reduce((s, p) => s + p.ganho_liquido_periodo, 0)
+        );
+
+        const dayKey     = this.diaKey();
         const aulasDeHoje = meus
           .filter(p => p.dias.includes(dayKey))
           .map(p => ({
-            patient: p,
-            horario: p.horarios?.[dayKey] || '',
-            status: null as AulaHoje['status'],
+            patient:      p,
+            horario:      p.horarios?.[dayKey] || '',
+            status:       null as AulaHoje['status'],
             attendanceId: null,
-            saving: false
+            saving:       false
           }))
           .sort((a, b) => (a.horario || '23:59').localeCompare(b.horario || '23:59'));
 
         this.aulaHoje.set(aulasDeHoje);
-
-        // Carrega frequências de hoje
         this.carregarFrequenciasDeHoje(aulasDeHoje);
         this.loading.set(false);
       },
@@ -126,7 +125,6 @@ export class DashboardProfissionalComponent implements OnInit {
 
   private carregarFrequenciasDeHoje(aulas: AulaHoje[]): void {
     const dateStr = this.hoje.toISOString().split('T')[0];
-
     this.patientService.getAttendanceByDate(dateStr).subscribe({
       next: (attendances: Attendance[]) => {
         this.aulaHoje.update(list =>
@@ -138,17 +136,15 @@ export class DashboardProfissionalComponent implements OnInit {
           })
         );
       },
-      error: () => {} // silencioso — frequências virão vazias
+      error: () => {}
     });
   }
 
   marcarFrequencia(aula: AulaHoje, status: 'present' | 'absent' | 'makeup'): void {
-    // Toggle: clicar no status ativo não faz nada
     if (aula.status === status) return;
 
     this.savingId.set(aula.patient.id);
-
-    const dateStr = this.hoje.toISOString().split('T')[0];
+    const dateStr  = this.hoje.toISOString().split('T')[0];
     const formData = { date: new Date(dateStr), status, notes: '' };
 
     const op$ = aula.attendanceId
@@ -178,7 +174,7 @@ export class DashboardProfissionalComponent implements OnInit {
   }
 
   getAvatarColor(name: string): string {
-    return ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'][name.charCodeAt(0) % 5];
+    return ['#7a9e7e','#c4956a','#5a8f5a','#d4a574','#4e6e52'][name.charCodeAt(0) % 5];
   }
 
   get dataHoje(): string {

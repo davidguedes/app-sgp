@@ -135,7 +135,7 @@
         <p-card styleClass="fin-card">
           <div class="f-icon total"><i class="pi pi-users"></i></div>
           <div class="f-label">Alunos Ativos</div>
-          <div class="f-value">{{ patients().length }}</div>
+          <div class="f-value">{{ stats().totalPatients }}</div>
           <div class="f-sub">cadastrados</div>
         </p-card>
 
@@ -404,7 +404,7 @@
                         </span>
                       </div>
                     } @else {
-                      {{ patient.ganho | currency:'BRL' }}
+                      {{ patient.ganho_liquido_periodo | currency:'BRL' }}
                     }
                   </td>
 
@@ -421,7 +421,7 @@
               <!-- Linha de total -->
               <tr class="total-row">
                 <td [attr.colspan]="isGestor() ? 2 : 1">
-                  <strong>TOTAL ({{ stats().totalPatients }} alunos)</strong>
+                  <strong>TOTAL ({{ sortedPatients().length }} alunos)</strong>
                 </td>
                 <td>{{ stats().totalPackages | currency:'BRL' }}</td>
                 <td>—</td>
