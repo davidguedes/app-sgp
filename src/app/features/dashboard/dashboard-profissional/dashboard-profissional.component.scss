@@ -285,33 +285,43 @@
 
 .aula-details {
   flex: 1;
-  min-width: 0;
-
+  min-width: 0; // essencial para o ellipsis funcionar dentro de flex
+ 
+  // Wrapper para nome + badge na mesma linha, com overflow correto
+  .aula-nome-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0; // permite que o nome trunce antes de estourar
+  }
+ 
   .aula-nome {
-    display: inline-flex;
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--charcoal, #2c2c2c);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    gap: 0.5rem;
-
-    .badge-exp {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.1rem 0.5rem;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #991b1b;
-      i { font-size: 0.7rem; }
-    }
+    // Removido: display inline-flex (causava o estouro do layout)
   }
-
+ 
+  .badge-exp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.45rem;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #991b1b;
+    white-space: nowrap;
+    flex-shrink: 0; // badge nunca comprime — o nome é que trunca
+ 
+    i { font-size: 0.65rem; }
+  }
+ 
   .aula-horario {
     display: flex;
     align-items: center;
@@ -319,7 +329,7 @@
     margin-top: 3px;
     font-size: 0.78rem;
     color: var(--muted, #8a8580);
-
+ 
     i { font-size: 0.72rem; }
   }
 }
@@ -571,17 +581,34 @@
   .dash-pro-container {
     padding: 2rem 1.5rem 3rem;
   }
-
+ 
   .atalhos-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-
+ 
   .aula-card {
     flex-direction: row;
     align-items: center;
     gap: 16px;
-
-    .aula-info { flex: 1; }
-    .aula-actions { flex-shrink: 0; }
+ 
+    // Info do aluno: cresce mas nunca estoura
+    .aula-info {
+      flex: 1;
+      min-width: 0; // permite truncagem do nome sem estourar o card
+    }
+ 
+    // Status (Presente / Faltou / Reposição): largura fixa para não deslocar os botões
+    .status-indicator {
+      flex-shrink: 0;
+      width: 110px;
+      justify-content: center;
+    }
+ 
+    // Botões de ação: nunca comprimem
+    .aula-actions {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+    }
   }
 }

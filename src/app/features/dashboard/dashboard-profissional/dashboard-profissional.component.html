@@ -96,11 +96,14 @@
                 {{ getInitials(aula.patient.nome) }}
               </div>
               <div class="aula-details">
-                <span class="aula-nome">{{ aula.patient.nome }}
-                  @if(aula.patient.tipo === 'experimental') {
-                    <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
+                <div class="aula-nome-wrap">
+                  <span class="aula-nome">{{ aula.patient.nome }}</span>
+                  @if (aula.patient.tipo === 'experimental') {
+                    <span class="badge-exp" pTooltip="Aluno experimental">
+                      <i class="pi pi-exclamation-triangle"></i> EXP
+                    </span>
                   }
-                </span>
+                </div>
                 <span class="aula-horario">
                   <i class="pi pi-clock"></i>
                   {{ aula.horario || 'Sem horário' }}

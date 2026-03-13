@@ -90,21 +90,19 @@ export class DashboardProfissionalComponent implements OnInit {
     this.patientService.getPatientsByPeriod(start, end).subscribe({
       next: (patients) => {
         // Backend já retorna só os ativos no período — sem necessidade de isActive() no front
-        const meus = patients.filter(p =>
-          p.profissional_id === Number(user?.id) && p.tipo !== 'experimental'
+        const meusAtivos = patients.filter(p =>
+          p.profissional_id === Number(user?.id)
         );
-
-        this.totalAlunos.set(meus.length);
-
-        // CORRETO: ganho_liquido_periodo resolvido pelo backend para todas as modalidades
-        // Antes: if convenio → ganho_convenio (histórico errado), else → ganho
-        // Agora: ganho_liquido_periodo já faz essa distinção corretamente
-        this.ganhoMes.set(
-          meus.reduce((s, p) => s + p.ganho_liquido_periodo, 0)
-        );
-
-        const dayKey     = this.diaKey();
-        const aulasDeHoje = meus
+        
+        // KPIs financeiros e contagem de alunos: exclui experimentais (sem receita)
+        const meusPagantes = meusAtivos.filter(p => p.tipo !== 'experimental');
+        
+        this.totalAlunos.set(meusPagantes.length);
+        this.ganhoMes.set(meusPagantes.reduce((s, p) => s + p.ganho_liquido_periodo, 0));
+        
+        // Aulas de hoje: inclui experimentais (precisam de registro de presença)
+        const dayKey      = this.diaKey();
+        const aulasDeHoje = meusAtivos
           .filter(p => p.dias.includes(dayKey))
           .map(p => ({
             patient:      p,
@@ -114,7 +112,7 @@ export class DashboardProfissionalComponent implements OnInit {
             saving:       false
           }))
           .sort((a, b) => (a.horario || '23:59').localeCompare(b.horario || '23:59'));
-
+        
         this.aulaHoje.set(aulasDeHoje);
         this.carregarFrequenciasDeHoje(aulasDeHoje);
         this.loading.set(false);
