@@ -39,12 +39,19 @@ export class PatientListComponent implements OnInit {
   selectedProfessional = signal<number | null>(null);
   loading = signal(false);
 
+  /** 'active' | 'inactive' — ativos por padrão */
+  statusTab = signal<'active' | 'inactive'>('active');
+
   professionalsOptions = computed(() =>
     this.authService.professionals().map(p => ({ label: p.nome, value: p.id }))
   );
 
   isGestor = signal(false);
   profissionalNome = signal('');
+
+  /** Contagem para os badges das abas */
+  activeCount = computed(() => this.patients().filter(p => this.isActive(p)).length);
+  inactiveCount = computed(() => this.patients().filter(p => !this.isActive(p)).length);
 
   constructor(
     private patientService: PatientService,
@@ -59,13 +66,10 @@ export class PatientListComponent implements OnInit {
     this.isGestor.set(gestor);
 
     if (!gestor && user) {
-      // Profissional: já é o responsável — preenche e trava o campo
-      //this.formData.profissional = Number(user.id);
       this.profissionalNome.set(user.nome);
     }
 
     this.loading.set(true);
-    // Garante que os dados estão carregados antes de subscrever
     this.patientService.loadPatients();
     this.patientService.getPatients().subscribe({
       next: (patients) => {
@@ -80,26 +84,42 @@ export class PatientListComponent implements OnInit {
     });
   }
 
+  /** Aluno ativo: sem data_fim ou data_fim >= hoje */
+  isActive(patient: Patient): boolean {
+    if (!patient.data_fim) return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fim = new Date(patient.data_fim);
+    fim.setHours(0, 0, 0, 0);
+    return fim >= today;
+  }
+
   applyFilters(): void {
-    let filtered = [...this.patients()];
+    let filtered = this.patients().filter(p =>
+      this.statusTab() === 'active' ? this.isActive(p) : !this.isActive(p)
+    );
+
     if (this.searchQuery()) {
       const q = this.searchQuery().toLowerCase();
       filtered = filtered.filter(p => p.nome.toLowerCase().includes(q));
     }
+
     if (this.selectedProfessional()) {
       filtered = filtered.filter(p => p.profissional_id === this.selectedProfessional());
     }
+
     this.filteredPatients.set(filtered);
+  }
+
+  onStatusTabChange(tab: 'active' | 'inactive'): void {
+    this.statusTab.set(tab);
+    this.applyFilters();
   }
 
   onSearchChange(value: string): void { this.searchQuery.set(value); this.applyFilters(); }
   onProfessionalChange(value: number | null): void { this.selectedProfessional.set(value); this.applyFilters(); }
 
-  // attendance já não existe no Patient leve — usa total_attendance para exibir badge
-  getAttendanceRate(patient: Patient): number {
-    // taxa não está disponível na listagem leve; redirecione para o detalhe
-    return 0;
-  }
+  getAttendanceRate(patient: Patient): number { return 0; }
 
   getSeverity(rate: number): 'success' | 'warn' | 'danger' {
     if (rate >= 80) return 'success';
@@ -127,7 +147,6 @@ export class PatientListComponent implements OnInit {
       accept: () => {
         this.patientService.deletePatient(patient.id).subscribe({
           next: () => {
-            // state já atualizado localmente no service
             this.patients.set(this.patientService.patientsSignal());
             this.applyFilters();
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Aluno excluído com sucesso' });

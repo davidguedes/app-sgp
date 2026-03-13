@@ -28,6 +28,26 @@
       </p-button>
     </div>
   </div>
+
+  <!-- Abas Ativo / Inativo -->
+  <div class="status-tabs">
+    <button
+      class="status-tab"
+      [class.active]="statusTab() === 'active'"
+      (click)="onStatusTabChange('active')">
+      <i class="pi pi-check-circle"></i>
+      Ativos
+      <span class="tab-count">{{ activeCount() }}</span>
+    </button>
+    <button
+      class="status-tab"
+      [class.active]="statusTab() === 'inactive'"
+      (click)="onStatusTabChange('inactive')">
+      <i class="pi pi-times-circle"></i>
+      Inativos
+      <span class="tab-count">{{ inactiveCount() }}</span>
+    </button>
+  </div>
   
   <div class="filters-bar">
     <p-iconfield class="search-input">
@@ -56,15 +76,6 @@
         styleClass="filter-dropdown">
       </p-select>
     }
-    <!-- @else {
-      <input
-        type="text"
-        pInputText
-        placeholder="{{ profissionalNome() }}"
-        [disabled]="true"
-      />
-    } -->
-
   </div>
   
   <p-table 
@@ -84,33 +95,33 @@
           <th>Profissional</th>
         }
         <th>Dias</th>
-        <!-- <th>Frequência</th> -->
         <th>Pacote</th>
         <th>Líquido</th>
+        @if (statusTab() === 'inactive') {
+          <th>Encerramento</th>
+        }
         <th style="width: 150px;">Ações</th>
       </tr>
     </ng-template>
     
     <ng-template pTemplate="body" let-patient>
-      <tr>
+      <tr [class.inactive-row]="statusTab() === 'inactive'">
         <td>
           <div class="patient-name">
             <div 
               class="patient-avatar"
-              [style.background]="getAvatarColor(patient.nome)">
+              [style.background]="statusTab() === 'inactive' ? '#b0a899' : getAvatarColor(patient.nome)">
               {{ getInitials(patient.nome) }}
             </div>
             <span>{{ patient.nome }}</span>
             @if(patient.tipo === 'experimental') {
               <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
-             }
+            }
           </div>
         </td>
         
         @if (isGestor()) {
-          <td>
-            {{ getProfessionalName(patient.profissional_id) }}
-          </td>
+          <td>{{ getProfessionalName(patient.profissional_id) }}</td>
         }
         
         <td>
@@ -121,19 +132,6 @@
           </div>
         </td>
         
-        <!-- <td>
-          @let stats = getAttendanceStats(patient);
-          <div class="attendance-info">
-            <p-tag 
-              [value]="stats.rate.toFixed(0) + '%'"
-              [severity]="getSeverity(stats.rate)">
-            </p-tag>
-            <span class="attendance-details">
-              {{ stats.present }}P / {{ stats.absent }}F
-            </span>
-          </div>
-        </td> -->
-        
         <td>
           <strong>{{ patient.valor | currency:'BRL' }}</strong>
         </td>
@@ -141,6 +139,15 @@
         <td>
           <strong class="ganho-value">{{ patient.ganho | currency:'BRL' }}</strong>
         </td>
+
+        @if (statusTab() === 'inactive') {
+          <td>
+            <span class="data-fim-badge">
+              <i class="pi pi-calendar-times"></i>
+              {{ patient.data_fim | date:'dd/MM/yyyy' }}
+            </span>
+          </td>
+        }
         
         <td>
           <div class="action-buttons">
@@ -179,14 +186,23 @@
       <tr>
         <td colspan="7" class="empty-message">
           <div class="empty-state">
-            <i class="pi pi-users" style="font-size: 3rem; color: var(--muted);"></i>
-            <h3>Nenhum aluno encontrado</h3>
-            <p>Comece adicionando um novo aluno ao sistema</p>
-            <p-button
-              label="Adicionar Aluno"
-              icon="pi pi-plus"
-              routerLink="/patients/new">
-            </p-button>
+            <i 
+              [class]="statusTab() === 'active' ? 'pi pi-users' : 'pi pi-ban'"
+              style="font-size: 3rem; color: var(--muted);">
+            </i>
+            <h3>
+              {{ statusTab() === 'active' ? 'Nenhum aluno ativo encontrado' : 'Nenhum aluno inativo encontrado' }}
+            </h3>
+            <p>
+              {{ statusTab() === 'active' ? 'Comece adicionando um novo aluno ao sistema' : 'Alunos com data de encerramento passada aparecerão aqui' }}
+            </p>
+            @if (statusTab() === 'active') {
+              <p-button
+                label="Adicionar Aluno"
+                icon="pi pi-plus"
+                routerLink="/patients/new">
+              </p-button>
+            }
           </div>
         </td>
       </tr>
