@@ -9,7 +9,9 @@ import {
 import {
   Attendance, AttendanceFormData,
   AttendanceHttpResponse, AttendancesHttpResponse,
-  AvulsoAttendance, AvulsoFormData
+  AvulsoAttendance, AvulsoFormData,
+  PendingMakeup, PendingMakeupsHttpResponse,
+  ResolveRepostoFormData, ResolveRepostoHttpResponse
 } from '../models/attendance.model';
 import {
   Evolution, EvolutionFormData,
@@ -130,6 +132,27 @@ export class PatientService {
   getAttendanceByDate(date: string): Observable<Attendance[]> {
     return this.http.get<AttendancesHttpResponse>(
       `${this.API_URL}/attendance?date=${date}`
+    ).pipe(map(r => r.data));
+  }
+
+  /**
+   * Lista todos os registros makeup ainda não repostos no mês da data.
+   * Retorna array de PendingMakeup ordenado por data ASC.
+   * Apenas relevante para profissionais — gestor recebe [] do backend.
+   */
+  getPendingMakeupsList(date: string): Observable<PendingMakeup[]> {
+    return this.http.get<PendingMakeupsHttpResponse>(
+      `${this.API_URL}/attendance/pending-makeups?date=${date}`
+    ).pipe(map(r => r.data));
+  }
+
+  /**
+   * Registra a realização de uma reposição atomicamente:
+   * marca o makeup original como reposto e cria/atualiza a presença do dia.
+   */
+  resolveReposto(data: ResolveRepostoFormData): Observable<ResolveRepostoHttpResponse['data']> {
+    return this.http.post<ResolveRepostoHttpResponse>(
+      `${this.API_URL}/attendance/resolve-reposto`, data
     ).pipe(map(r => r.data));
   }
 

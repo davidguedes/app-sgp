@@ -340,6 +340,200 @@
     &.present { &:hover:not(:disabled), &.active { background: var(--success, #5a8f5a); border-color: var(--success, #5a8f5a); color: white; } }
     &.absent  { &:hover:not(:disabled), &.active { background: var(--danger, #c06060);  border-color: var(--danger, #c06060);  color: white; } }
     &.makeup  { &:hover:not(:disabled), &.active { background: var(--warning, #d4a574); border-color: var(--warning, #d4a574); color: white; } }
+
+    // Botão de reposição — verde-azulado para diferenciar do "repor depois"
+    &.reposto {
+      border-color: #4a90a4;
+      color: #4a90a4;
+      position: relative;
+
+      &:hover:not(:disabled) {
+        background: #4a90a4;
+        border-color: #4a90a4;
+        color: white;
+        .reposto-badge { background: white; color: #4a90a4; }
+      }
+
+      .reposto-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: #4a90a4;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s;
+      }
+    }
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════
+// DIALOG — REGISTRAR REPOSIÇÃO
+// ═══════════════════════════════════════════════════════
+
+::ng-deep .reposto-dialog {
+  .p-dialog-header { padding: 0 !important; }
+
+  .reposto-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+
+    .reposto-dialog-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4a90a4, #357a8a);
+      color: white;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    h3 { margin: 0 0 2px; font-size: 1.05rem; font-weight: 700; color: var(--text, #2c2a26); }
+    p  { margin: 0; font-size: 0.85rem; color: var(--muted, #8a8580); }
+  }
+
+  .reposto-content {
+    padding: 0 24px 8px;
+  }
+
+  .reposto-instruction {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #e8f4f8;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    color: #357a8a;
+    margin-bottom: 16px;
+    i { font-size: 0.85rem; flex-shrink: 0; }
+  }
+
+  .reposto-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 0;
+    color: var(--muted, #8a8580);
+    i { font-size: 2rem; color: #5a8f5a; }
+    p { margin: 0; font-size: 0.9rem; }
+  }
+
+  .makeup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .makeup-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border, #e8e3dc);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    background: var(--cream, #f8f5f0);
+
+    &:hover {
+      border-color: #4a90a4;
+      background: #f0f8fb;
+    }
+
+    &.selected {
+      border-color: #4a90a4;
+      background: #e8f4f8;
+      box-shadow: 0 0 0 3px rgba(74, 144, 164, 0.15);
+    }
+
+    .makeup-radio {
+      flex-shrink: 0;
+      .radio-circle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--border, #ccc);
+        background: white;
+        transition: all 0.18s;
+        font-size: 0.7rem;
+        color: white;
+
+        &.checked {
+          background: #4a90a4;
+          border-color: #4a90a4;
+        }
+      }
+    }
+
+    .makeup-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .makeup-student {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text, #2c2a26);
+      }
+      .makeup-date, .makeup-notes {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.78rem;
+        color: var(--muted, #8a8580);
+        i { font-size: 0.72rem; }
+      }
+    }
+
+    .makeup-urgency-tag {
+      flex-shrink: 0;
+      .urgency-chip {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: #f0f0f0;
+        color: #666;
+
+        &.urgent {
+          background: #fde8e8;
+          color: #c0392b;
+        }
+      }
+    }
+  }
+
+  .reposto-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+  }
+
+  .reposto-confirm-btn {
+    background: linear-gradient(135deg, #4a90a4, #357a8a) !important;
+    border-color: #4a90a4 !important;
   }
 }
 
@@ -664,4 +858,214 @@
   ::ng-deep .avulso-dialog {
     .p-dialog { width: 95vw !important; margin: 0 auto; }
   }
+}
+// ── Botão "Reposição" nativo no header ────────────────────────────────────
+.reposto-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #4a90a4, #357a8a);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(74, 144, 164, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #357a8a, #2a6070);
+    box-shadow: 0 4px 14px rgba(74, 144, 164, 0.45);
+    transform: translateY(-1px);
+  }
+
+  i { font-size: 0.9rem; }
+
+  .reposto-header-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
+
+// ── Badge "Reposição · data" no status-badge presente ─────────────────────
+.status-badge.is-reposto {
+  background: rgba(74, 144, 164, 0.14) !important;
+  color: #2a6070 !important;
+
+  .reposto-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    background: rgba(74, 144, 164, 0.18);
+    border: 1px solid rgba(74, 144, 164, 0.35);
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #2a6070;
+    white-space: nowrap;
+    cursor: default;
+
+    i { font-size: 0.68rem; }
+
+    .reposto-origin-date {
+      font-weight: 500;
+      opacity: 0.85;
+    }
+  }
+}
+
+// ── Passo 1 do dialog de reposição: lista de alunos com pendências ─────────
+::ng-deep .reposto-dialog {
+
+  // Lista de alunos clicáveis no passo 1
+  .student-select-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  .student-select-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border, #e8e3dc);
+    border-radius: 12px;
+    background: var(--cream, #f8f5f0);
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+
+    &:hover {
+      border-color: #4a90a4;
+      background: #f0f8fb;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(74, 144, 164, 0.15);
+    }
+  }
+
+  .student-select-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .student-select-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .student-select-nome {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text, #2c2a26);
+  }
+
+  .student-select-qtd {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: #4a90a4;
+    font-weight: 600;
+    i { font-size: 0.72rem; }
+  }
+
+  .student-select-arrow {
+    font-size: 0.8rem;
+    color: var(--muted, #8a8580);
+    flex-shrink: 0;
+  }
+
+  // Botão "Voltar" no passo 2
+  .reposto-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border, #e8e3dc);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted, #8a8580);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+
+    &:hover {
+      border-color: #4a90a4;
+      color: #4a90a4;
+      background: #f0f8fb;
+    }
+
+    i { font-size: 0.78rem; }
+  }
+}
+
+// ── Seção de Reposições de hoje ───────────────────────────────────────────
+.reposto-section-header {
+  padding: 0.6rem 1.5rem;
+  background: rgba(74, 144, 164, 0.08);
+  border-bottom: 1px solid rgba(74, 144, 164, 0.2);
+  border-top: 1px solid rgba(74, 144, 164, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2a6070;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i { font-size: 0.85rem; color: #4a90a4; }
+}
+
+.patient-item.reposto-extra-item {
+  border-left: 3px solid #4a90a4;
+  background: rgba(74, 144, 164, 0.04);
+}
+
+// Badge inline na linha do nome (reposição fora do dia habitual)
+.badge-reposto-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  background: rgba(74, 144, 164, 0.13);
+  border: 1px solid rgba(74, 144, 164, 0.3);
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2a6070;
+  i { font-size: 0.68rem; }
 }

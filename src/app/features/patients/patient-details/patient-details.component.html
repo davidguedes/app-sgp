@@ -169,53 +169,94 @@
               </div>
 
               <div class="summary-item">
-                <span class="label">Reposições</span>
-                <span class="value warning">{{ attendanceStats.makeup }}</span>
+                <span class="label">Faltas pendentes</span>
+                <span class="value warning">{{ attendanceStats.makeupPendente }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Faltas quitadas</span>
+                <span class="value neutral">{{ attendanceStats.makeupQuitado }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Reposições feitas</span>
+                <span class="value info">{{ attendanceStats.repostoFeito }}</span>
               </div>
             </div>
           </div>
           
           <div class="attendance-list">
-            <h4>Histórico</h4>
+            <div class="list-header-row">
+              <h4>Histórico</h4>
+              @if (p.attendance && p.attendance.length > 0) {
+                <span class="list-count">{{ p.attendance.length }} registros</span>
+              }
+            </div>
+
             @if (p.attendance && p.attendance.length > 0) {
-              <p-timeline 
-                [value]="p.attendance" 
+              <p-timeline
+                [value]="pagedAttendance()"
                 align="left"
                 styleClass="attendance-timeline">
                 <ng-template pTemplate="content" let-att>
-                  <div class="timeline-item">
+                  <div class="timeline-item" [class.tl-reposto-feito]="isRepostoFeito(att)" [class.tl-makeup-quitado]="isMakeupQuitado(att)">
                     <div class="timeline-header">
-                      <span class="timeline-date">
-                        {{ att.date | date:'dd/MM/yyyy' }}
-                      </span>
+                      <span class="timeline-date">{{ att.date | date:'dd/MM/yyyy' }}</span>
                       <div class="timeline-actions">
-                        <p-button
-                          icon="pi pi-pencil"
-                          [rounded]="true"
-                          [text]="true"
-                          size="small"
-                          (onClick)="editAttendance(att)">
-                        </p-button>
-                        <p-button
-                          icon="pi pi-trash"
-                          [rounded]="true"
-                          [text]="true"
-                          severity="danger"
-                          size="small"
-                          (onClick)="deleteAttendance(att)">
-                        </p-button>
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="editAttendance(att)"></p-button>
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" (onClick)="deleteAttendance(att)"></p-button>
                       </div>
                     </div>
-                    <p-tag 
-                      [value]="getAttendanceStatus(att.status).label"
-                      [severity]="att.status === 'present' ? 'success' : att.status === 'absent' ? 'danger' : 'warn'">
+
+                    <!-- Tag principal com label e cor contextuais -->
+                    <p-tag
+                      [value]="getAttendanceTagLabel(att)"
+                      [severity]="getAttendanceTagSeverity(att)">
                     </p-tag>
+
+                    <!-- Chip extra informativo de reposição -->
+                    @if (isRepostoFeito(att)) {
+                      <span class="att-extra-chip chip-reposto">
+                        <i class="pi pi-replay"></i> Repôs uma falta anterior
+                      </span>
+                    }
+                    @if (isMakeupQuitado(att)) {
+                      <span class="att-extra-chip chip-quitado">
+                        <i class="pi pi-check-circle"></i> Falta reposta
+                      </span>
+                    }
+                    @if (isMakeupPendente(att)) {
+                      <span class="att-extra-chip chip-pendente">
+                        <i class="pi pi-clock"></i> Pendente de reposição
+                      </span>
+                    }
+
                     @if (att.notes) {
                       <p class="timeline-notes">{{ att.notes }}</p>
                     }
                   </div>
                 </ng-template>
               </p-timeline>
+
+              <!-- Paginador frequência -->
+              @if (attTotalPages > 1) {
+                <div class="paginator-row">
+                  <button class="pag-btn" [disabled]="attPage() === 0" (click)="attGoTo(attPage() - 1)">
+                    <i class="pi pi-chevron-left"></i>
+                  </button>
+                  @for (i of [].constructor(attTotalPages); track $index) {
+                    <button class="pag-btn pag-num" [class.active]="attPage() === $index" (click)="attGoTo($index)">
+                      {{ $index + 1 }}
+                    </button>
+                  }
+                  <button class="pag-btn" [disabled]="attPage() === attTotalPages - 1" (click)="attGoTo(attPage() + 1)">
+                    <i class="pi pi-chevron-right"></i>
+                  </button>
+                  <span class="pag-info">
+                    {{ attPage() * attPageSize + 1 }}–{{ (attPage() + 1) * attPageSize > (p.attendance.length) ? (p.attendance.length) : (attPage() + 1) * attPageSize }}
+                    de {{ p.attendance.length }}
+                  </span>
+                </div>
+              }
+
             } @else {
               <div class="empty-state">
                 <i class="pi pi-calendar"></i>
@@ -237,8 +278,11 @@
         </div>
         
         @if (p.evolutions && p.evolutions.length > 0) {
+          <div class="evolutions-list-header">
+            <span class="list-count">{{ p.evolutions.length }} registros</span>
+          </div>
           <div class="evolutions-list">
-            @for (evo of p.evolutions; track evo.id) {
+            @for (evo of pagedEvolutions(); track evo.id) {
               <p-card styleClass="evolution-card">
                 <div class="evolution-header">
                   <div class="evolution-info">
@@ -361,6 +405,28 @@
               </p-card>
             }
           </div>
+
+          <!-- Paginador evoluções -->
+          @if (evoTotalPages > 1) {
+            <div class="paginator-row">
+              <button class="pag-btn" [disabled]="evoPage() === 0" (click)="evoGoTo(evoPage() - 1)">
+                <i class="pi pi-chevron-left"></i>
+              </button>
+              @for (i of [].constructor(evoTotalPages); track $index) {
+                <button class="pag-btn pag-num" [class.active]="evoPage() === $index" (click)="evoGoTo($index)">
+                  {{ $index + 1 }}
+                </button>
+              }
+              <button class="pag-btn" [disabled]="evoPage() === evoTotalPages - 1" (click)="evoGoTo(evoPage() + 1)">
+                <i class="pi pi-chevron-right"></i>
+              </button>
+              <span class="pag-info">
+                {{ evoPage() * evoPageSize + 1 }}–{{ (evoPage() + 1) * evoPageSize > (p.evolutions.length) ? (p.evolutions.length) : (evoPage() + 1) * evoPageSize }}
+                de {{ p.evolutions.length }}
+              </span>
+            </div>
+          }
+
         } @else {
           <div class="empty-state">
             <i class="pi pi-file-edit"></i>

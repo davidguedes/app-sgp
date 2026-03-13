@@ -12,9 +12,12 @@ import { DividerModule } from 'primeng/divider';
 import { PatientService } from '../../core/services/patient.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models/patient.model';
-import { Attendance, AvulsoAttendance } from '../../core/models/attendance.model';
+import { Attendance, AvulsoAttendance, PendingMakeup, ResolveRepostoFormData } from '../../core/models/attendance.model';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 interface CalendarEvent  { date: Date; patients: PatientWithTime[]; avulsos: AvulsoAttendance[]; dayOfWeek: string; }
 interface MonthDay       { date: Date; isCurrentMonth: boolean; isToday: boolean; patients: PatientWithTime[]; avulsos: AvulsoAttendance[]; }
@@ -25,6 +28,8 @@ interface PatientWithTime extends Patient {
   isExp?: boolean;
   lastAttendanceStatus?: 'present' | 'absent' | 'makeup' | null;
   makeupPending?: boolean;
+  isLastReposto?: boolean;      // última presença foi uma reposição realizada
+  makeupOriginDate?: Date;      // data da falta original que originou a reposição
 }
 
 interface ProfessionalSummary {
@@ -43,8 +48,10 @@ interface ProfessionalSummary {
   standalone: true,
   imports: [
     CommonModule, RouterLink, CardModule, ButtonModule, DatePickerModule,
-    SelectModule, BadgeModule, TagModule, FormsModule, TooltipModule, DividerModule
+    SelectModule, BadgeModule, TagModule, FormsModule, TooltipModule, DividerModule,
+    DialogModule, ToastModule
   ],
+  providers: [MessageService],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
@@ -63,10 +70,37 @@ export class CalendarComponent implements OnInit {
   profissionalStats = signal<ProfessionalSummary[]>([]);
   expandedDays      = signal<Set<string>>(new Set());
 
+  // ── Reposição ──
+  pendingMakeups    = signal<PendingMakeup[]>([]);
+  showRepostoDialog = signal(false);
+  savingReposto     = signal(false);
+  repostoStep       = signal<'select-student' | 'select-makeup'>('select-makeup');
+  repostoPatient    = signal<PatientWithTime | null>(null);
+  selectedMakeupId  = signal<string | null>(null);
+
   professionalsOptions = computed(() => [
     { label: 'Todos', value: null },
     ...this.authService.professionals().map(p => ({ label: p.nome, value: p.id }))
   ]);
+
+  // Alunos com ao menos uma falta pendente (para passo 1 do dialog)
+  studentsWithPendingMakeups = computed(() => {
+    const map = new Map<string, { id: string; nome: string; qtd: number }>();
+    for (const m of this.pendingMakeups()) {
+      const key = String(m.patient_id);
+      const cur = map.get(key);
+      if (cur) cur.qtd++;
+      else map.set(key, { id: key, nome: m.patient_nome, qtd: 1 });
+    }
+    return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
+  });
+
+  // Faltas do aluno selecionado no dialog (passo 2)
+  makeupsPorAluno = computed(() => {
+    const patient = this.repostoPatient();
+    if (!patient) return this.pendingMakeups();
+    return this.pendingMakeups().filter(m => String(m.patient_id) === String(patient.id));
+  });
 
   viewModes: { label: string; value: 'month' | 'week' | 'day'; icon: string }[] = [
     { label: 'Mês',    value: 'month', icon: 'pi pi-calendar' },
@@ -84,7 +118,11 @@ export class CalendarComponent implements OnInit {
     { key: 'dom', label: 'Domingo', full: 'Domingo',       short: 'Dom' }
   ];
 
-  constructor(private patientService: PatientService, public authService: AuthService) {}
+  constructor(
+    private patientService: PatientService,
+    public authService: AuthService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     if (!this.authService.isGestor()) this.viewMode.set('week');
@@ -143,6 +181,14 @@ export class CalendarComponent implements OnInit {
         this.avulsos.set(avulsos);
         this.generateCalendarEvents();
         if (this.authService.isGestor()) this.computeProfissionalStats();
+        // Carrega reposições pendentes do período atual
+        if (!this.authService.isGestor()) {
+          const [startStr] = this.getPeriodRange();
+          this.patientService.getPendingMakeupsList(startStr).subscribe({
+            next: (list) => this.pendingMakeups.set(list),
+            error: () => {}
+          });
+        }
       },
       error: () => {
         this.generateCalendarEvents();
@@ -203,12 +249,30 @@ export class CalendarComponent implements OnInit {
       .filter(a => a.patient_id === p.id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    const lastAttendanceStatus = patientAttendances[0]?.status ?? null;
-    const lastAbsent = patientAttendances.find(a => a.status === 'absent');
-    const lastMakeup = patientAttendances.find(a => a.status === 'makeup');
-    const makeupPending = !!lastAbsent && (
-      !lastMakeup || new Date(lastAbsent.date) > new Date(lastMakeup.date)
+    const lastAtt = patientAttendances[0];
+    const lastAttendanceStatus = lastAtt?.status ?? null;
+
+    // Detecta se a última presença foi uma reposição realizada
+    // (status 'present' com makeup_origin_id preenchido)
+    const isLastReposto = lastAtt?.status === 'present' && !!lastAtt?.makeup_origin_id;
+
+    // IDs dos makeups que já foram quitados por alguma presença de reposição
+    const quitadosIds = new Set(
+      patientAttendances
+        .filter(a => a.status === 'present' && a.makeup_origin_id)
+        .map(a => a.makeup_origin_id)
     );
+
+    // Makeup pendente = existe um registro 'makeup' que ainda não foi quitado
+    // (não tem nenhuma presença de reposição apontando para ele)
+    const makeupPending = patientAttendances.some(
+      a => a.status === 'makeup' && !quitadosIds.has(a.id)
+    );
+
+    // Data da falta original (para exibir no badge da aula reposta)
+    const makeupOriginDate = isLastReposto && lastAtt?.makeup_origin_id
+      ? patientAttendances.find(a => String(a.id) === String(lastAtt.makeup_origin_id))?.date
+      : undefined;
 
     return {
       ...p,
@@ -216,7 +280,9 @@ export class CalendarComponent implements OnInit {
       isNew: inicio >= sevenDaysAgo,
       isExp: p.tipo === 'experimental',
       lastAttendanceStatus,
-      makeupPending
+      makeupPending,
+      isLastReposto,
+      makeupOriginDate
     };
   }
 
@@ -504,10 +570,10 @@ export class CalendarComponent implements OnInit {
     if (status === 'makeup')  return 'att-makeup';
     return 'att-none';
   }
-  getAttendanceLabel(status: 'present' | 'absent' | 'makeup' | null | undefined): string {
-    if (status === 'present') return 'Presente na última aula';
+  getAttendanceLabel(status: 'present' | 'absent' | 'makeup' | null | undefined, isLastReposto?: boolean): string {
+    if (status === 'present') return isLastReposto ? 'Presente — foi reposição' : 'Presente na última aula';
     if (status === 'absent')  return 'Faltou na última aula';
-    if (status === 'makeup')  return 'Última foi reposição';
+    if (status === 'makeup')  return 'Falta pendente de reposição';
     return 'Sem registros';
   }
 
@@ -521,4 +587,101 @@ export class CalendarComponent implements OnInit {
   }
 
   getProfessionalName(id: number): string { return this.authService.getProfessionalName(id); }
+
+  // ─────────────────────────────────────────────
+  // REPOSIÇÃO — dialog
+  // ─────────────────────────────────────────────
+
+  openRepostoDialog(patient: PatientWithTime | null): void {
+    this.selectedMakeupId.set(null);
+    if (patient) {
+      this.repostoPatient.set(patient);
+      this.repostoStep.set('select-makeup');
+    } else {
+      this.repostoPatient.set(null);
+      this.repostoStep.set('select-student');
+    }
+    this.showRepostoDialog.set(true);
+  }
+
+  selectStudentForReposto(patientId: string): void {
+    const patient = this.studentsWithPendingMakeups().find(s => s.id === patientId);
+    if (!patient) return;
+    // Busca o PatientWithTime completo para ter todos os campos
+    const full = this.patients().find(p => String(p.id) === patientId);
+    if (full) {
+      this.repostoPatient.set(this.enrichPatient(full, this.getDayKey(this.selectedDate())));
+    }
+    this.selectedMakeupId.set(null);
+    this.repostoStep.set('select-makeup');
+  }
+
+  backToSelectStudent(): void {
+    this.repostoPatient.set(null);
+    this.selectedMakeupId.set(null);
+    this.repostoStep.set('select-student');
+  }
+
+  confirmReposto(): void {
+    const makeupId = this.selectedMakeupId();
+    const patient  = this.repostoPatient();
+    if (!makeupId || !patient) return;
+
+    this.savingReposto.set(true);
+    const presentDate = this.getDateString(this.selectedDate());
+
+    const data: ResolveRepostoFormData = {
+      makeupId,
+      presentPatientId: patient.id,
+      presentDate
+    };
+
+    this.patientService.resolveReposto(data).subscribe({
+      next: () => {
+        this.pendingMakeups.update(list => list.filter(m => m.id !== makeupId));
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Reposição registrada!',
+          detail: `Presença de ${patient.nome} registrada com sucesso.`,
+          life: 5000
+        });
+        this.savingReposto.set(false);
+        this.showRepostoDialog.set(false);
+        // Recarrega attendances para refletir no calendário
+        this.loadAttendances(this.patients());
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível registrar a reposição. Tente novamente.'
+        });
+        this.savingReposto.set(false);
+      }
+    });
+  }
+
+  getMakeupDateLabel(makeup: PendingMakeup): string {
+    return new Date(makeup.date).toLocaleDateString('pt-BR', {
+      weekday: 'long', day: '2-digit', month: 'long'
+    });
+  }
+
+  formatOriginDate(date: Date | undefined): string {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  }
+
+  getDateString(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  getDiasRestantesMes(): number {
+    const hoje = new Date();
+    const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    return Math.max(0, Math.ceil((fimMes.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24)));
+  }
 }

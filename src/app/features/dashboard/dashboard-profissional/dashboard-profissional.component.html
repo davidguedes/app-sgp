@@ -103,6 +103,19 @@
                       <i class="pi pi-exclamation-triangle"></i> EXP
                     </span>
                   }
+                  @let makeupsPendentes = pendingMakeupsPorAluno(aula.patient.id);
+                  @if (makeupsPendentes.length > 0) {
+                    <span
+                      class="badge-makeup-pending"
+                      [pTooltip]="makeupsPendentes.length + ' reposição(ões) pendente(s) este mês'"
+                      tooltipPosition="top">
+                      <i class="pi pi-replay"></i>
+                      {{ makeupsPendentes.length }} repos.
+                      @if (diasRestantesMes <= 5) {
+                        <span class="makeup-urgency">· {{ diasRestantesMes }}d</span>
+                      }
+                    </span>
+                  }
                 </div>
                 <span class="aula-horario">
                   <i class="pi pi-clock"></i>

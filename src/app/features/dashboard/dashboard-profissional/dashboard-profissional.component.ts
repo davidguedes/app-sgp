@@ -11,20 +11,21 @@ import { MessageService } from 'primeng/api';
 import { PatientService } from '../../../core/services/patient.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Patient } from '../../../core/models/patient.model';
-import { Attendance, ATTENDANCE_STATUS_CONFIG } from '../../../core/models/attendance.model';
+import { Attendance, ATTENDANCE_STATUS_CONFIG, PendingMakeup } from '../../../core/models/attendance.model';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface AulaHoje {
   patient: Patient;
   horario: string;
   status: 'present' | 'absent' | 'makeup' | null;
-  attendanceId: string | null;
+  attendanceId: string | null;  // Attendance.id é number (serial4)
   saving: boolean;
 }
 
 @Component({
   selector: 'app-dashboard-profissional',
   standalone: true,
-  imports: [CommonModule, RouterLink, CardModule, ButtonModule, TagModule, BadgeModule, ToastModule],
+  imports: [CommonModule, RouterLink, TooltipModule, CardModule, ButtonModule, TagModule, BadgeModule, ToastModule],
   providers: [MessageService],
   templateUrl: './dashboard-profissional.component.html',
   styleUrls: ['./dashboard-profissional.component.scss']
@@ -37,7 +38,20 @@ export class DashboardProfissionalComponent implements OnInit {
   aulaHoje   = signal<AulaHoje[]>([]);
   totalAlunos = signal(0);
   ganhoMes   = signal(0);
-  periodoLabel = '';  // ex: "março de 2025" — exibido junto ao ganho estimado
+  periodoLabel = '';
+
+  /** Lista de reposições pendentes no mês (makeup com reposto=false) */
+  pendingMakeups = signal<PendingMakeup[]>([]);
+
+  /** Helper: dias restantes no mês atual */
+  get diasRestantesMes(): number {
+    const lastDay = new Date(this.hoje.getFullYear(), this.hoje.getMonth() + 1, 0).getDate();
+    return lastDay - this.hoje.getDate();
+  }
+
+  /** Retorna pendências agrupadas por patient_id para uso no template */
+  pendingMakeupsPorAluno = (patientId: string): PendingMakeup[] =>
+    this.pendingMakeups().filter(m => String(m.patient_id) === String(patientId));
 
   attendanceConfig = ATTENDANCE_STATUS_CONFIG;
 
@@ -133,6 +147,11 @@ export class DashboardProfissionalComponent implements OnInit {
               : a;
           })
         );
+        // Carrega reposições pendentes do mês para exibir alerta ao marcar
+        this.patientService.getPendingMakeupsList(dateStr).subscribe({
+          next: (list) => this.pendingMakeups.set(list),
+          error: () => {}
+        });
       },
       error: () => {}
     });
@@ -158,6 +177,33 @@ export class DashboardProfissionalComponent implements OnInit {
               : a
           )
         );
+
+        // ── Alerta de reposição pendente ──────────────────────────────────
+        this.patientService.getPendingMakeupsList(dateStr).subscribe({
+          next: (list) => {
+            this.pendingMakeups.set(list);
+            const pendentesDoAluno = list.filter(
+              m => String(m.patient_id) === String(aula.patient.id)
+            );
+            if (pendentesDoAluno.length > 0) {
+              const qtd     = pendentesDoAluno.length;
+              const diasRest = this.diasRestantesMes;
+              const diasTxt  = diasRest === 0 ? 'hoje é o último dia!'
+                             : diasRest === 1 ? 'falta apenas 1 dia'
+                             : `faltam ${diasRest} dias`;
+              const repoTxt  = qtd === 1 ? '1 reposição pendente' : `${qtd} reposições pendentes`;
+              this.messageService.add({
+                severity: 'warn',
+                summary: `⚠️ Reposição pendente — ${aula.patient.nome}`,
+                detail: `${aula.patient.nome} tem ${repoTxt} neste mês. Prazo: ${diasTxt} para o fim do mês.`,
+                life: 8000
+              });
+            }
+          },
+          error: () => {}
+        });
+        // ─────────────────────────────────────────────────────────────────
+
         this.savingId.set(null);
       },
       error: () => {

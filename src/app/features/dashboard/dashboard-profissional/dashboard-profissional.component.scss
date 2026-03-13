@@ -612,3 +612,25 @@
     }
   }
 }
+// ── Badge de reposição pendente ────────────────────────────────────────────
+.badge-makeup-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  white-space: nowrap;
+  cursor: default;
+
+  i { font-size: 0.7rem; }
+
+  .makeup-urgency {
+    color: #c0392b;
+    font-weight: 700;
+  }
+}

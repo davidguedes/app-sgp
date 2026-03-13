@@ -340,6 +340,8 @@
       &.success { color: var(--success, #5a8f5a); }
       &.danger  { color: var(--danger,  #c06060); }
       &.warning { color: var(--warning, #d4a574); }
+      &.info    { color: #4a90a4; }
+      &.neutral { color: var(--muted, #8a8580); }
     }
   }
 }
@@ -381,6 +383,102 @@
     font-size: 0.85rem;
     color: var(--charcoal, #2c2c2c);
     line-height: 1.5;
+  }
+}
+
+// ─── Indicadores de reposição na timeline ───────────────────────
+
+.timeline-item {
+  &.tl-reposto-feito  { border-left: 3px solid #4a90a4; }
+  &.tl-makeup-quitado { border-left: 3px solid #9ca3af; opacity: 0.85; }
+}
+
+.att-extra-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 6px;
+  margin-left: 6px;
+
+  &.chip-reposto  { background: #e0f2f7; color: #4a90a4; }
+  &.chip-quitado  { background: #f3f4f6; color: #6b7280; }
+  &.chip-pendente { background: #fef3c7; color: #d97706; }
+}
+
+// ─── Header da lista com contador ────────────────────────────────
+
+.list-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+
+  h4 { margin: 0; font-family: 'DM Serif Display', serif; color: var(--sage-dark, #4e6e52); }
+}
+
+.evolutions-list-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.list-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted, #8a8580);
+  background: var(--surface-hover);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+// ─── Paginador ───────────────────────────────────────────────────
+
+.paginator-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  padding: 1rem 0 0.5rem;
+  flex-wrap: wrap;
+
+  .pag-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border, #e8e3dc);
+    border-radius: 8px;
+    background: var(--surface-card);
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--charcoal, #2c2c2c);
+    transition: all 0.15s;
+
+    &:hover:not([disabled]) {
+      border-color: var(--sage-dark, #4e6e52);
+      color: var(--sage-dark, #4e6e52);
+    }
+
+    &[disabled] { opacity: 0.35; cursor: not-allowed; }
+
+    &.pag-num.active {
+      background: var(--sage-dark, #4e6e52);
+      border-color: var(--sage-dark, #4e6e52);
+      color: white;
+      font-weight: 700;
+    }
+  }
+
+  .pag-info {
+    font-size: 0.75rem;
+    color: var(--muted, #8a8580);
+    margin-left: 8px;
+    white-space: nowrap;
   }
 }
 

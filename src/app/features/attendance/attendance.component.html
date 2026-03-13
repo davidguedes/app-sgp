@@ -14,8 +14,7 @@
         [showIcon]="true"
         placeholder="Selecione a data"
         styleClass="date-selector"
-        appendTo="body"
-      >
+        appendTo="body">
       </p-datepicker>
       
       @if(isGestor()) {
@@ -42,7 +41,18 @@
         </ng-template>
       </p-selectButton>
 
-      <!-- Botão Aula Avulsa -->
+      <!-- Botão Registrar Reposição — só aparece quando há pendências -->
+      @if (pendingMakeups().length > 0) {
+        <button
+          class="reposto-header-btn"
+          (click)="openRepostoDialog(null)"
+          [title]="pendingMakeups().length + ' reposição(ões) pendente(s) este mês'">
+          <i class="pi pi-check-circle"></i>
+          <span>Reposição</span>
+          <span class="reposto-header-badge">{{ pendingMakeups().length }}</span>
+        </button>
+      }
+
       <p-button
         label="Aula Avulsa"
         icon="pi pi-plus-circle"
@@ -53,7 +63,7 @@
     </div>
   </div>
   
-  <!-- Stats Cards -->
+  <!-- Stats -->
   @let stats = getStats();
   <div class="stats-grid">
     <p-card styleClass="stat-card total">
@@ -117,8 +127,7 @@
 
   @if(biometricSupported()) {
     <div class="bulk-actions">
-      <app-biometric-checkin
-        (onAttendanceMarked)="onCheckinSuccess($event)" />
+      <app-biometric-checkin (onAttendanceMarked)="onCheckinSuccess($event)" />
     </div>
   }
 
@@ -142,7 +151,6 @@
         }
       </div>
     } @else {
-      <!-- Contador de resultados -->
       <div class="results-header">
         <span class="results-count">
           @if (showMarkedStudents()) {
@@ -159,6 +167,7 @@
             <div 
               class="patient-item"
               [class.has-status]="patient.todayStatus">
+
                 <div class="patient-info-section">
                   <div 
                     class="patient-avatar"
@@ -170,7 +179,14 @@
                     <div class="patient-name-row">
                       <h4>{{ patient.nome }}</h4>
                       @if(patient.tipo === 'experimental') {
-                        <span class="badge-exp" pTooltip="Aluno experimental"><i class="pi pi-exclamation-triangle"></i> EXP</span>
+                        <span class="badge-exp" pTooltip="Aluno experimental">
+                          <i class="pi pi-exclamation-triangle"></i> EXP
+                        </span>
+                      }
+                      @if(patient.isReposto && !patient.hasClass) {
+                        <span class="badge-reposto-extra" pTooltip="Reposição fora do dia habitual">
+                          <i class="pi pi-replay"></i> Reposição
+                        </span>
                       }
                     </div>
                     <div class="patient-meta">
@@ -192,24 +208,41 @@
                   @if (patient.todayStatus) {
                     <div class="current-status">
                       <span class="status-label">Status atual:</span>
-                      <div 
+                      <div
                         class="status-badge"
-                        [class]="patient.todayStatus">
+                        [class]="patient.todayStatus"
+                        [class.is-reposto]="patient.isReposto">
                         <i [class]="attendanceConfig[patient.todayStatus].icon"></i>
                         {{ attendanceConfig[patient.todayStatus].label }}
+                        @if (patient.isReposto) {
+                          <span class="reposto-tag"
+                            [title]="patient.makeupOriginDate ? 'Repõe falta de ' + formatMakeupOriginDate(patient.makeupOriginDate) : 'Reposição de falta'">
+                            <i class="pi pi-replay"></i>
+                            Reposição
+                            @if (patient.makeupOriginDate) {
+                              <span class="reposto-origin-date">
+                                · {{ formatMakeupOriginDate(patient.makeupOriginDate) }}
+                              </span>
+                            }
+                          </span>
+                        }
                       </div>
                     </div>
-                    
+
+                    <!-- Botão limpar: disponível para todos, tooltip contextual -->
                     <p-button
                       icon="pi pi-times"
                       severity="secondary"
                       [text]="true"
                       [rounded]="true"
                       (onClick)="clearAttendance(patient)"
-                      pTooltip="Limpar registro">
+                      [pTooltip]="patient.isReposto ? 'Desfazer reposição — volta como pendente' : 'Limpar registro'"
+                      tooltipPosition="top">
                     </p-button>
                   }
-                  
+
+                  <!-- Botões presente/falta/repor: ocultos em registros de reposição -->
+                  @if (!patient.isReposto) {
                   <div class="action-buttons">
                     <button
                       class="action-btn present"
@@ -228,23 +261,35 @@
                       <i class="pi pi-times"></i>
                       <span>Falta</span>
                     </button>
-                    
+
+                    <!-- Marca que o aluno faltou e deverá repor -->
                     <button
                       class="action-btn makeup"
                       [class.active]="patient.todayStatus === 'makeup'"
                       (click)="markAttendance(patient, 'makeup')"
-                      [disabled]="saving()">
+                      [disabled]="saving()"
+                      pTooltip="Falta — aluno deverá repor a aula"
+                      tooltipPosition="top">
                       <i class="pi pi-replay"></i>
-                      <span>Reposição</span>
+                      <span>Repor depois</span>
                     </button>
 
-                    <!-- <app-biometric-checkin-button
-                      [patientId]="patient.id"
-                      [hasBiometric]="patient.has_biometric ?? false"
-                      [disabled]="saving()"
-                      (onSuccess)="onBiometricSuccess($event, patient)"
-                      (onError)="onBiometricError($event)" /> -->
+                    <!-- Só exibe "Registrar Reposição" se houver falta pendente para esse aluno -->
+                    @let qtdPendentes = getMakeupCountForPatient(patient.id);
+                    @if (qtdPendentes > 0) {
+                      <button
+                        class="action-btn reposto"
+                        (click)="openRepostoDialog(patient)"
+                        [disabled]="saving()"
+                        [pTooltip]="qtdPendentes + ' falta(s) para repor'"
+                        tooltipPosition="top">
+                        <i class="pi pi-check-circle"></i>
+                        <span>Repor</span>
+                        <span class="reposto-badge">{{ qtdPendentes }}</span>
+                      </button>
+                    }
                   </div>
+                  } <!-- fim @if (!patient.isReposto) -->
                   
                   <p-button
                     icon="pi pi-eye"
@@ -258,6 +303,56 @@
             </div>
           }
         }
+
+        <!-- Reposições fora do dia habitual (aluno veio repor num dia que não é o seu) -->
+        <!-- @if (repostoExtrasList().length > 0) {
+          <div class="reposto-section-header">
+            <i class="pi pi-replay"></i>
+            Reposições de hoje ({{ repostoExtrasList().length }})
+          </div>
+
+          @for (patient of repostoExtrasList(); track patient.id) {
+            <div class="patient-item reposto-extra-item has-status">
+              <div class="patient-info-section">
+                <div class="patient-avatar" [style.background]="getAvatarColor(patient.nome)">
+                  {{ getInitials(patient.nome) }}
+                </div>
+                <div class="patient-details">
+                  <div class="patient-name-row">
+                    <h4>{{ patient.nome }}</h4>
+                    <span class="badge-reposto-extra">
+                      <i class="pi pi-replay"></i> Reposição
+                    </span>
+                  </div>
+                  <div class="patient-meta">
+                    @if(isGestor()) {
+                      <span><i class="pi pi-user"></i> {{ getProfessionalName(patient.profissional_id) }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="patient-actions">
+                <div class="current-status">
+                  <div class="status-badge present is-reposto">
+                    <i class="pi pi-check-circle"></i>
+                    Presente
+                    <span class="reposto-tag">
+                      <i class="pi pi-replay"></i> Reposição
+                    </span>
+                  </div>
+                </div>
+                <p-button
+                  icon="pi pi-eye"
+                  severity="info"
+                  [text]="true"
+                  [rounded]="true"
+                  [routerLink]="['/patients', patient.id]"
+                  pTooltip="Ver detalhes">
+                </p-button>
+              </div>
+            </div>
+          }
+        } -->
 
         @if (avulsoList().length > 0) {
           <div class="avulsos-section-header">
@@ -322,7 +417,6 @@
     }
   </p-card>
   
-  <!-- Info Footer -->
   <div class="info-footer">
     <div class="info-item">
       <i class="pi pi-info-circle"></i>
@@ -335,9 +429,173 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     DIALOG — AULA AVULSA
-     ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     DIALOG — REGISTRAR REPOSIÇÃO
+     Passo 1: selecionar qual aluno está presente (só via botão header)
+     Passo 2: selecionar qual falta pendente está sendo reposta
+     ═══════════════════════════════════════════════════════════════ -->
+<p-dialog
+  [visible]="showRepostoDialog()"
+  (visibleChange)="showRepostoDialog.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="reposto-dialog"
+  [style]="{ width: '560px' }">
+
+  <!-- Header dinâmico por passo -->
+  <ng-template pTemplate="header">
+    <div class="reposto-dialog-header">
+      <span class="reposto-dialog-icon">
+        <i [class]="repostoStep() === 'select-student' ? 'pi pi-users' : 'pi pi-check-circle'"></i>
+      </span>
+      <div>
+        <h3>Registrar Reposição</h3>
+        @if (repostoStep() === 'select-student') {
+          <p>Selecione o aluno que está presente hoje para repor uma falta</p>
+        } @else if (repostoPatient()) {
+          <p>Qual falta <strong>{{ repostoPatient()!.nome }}</strong> está repondo hoje?</p>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="reposto-content">
+
+    <!-- ── PASSO 1: Selecionar aluno ──────────────────────────── -->
+    @if (repostoStep() === 'select-student') {
+      <p class="reposto-instruction">
+        <i class="pi pi-info-circle"></i>
+        Os alunos abaixo têm ao menos uma falta pendente de reposição neste mês.
+        Clique no aluno que está presente hoje.
+      </p>
+
+      @if (studentsWithPendingMakeups().length === 0) {
+        <div class="reposto-empty">
+          <i class="pi pi-check-circle"></i>
+          <p>Nenhuma reposição pendente neste mês.</p>
+        </div>
+      } @else {
+        <div class="student-select-list">
+          @for (s of studentsWithPendingMakeups(); track s.id) {
+            <button
+              class="student-select-item"
+              (click)="selectStudentForReposto(s.id)">
+              <div
+                class="student-select-avatar"
+                [style.background]="getAvatarColor(s.nome)">
+                {{ getInitials(s.nome) }}
+              </div>
+              <div class="student-select-info">
+                <span class="student-select-nome">{{ s.nome }}</span>
+                <span class="student-select-qtd">
+                  <i class="pi pi-replay"></i>
+                  {{ s.qtd }} falta{{ s.qtd > 1 ? 's' : '' }} pendente{{ s.qtd > 1 ? 's' : '' }}
+                </span>
+              </div>
+              <i class="pi pi-chevron-right student-select-arrow"></i>
+            </button>
+          }
+        </div>
+      }
+    }
+
+    <!-- ── PASSO 2: Selecionar a falta a repor ────────────────── -->
+    @if (repostoStep() === 'select-makeup') {
+
+      <!-- Botão voltar só quando chegou pelo header (passo 1) -->
+      <!-- Detectamos isso pelo fato de que o botão do card sempre passa patient != null,
+           então ao chegar aqui via header, repostoStep era 'select-student' antes.
+           Guardamos no próprio fluxo: mostramos "Voltar" se openRepostoDialog(null) foi chamado.
+           A forma mais simples: mostramos "Voltar" quando a lista de alunos tem mais de 1 opção
+           OU quando pendingMakeups tem alunos diferentes do atual. -->
+      @if (studentsWithPendingMakeups().length > 1) {
+        <button class="reposto-back-btn" (click)="backToSelectStudent()">
+          <i class="pi pi-arrow-left"></i>
+          Escolher outro aluno
+        </button>
+      }
+
+      @if (makeupsPorAluno().length === 0) {
+        <div class="reposto-empty">
+          <i class="pi pi-check-circle"></i>
+          <p>Nenhuma falta pendente para {{ repostoPatient()?.nome }} neste mês.</p>
+        </div>
+      } @else {
+        <p class="reposto-instruction">
+          <i class="pi pi-info-circle"></i>
+          Selecione qual falta está sendo reposta hoje. O registro original será marcado como quitado.
+        </p>
+
+        <div class="makeup-list">
+          @for (makeup of makeupsPorAluno(); track makeup.id) {
+            <div
+              class="makeup-item"
+              [class.selected]="selectedMakeupId() === makeup.id"
+              (click)="selectedMakeupId.set(makeup.id)">
+              <div class="makeup-radio">
+                <span class="radio-circle" [class.checked]="selectedMakeupId() === makeup.id">
+                  @if (selectedMakeupId() === makeup.id) {
+                    <i class="pi pi-check"></i>
+                  }
+                </span>
+              </div>
+              <div class="makeup-info">
+                <span class="makeup-date">
+                  <i class="pi pi-calendar"></i>
+                  Faltou em {{ getMakeupDateLabel(makeup) }}
+                </span>
+                @if (makeup.notes) {
+                  <span class="makeup-notes">
+                    <i class="pi pi-pencil"></i>
+                    {{ makeup.notes }}
+                  </span>
+                }
+              </div>
+              <div class="makeup-urgency-tag">
+                @let diasRest = getDiasRestantes();
+                @if (diasRest <= 5) {
+                  <span class="urgency-chip urgent">{{ diasRest }}d restantes</span>
+                } @else {
+                  <span class="urgency-chip">{{ diasRest }}d restantes</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="reposto-footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showRepostoDialog.set(false)"
+        [disabled]="savingReposto()">
+      </p-button>
+
+      @if (repostoStep() === 'select-makeup') {
+        <p-button
+          label="Confirmar Reposição"
+          icon="pi pi-check"
+          styleClass="reposto-confirm-btn"
+          [loading]="savingReposto()"
+          [disabled]="!selectedMakeupId() || makeupsPorAluno().length === 0"
+          (onClick)="confirmReposto()">
+        </p-button>
+      }
+    </div>
+  </ng-template>
+
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DIALOG — AULA AVULSA (sem alterações)
+     ═══════════════════════════════════════════════════════════════ -->
 <p-dialog
   header="Lançar Aula Avulsa"
   [visible]="showAvulsoDialog()"
@@ -359,31 +617,28 @@
   </ng-template>
 
   <form [formGroup]="avulsoForm" class="avulso-form">
-
-    <!-- Alunos -->
     <div class="form-field">
       <label class="field-label">
         <i class="pi pi-users"></i>
         Aluno(s) <span class="required">*</span>
       </label>
       <p-multiSelect
-  formControlName="patient_ids"
-  [options]="allPatients()"
-  optionLabel="nome"
-  optionValue="id"
-  placeholder="Selecione um ou mais alunos"
-  [filter]="true"
-  filterPlaceholder="Buscar aluno..."
-  [showClear]="true"
-  styleClass="w-full"
-  [class.ng-invalid]="avulsoForm.controls.patient_ids.invalid && avulsoForm.controls.patient_ids.touched">
-</p-multiSelect>
+        formControlName="patient_ids"
+        [options]="allPatients()"
+        optionLabel="nome"
+        optionValue="id"
+        placeholder="Selecione um ou mais alunos"
+        [filter]="true"
+        filterPlaceholder="Buscar aluno..."
+        [showClear]="true"
+        styleClass="w-full"
+        [class.ng-invalid]="avulsoForm.controls.patient_ids.invalid && avulsoForm.controls.patient_ids.touched">
+      </p-multiSelect>
       @if (avulsoForm.controls.patient_ids.invalid && avulsoForm.controls.patient_ids.touched) {
         <small class="field-error">Selecione ao menos um aluno</small>
       }
     </div>
 
-    <!-- Data -->
     <div class="form-field">
       <label class="field-label">
         <i class="pi pi-calendar"></i>
@@ -403,7 +658,6 @@
       }
     </div>
 
-    <!-- Valor -->
     <div class="form-field">
       <label class="field-label">
         <i class="pi pi-dollar"></i>
@@ -423,7 +677,6 @@
       }
     </div>
 
-    <!-- Observações -->
     <div class="form-field">
       <label class="field-label">
         <i class="pi pi-pencil"></i>
@@ -438,7 +691,6 @@
       </textarea>
     </div>
 
-    <!-- Resumo de lançamento -->
     @let ids = avulsoForm.controls.patient_ids.value;
     @let val = avulsoForm.controls.valor.value;
     @if (ids && ids.length > 0 && val && val > 0) {
@@ -451,7 +703,6 @@
         </span>
       </div>
     }
-
   </form>
 
   <ng-template pTemplate="footer">

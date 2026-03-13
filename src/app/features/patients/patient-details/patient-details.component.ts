@@ -82,6 +82,14 @@ export class PatientDetailsComponent implements OnInit {
   attendanceChartOptions: any;
   professionalsMap = this.authService.professionalsMap;
 
+  // ── Paginação frequência ──
+  attPage     = signal(0);   // índice da página atual (base 0)
+  attPageSize = 10;
+
+  // ── Paginação evoluções ──
+  evoPage     = signal(0);
+  evoPageSize = 5;
+
   evaLevels = [
     { value: 0,  image: 'assets/eva/grau-0.svg',  description: 'Sem dor'           },
     { value: 2,  image: 'assets/eva/grau-2.svg',  description: 'Dor leve'          },
@@ -181,6 +189,7 @@ export class PatientDetailsComponent implements OnInit {
           ? current.map(a => a.id === editing.id ? saved : a)
           : [saved, ...current];
         this.patchAttendance(updated);
+        this.attPage.set(0); // volta para a primeira página após salvar
         this.showAttendanceDialog.set(false);
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: editing ? 'Frequência atualizada' : 'Frequência registrada' });
         this.loading.set(false);
@@ -255,6 +264,7 @@ export class PatientDetailsComponent implements OnInit {
           ? current.map(e => e.id === editing.id ? saved : e)
           : [saved, ...current];
         this.patchEvolutions(updated);
+        this.evoPage.set(0); // volta para a primeira página após salvar
         this.showEvolutionDialog.set(false);
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: editing ? 'Evolução atualizada' : 'Evolução registrada' });
         this.loading.set(false);
@@ -331,11 +341,83 @@ export class PatientDetailsComponent implements OnInit {
 
   getAttendanceStats() {
     const attendance = this.patient()?.attendance ?? [];
-    const present = attendance.filter(a => a.status === 'present').length;
-    const absent  = attendance.filter(a => a.status === 'absent').length;
-    const makeup  = attendance.filter(a => a.status === 'makeup').length;
-    const total   = present + absent;
-    return { present, absent, makeup, total, rate: total > 0 ? (present / total) * 100 : 0 };
+
+    // Presenças comuns (sem ser reposição)
+    const present         = attendance.filter(a => a.status === 'present' && !a.makeup_origin_id).length;
+    // Reposições realizadas (present + makeup_origin_id)
+    const repostoFeito    = attendance.filter(a => a.status === 'present' && !!a.makeup_origin_id).length;
+    const absent          = attendance.filter(a => a.status === 'absent').length;
+    // Faltas pendentes de reposição (makeup ainda não quitado)
+    const makeupPendente  = attendance.filter(a => a.status === 'makeup' && !a.reposto).length;
+    // Faltas já quitadas
+    const makeupQuitado   = attendance.filter(a => a.status === 'makeup' && !!a.reposto).length;
+
+    const total = present + repostoFeito + absent;
+    return {
+      present, repostoFeito, absent,
+      makeupPendente, makeupQuitado,
+      // makeup é o total de faltas (para manter compatibilidade com o gráfico)
+      makeup: makeupPendente + makeupQuitado,
+      total,
+      rate: total > 0 ? ((present + repostoFeito) / total) * 100 : 0
+    };
+  }
+
+  // ── Helpers de reposição ──
+  isRepostoFeito(att: Attendance): boolean {
+    return att.status === 'present' && !!att.makeup_origin_id;
+  }
+
+  isMakeupPendente(att: Attendance): boolean {
+    return att.status === 'makeup' && !att.reposto;
+  }
+
+  isMakeupQuitado(att: Attendance): boolean {
+    return att.status === 'makeup' && !!att.reposto;
+  }
+
+  getAttendanceTagSeverity(att: Attendance): 'success' | 'danger' | 'warn' | 'info' | 'secondary' {
+    if (this.isRepostoFeito(att))   return 'info';    // azul — presença de reposição
+    if (this.isMakeupQuitado(att))  return 'secondary'; // cinza — falta já quitada
+    if (att.status === 'present')   return 'success';
+    if (att.status === 'absent')    return 'danger';
+    return 'warn'; // makeup pendente
+  }
+
+  getAttendanceTagLabel(att: Attendance): string {
+    if (this.isRepostoFeito(att))  return 'Reposição realizada';
+    if (this.isMakeupQuitado(att)) return 'Falta — já reposta';
+    return this.getAttendanceStatus(att.status).label;
+  }
+
+  // ── Paginação frequência ──
+  get attTotalPages(): number {
+    return Math.max(1, Math.ceil((this.patient()?.attendance?.length ?? 0) / this.attPageSize));
+  }
+
+  pagedAttendance(): Attendance[] {
+    const all = this.patient()?.attendance ?? [];
+    const start = this.attPage() * this.attPageSize;
+    return all.slice(start, start + this.attPageSize);
+  }
+
+  attGoTo(page: number): void {
+    this.attPage.set(Math.max(0, Math.min(page, this.attTotalPages - 1)));
+  }
+
+  // ── Paginação evoluções ──
+  get evoTotalPages(): number {
+    return Math.max(1, Math.ceil((this.patient()?.evolutions?.length ?? 0) / this.evoPageSize));
+  }
+
+  pagedEvolutions(): Evolution[] {
+    const all = this.patient()?.evolutions ?? [];
+    const start = this.evoPage() * this.evoPageSize;
+    return all.slice(start, start + this.evoPageSize);
+  }
+
+  evoGoTo(page: number): void {
+    this.evoPage.set(Math.max(0, Math.min(page, this.evoTotalPages - 1)));
   }
 
   getSeverity(rate: number): 'success' | 'warn' | 'danger' {

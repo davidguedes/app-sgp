@@ -672,6 +672,8 @@
   &.att-absent  { color: #dc2626; }
   &.att-makeup  { color: #d97706; }
   &.att-none    { color: var(--text-color-secondary); }
+  // Reposição realizada: tom azul-esverdeado, consistente com o attendance component
+  &.att-reposto { color: #4a90a4; font-weight: 500; }
 }
 
 .card-avulso {
@@ -855,5 +857,220 @@
       min-height: 60px;
       .day-events .event-item .event-name { display: none; }
     }
+  }
+}
+// ─────────────────────────────────────────────────────────────────
+// REPOSIÇÃO — badges e interações
+// ─────────────────────────────────────────────────────────────────
+
+.makeup-pill-clickable {
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  &:hover { background: #f59e0b22; transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
+.badge-makeup-clickable {
+  cursor: pointer;
+  transition: opacity 0.15s;
+  &:hover { opacity: 0.75; }
+}
+
+.badge-reposto-cal {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #4a90a4;
+  background: #4a90a415;
+  border: 1px solid #4a90a430;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.badge-reposto-cal-full {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4a90a4;
+  background: #4a90a415;
+  border: 1px solid #4a90a430;
+  border-radius: 4px;
+  padding: 2px 7px;
+
+  .reposto-origin-sm {
+    font-weight: 400;
+    opacity: 0.85;
+    font-size: 0.65rem;
+  }
+}
+
+.badge-makeup-header-clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #fef3c740; }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// REPOSIÇÃO — dialog
+// ─────────────────────────────────────────────────────────────────
+
+.reposto-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .reposto-dialog-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4a90a4, #357a8a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  h3 { margin: 0 0 2px; font-size: 1rem; font-weight: 600; }
+  p  { margin: 0; font-size: 0.82rem; color: var(--text-color-secondary); }
+}
+
+.reposto-instruction {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-color-secondary);
+  background: var(--surface-hover);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  i { color: #4a90a4; margin-top: 1px; flex-shrink: 0; }
+}
+
+.reposto-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-color-secondary);
+  i { font-size: 2rem; color: #16a34a; display: block; margin-bottom: 10px; }
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.student-select-list { display: flex; flex-direction: column; gap: 8px; }
+
+.student-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+
+  &:hover {
+    border-color: #4a90a4;
+    background: #4a90a408;
+  }
+
+  .student-select-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  .student-select-info { flex: 1; }
+  .student-select-nome { display: block; font-weight: 600; font-size: 0.88rem; }
+  .student-select-qtd  {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.75rem; color: #d97706; margin-top: 2px;
+  }
+  .student-select-arrow { color: var(--text-color-secondary); font-size: 0.8rem; }
+}
+
+.reposto-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #4a90a4;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0 0 12px;
+  font-weight: 500;
+  &:hover { text-decoration: underline; }
+}
+
+.makeup-list { display: flex; flex-direction: column; gap: 8px; }
+
+.makeup-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover { border-color: #4a90a4; background: #4a90a408; }
+  &.selected { border-color: #4a90a4; background: #4a90a412; }
+
+  .makeup-radio { flex-shrink: 0; }
+  .radio-circle {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--surface-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; transition: all 0.15s;
+
+    &.checked {
+      border-color: #4a90a4;
+      background: #4a90a4;
+      color: white;
+    }
+  }
+
+  .makeup-info { flex: 1; }
+  .makeup-date {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.84rem; font-weight: 600;
+    i { color: #4a90a4; }
+  }
+  .makeup-notes {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.75rem; color: var(--text-color-secondary); margin-top: 3px;
+  }
+}
+
+.makeup-urgency-tag {
+  .urgency-chip {
+    font-size: 0.7rem; font-weight: 600;
+    padding: 2px 7px; border-radius: 12px;
+    background: #e0f2f7; color: #4a90a4;
+    white-space: nowrap;
+
+    &.urgent { background: #fef3c7; color: #d97706; }
+  }
+}
+
+.reposto-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .reposto-confirm-btn {
+    background: linear-gradient(135deg, #4a90a4, #357a8a) !important;
+    border-color: transparent !important;
+    color: white !important;
   }
 }
