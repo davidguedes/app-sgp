@@ -139,7 +139,10 @@ export class DashboardProfissionalComponent implements OnInit {
         // Aulas de hoje: inclui experimentais (precisam de registro de presença)
         const dayKey = this.diaKey();
         const aulasDeHoje = meusAtivos
-          .filter((p) => (p.dias.includes(dayKey) && p.data_fim ? p.data_fim >= this.hoje : true))
+          .filter((p) => p.dias.includes(dayKey))
+          .filter((p) =>
+            p.data_fim ? p.data_fim === null || new Date(p.data_fim) >= this.hoje : false,
+          )
           .map((p) => ({
             patient: p,
             horario: p.horarios?.[dayKey] || '',
