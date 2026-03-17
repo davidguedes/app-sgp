@@ -140,9 +140,9 @@ export class DashboardProfissionalComponent implements OnInit {
         const dayKey = this.diaKey();
         const aulasDeHoje = meusAtivos
           .filter((p) => p.dias.includes(dayKey))
-          .filter((p) =>
-            p.data_fim ? p.data_fim === null || new Date(p.data_fim) >= this.hoje : false,
-          )
+          .filter((p) => {
+            return p.data_fim ? p.data_fim === null || new Date(p.data_fim) >= this.hoje : true;
+          })
           .map((p) => ({
             patient: p,
             horario: p.horarios?.[dayKey] || '',
