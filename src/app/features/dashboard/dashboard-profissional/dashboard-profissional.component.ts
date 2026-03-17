@@ -11,33 +11,46 @@ import { MessageService } from 'primeng/api';
 import { PatientService } from '../../../core/services/patient.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Patient } from '../../../core/models/patient.model';
-import { Attendance, ATTENDANCE_STATUS_CONFIG, PendingMakeup } from '../../../core/models/attendance.model';
+import {
+  Attendance,
+  ATTENDANCE_STATUS_CONFIG,
+  PendingMakeup,
+} from '../../../core/models/attendance.model';
 import { TooltipModule } from 'primeng/tooltip';
 
 interface AulaHoje {
   patient: Patient;
   horario: string;
   status: 'present' | 'absent' | 'makeup' | null;
-  attendanceId: string | null;  // Attendance.id é number (serial4)
+  attendanceId: string | null; // Attendance.id é number (serial4)
   saving: boolean;
 }
 
 @Component({
   selector: 'app-dashboard-profissional',
   standalone: true,
-  imports: [CommonModule, RouterLink, TooltipModule, CardModule, ButtonModule, TagModule, BadgeModule, ToastModule],
+  imports: [
+    CommonModule,
+    RouterLink,
+    TooltipModule,
+    CardModule,
+    ButtonModule,
+    TagModule,
+    BadgeModule,
+    ToastModule,
+  ],
   providers: [MessageService],
   templateUrl: './dashboard-profissional.component.html',
-  styleUrls: ['./dashboard-profissional.component.scss']
+  styleUrls: ['./dashboard-profissional.component.scss'],
 })
 export class DashboardProfissionalComponent implements OnInit {
-  loading    = signal(true);
-  savingId   = signal<string | null>(null);
-  userName   = signal('');
-  hoje       = new Date();
-  aulaHoje   = signal<AulaHoje[]>([]);
+  loading = signal(true);
+  savingId = signal<string | null>(null);
+  userName = signal('');
+  hoje = new Date();
+  aulaHoje = signal<AulaHoje[]>([]);
   totalAlunos = signal(0);
-  ganhoMes   = signal(0);
+  ganhoMes = signal(0);
   periodoLabel = '';
 
   /** Lista de reposições pendentes no mês (makeup com reposto=false) */
@@ -51,23 +64,34 @@ export class DashboardProfissionalComponent implements OnInit {
 
   /** Retorna pendências agrupadas por patient_id para uso no template */
   pendingMakeupsPorAluno = (patientId: string): PendingMakeup[] =>
-    this.pendingMakeups().filter(m => String(m.patient_id) === String(patientId));
+    this.pendingMakeups().filter((m) => String(m.patient_id) === String(patientId));
 
   attendanceConfig = ATTENDANCE_STATUS_CONFIG;
 
   readonly diasSemana: Record<number, string> = {
-    1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab', 0: 'dom'
+    1: 'seg',
+    2: 'ter',
+    3: 'qua',
+    4: 'qui',
+    5: 'sex',
+    6: 'sab',
+    0: 'dom',
   };
 
   readonly nomeDia: Record<string, string> = {
-    seg: 'Segunda-feira', ter: 'Terça-feira', qua: 'Quarta-feira',
-    qui: 'Quinta-feira', sex: 'Sexta-feira', sab: 'Sábado', dom: 'Domingo'
+    seg: 'Segunda-feira',
+    ter: 'Terça-feira',
+    qua: 'Quarta-feira',
+    qui: 'Quinta-feira',
+    sex: 'Sexta-feira',
+    sab: 'Sábado',
+    dom: 'Domingo',
   };
 
-  diaKey    = computed(() => this.diasSemana[this.hoje.getDay()] ?? '');
-  pendentes = computed(() => this.aulaHoje().filter(a => !a.status).length);
-  presentes = computed(() => this.aulaHoje().filter(a => a.status === 'present').length);
-  faltas    = computed(() => this.aulaHoje().filter(a => a.status === 'absent').length);
+  diaKey = computed(() => this.diasSemana[this.hoje.getDay()] ?? '');
+  pendentes = computed(() => this.aulaHoje().filter((a) => !a.status).length);
+  presentes = computed(() => this.aulaHoje().filter((a) => a.status === 'present').length);
+  faltas = computed(() => this.aulaHoje().filter((a) => a.status === 'absent').length);
 
   saudacao = computed(() => {
     const h = this.hoje.getHours();
@@ -79,7 +103,7 @@ export class DashboardProfissionalComponent implements OnInit {
   constructor(
     private patientService: PatientService,
     private authService: AuthService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
 
   ngOnInit(): void {
@@ -104,34 +128,32 @@ export class DashboardProfissionalComponent implements OnInit {
     this.patientService.getPatientsByPeriod(start, end).subscribe({
       next: (patients) => {
         // Backend já retorna só os ativos no período — sem necessidade de isActive() no front
-        const meusAtivos = patients.filter(p =>
-          p.profissional_id === Number(user?.id)
-        );
-        
+        const meusAtivos = patients.filter((p) => p.profissional_id === Number(user?.id));
+
         // KPIs financeiros e contagem de alunos: exclui experimentais (sem receita)
-        const meusPagantes = meusAtivos.filter(p => p.tipo !== 'experimental');
-        
+        const meusPagantes = meusAtivos.filter((p) => p.tipo !== 'experimental');
+
         this.totalAlunos.set(meusPagantes.length);
         this.ganhoMes.set(meusPagantes.reduce((s, p) => s + p.ganho_liquido_periodo, 0));
-        
+
         // Aulas de hoje: inclui experimentais (precisam de registro de presença)
-        const dayKey      = this.diaKey();
+        const dayKey = this.diaKey();
         const aulasDeHoje = meusAtivos
-          .filter(p => p.dias.includes(dayKey))
-          .map(p => ({
-            patient:      p,
-            horario:      p.horarios?.[dayKey] || '',
-            status:       null as AulaHoje['status'],
+          .filter((p) => (p.dias.includes(dayKey) && p.data_fim ? p.data_fim >= this.hoje : true))
+          .map((p) => ({
+            patient: p,
+            horario: p.horarios?.[dayKey] || '',
+            status: null as AulaHoje['status'],
             attendanceId: null,
-            saving:       false
+            saving: false,
           }))
           .sort((a, b) => (a.horario || '23:59').localeCompare(b.horario || '23:59'));
-        
+
         this.aulaHoje.set(aulasDeHoje);
         this.carregarFrequenciasDeHoje(aulasDeHoje);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.loading.set(false),
     });
   }
 
@@ -139,21 +161,21 @@ export class DashboardProfissionalComponent implements OnInit {
     const dateStr = this.hoje.toISOString().split('T')[0];
     this.patientService.getAttendanceByDate(dateStr).subscribe({
       next: (attendances: Attendance[]) => {
-        this.aulaHoje.update(list =>
-          list.map(a => {
-            const found = attendances.find(att => att.patient_id === a.patient.id);
+        this.aulaHoje.update((list) =>
+          list.map((a) => {
+            const found = attendances.find((att) => att.patient_id === a.patient.id);
             return found
               ? { ...a, status: found.status as AulaHoje['status'], attendanceId: found.id }
               : a;
-          })
+          }),
         );
         // Carrega reposições pendentes do mês para exibir alerta ao marcar
         this.patientService.getPendingMakeupsList(dateStr).subscribe({
           next: (list) => this.pendingMakeups.set(list),
-          error: () => {}
+          error: () => {},
         });
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
@@ -161,7 +183,7 @@ export class DashboardProfissionalComponent implements OnInit {
     if (aula.status === status) return;
 
     this.savingId.set(aula.patient.id);
-    const dateStr  = this.hoje.toISOString().split('T')[0];
+    const dateStr = this.hoje.toISOString().split('T')[0];
     const formData = { date: new Date(dateStr), status, notes: '' };
 
     const op$ = aula.attendanceId
@@ -170,12 +192,17 @@ export class DashboardProfissionalComponent implements OnInit {
 
     op$.subscribe({
       next: (saved: Attendance) => {
-        this.aulaHoje.update(list =>
-          list.map(a =>
+        this.aulaHoje.update((list) =>
+          list.map((a) =>
             a.patient.id === aula.patient.id
-              ? { ...a, status: saved.status as AulaHoje['status'], attendanceId: saved.id, saving: false }
-              : a
-          )
+              ? {
+                  ...a,
+                  status: saved.status as AulaHoje['status'],
+                  attendanceId: saved.id,
+                  saving: false,
+                }
+              : a,
+          ),
         );
 
         // ── Alerta de reposição pendente ──────────────────────────────────
@@ -183,45 +210,61 @@ export class DashboardProfissionalComponent implements OnInit {
           next: (list) => {
             this.pendingMakeups.set(list);
             const pendentesDoAluno = list.filter(
-              m => String(m.patient_id) === String(aula.patient.id)
+              (m) => String(m.patient_id) === String(aula.patient.id),
             );
             if (pendentesDoAluno.length > 0) {
-              const qtd     = pendentesDoAluno.length;
+              const qtd = pendentesDoAluno.length;
               const diasRest = this.diasRestantesMes;
-              const diasTxt  = diasRest === 0 ? 'hoje é o último dia!'
-                             : diasRest === 1 ? 'falta apenas 1 dia'
-                             : `faltam ${diasRest} dias`;
-              const repoTxt  = qtd === 1 ? '1 reposição pendente' : `${qtd} reposições pendentes`;
+              const diasTxt =
+                diasRest === 0
+                  ? 'hoje é o último dia!'
+                  : diasRest === 1
+                    ? 'falta apenas 1 dia'
+                    : `faltam ${diasRest} dias`;
+              const repoTxt = qtd === 1 ? '1 reposição pendente' : `${qtd} reposições pendentes`;
               this.messageService.add({
                 severity: 'warn',
                 summary: `⚠️ Reposição pendente — ${aula.patient.nome}`,
                 detail: `${aula.patient.nome} tem ${repoTxt} neste mês. Prazo: ${diasTxt} para o fim do mês.`,
-                life: 8000
+                life: 8000,
               });
             }
           },
-          error: () => {}
+          error: () => {},
         });
         // ─────────────────────────────────────────────────────────────────
 
         this.savingId.set(null);
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível registrar',
+        });
         this.savingId.set(null);
-      }
+      },
     });
   }
 
   getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   }
 
   getAvatarColor(name: string): string {
-    return ['#7a9e7e','#c4956a','#5a8f5a','#d4a574','#4e6e52'][name.charCodeAt(0) % 5];
+    return ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'][name.charCodeAt(0) % 5];
   }
 
   get dataHoje(): string {
-    return this.hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return this.hoje.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
   }
 }
