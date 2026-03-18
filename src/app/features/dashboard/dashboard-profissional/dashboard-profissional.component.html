@@ -28,13 +28,13 @@
       <div class="dpb-track">
         <div
           class="dpb-fill present"
-          [style.width.%]="(presentes() / aulaHoje().length) * 100">
-        </div>
+          [style.width.%]="(presentes() / aulaHoje().length) * 100"
+        ></div>
         <div
           class="dpb-fill absent"
           [style.width.%]="(faltas() / aulaHoje().length) * 100"
-          [style.left.%]="(presentes() / aulaHoje().length) * 100">
-        </div>
+          [style.left.%]="(presentes() / aulaHoje().length) * 100"
+        ></div>
       </div>
       <div class="dpb-legend">
         <span class="leg-item present">
@@ -55,6 +55,121 @@
     </div>
   }
 
+  <!-- ── ALERTA DE DIAS ANTERIORES NÃO REGISTRADOS ─────────────────────── -->
+  <!--
+    Só aparece quando há pelo menos um aluno sem registro em dias passados.
+    É um accordion: cada dia tem um cabeçalho clicável que expande a lista
+    de alunos. O profissional pode registrar diretamente daqui sem navegar
+    para outra tela.
+  -->
+  @if (!loading() && diasNaoRegistrados().length > 0) {
+    <section class="section">
+      <div class="pendentes-header">
+        <div class="pendentes-title">
+          <i class="pi pi-history"></i>
+          <span>Registros pendentes</span>
+          <span class="pendentes-badge">{{ totalNaoRegistrados() }}</span>
+        </div>
+        <span class="pendentes-sub">
+          {{ diasNaoRegistrados().length }} dia{{ diasNaoRegistrados().length > 1 ? 's' : '' }} sem
+          registro completo
+        </span>
+      </div>
+
+      <div class="pendentes-accordion">
+        @for (dia of diasNaoRegistrados(); track dia.dateStr; let i = $index) {
+          <!-- Cabeçalho do dia — clicável para abrir/fechar -->
+          <div class="acc-item">
+            <button class="acc-header" (click)="toggleDiaPendente(i)">
+              <div class="acc-header-left">
+                <i class="pi pi-calendar-times acc-icon-dia"></i>
+                <div class="acc-dia-info">
+                  <span class="acc-dia-label">{{ dia.label }}</span>
+                  <span class="acc-dia-sub">
+                    {{ dia.aulas.length }} aluno{{ dia.aulas.length > 1 ? 's' : '' }} sem registro
+                  </span>
+                </div>
+              </div>
+              <i
+                class="pi acc-chevron"
+                [class.pi-chevron-down]="!dia.aberto"
+                [class.pi-chevron-up]="dia.aberto"
+              >
+              </i>
+            </button>
+
+            <!-- Lista de alunos do dia — colapsável -->
+            @if (dia.aberto) {
+              <div class="acc-body">
+                @for (aula of dia.aulas; track aula.patient.id) {
+                  <div class="aula-card passado">
+                    <div class="aula-info">
+                      <div
+                        class="aula-avatar"
+                        [style.background]="getAvatarColor(aula.patient.nome)"
+                      >
+                        {{ getInitials(aula.patient.nome) }}
+                      </div>
+                      <div class="aula-details">
+                        <div class="aula-nome-wrap">
+                          <span class="aula-nome">{{ aula.patient.nome }}</span>
+                          @if (aula.patient.tipo === 'experimental') {
+                            <span class="badge-exp" pTooltip="Aluno experimental">
+                              <i class="pi pi-exclamation-triangle"></i> EXP
+                            </span>
+                          }
+                        </div>
+                        <span class="aula-horario">
+                          <i class="pi pi-clock"></i>
+                          {{ aula.horario || 'Sem horário' }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Botões de registro retroativo -->
+                    <div class="aula-actions">
+                      <button
+                        class="freq-btn present"
+                        [disabled]="isSavingPassado(dia.dateStr, aula.patient.id)"
+                        (click)="marcarFrequenciaPassada(i, aula, 'present')"
+                        title="Presente"
+                      >
+                        <i class="pi pi-check"></i>
+                      </button>
+                      <button
+                        class="freq-btn absent"
+                        [disabled]="isSavingPassado(dia.dateStr, aula.patient.id)"
+                        (click)="marcarFrequenciaPassada(i, aula, 'absent')"
+                        title="Falta"
+                      >
+                        <i class="pi pi-times"></i>
+                      </button>
+                      <button
+                        class="freq-btn makeup"
+                        [disabled]="isSavingPassado(dia.dateStr, aula.patient.id)"
+                        (click)="marcarFrequenciaPassada(i, aula, 'makeup')"
+                        title="Reposição"
+                      >
+                        <i class="pi pi-replay"></i>
+                      </button>
+                      <a
+                        class="freq-btn detail"
+                        [routerLink]="['/patients', aula.patient.id]"
+                        title="Ver aluno"
+                      >
+                        <i class="pi pi-user"></i>
+                      </a>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
   <!-- ── AULAS DE HOJE ───────────────────────── -->
   <section class="section">
     <div class="section-header">
@@ -69,7 +184,7 @@
 
     @if (loading()) {
       <div class="skeleton-list">
-        @for (i of [1,2,3]; track i) {
+        @for (i of [1, 2, 3]; track i) {
           <div class="skeleton-card"></div>
         }
       </div>
@@ -86,13 +201,10 @@
             class="aula-card"
             [class.status-present]="aula.status === 'present'"
             [class.status-absent]="aula.status === 'absent'"
-            [class.status-makeup]="aula.status === 'makeup'">
-
-            <!-- Info do aluno -->
+            [class.status-makeup]="aula.status === 'makeup'"
+          >
             <div class="aula-info">
-              <div
-                class="aula-avatar"
-                [style.background]="getAvatarColor(aula.patient.nome)">
+              <div class="aula-avatar" [style.background]="getAvatarColor(aula.patient.nome)">
                 {{ getInitials(aula.patient.nome) }}
               </div>
               <div class="aula-details">
@@ -108,7 +220,8 @@
                     <span
                       class="badge-makeup-pending"
                       [pTooltip]="makeupsPendentes.length + ' reposição(ões) pendente(s) este mês'"
-                      tooltipPosition="top">
+                      tooltipPosition="top"
+                    >
                       <i class="pi pi-replay"></i>
                       {{ makeupsPendentes.length }} repos.
                       @if (diasRestantesMes <= 5) {
@@ -130,14 +243,14 @@
               }
             </div>
 
-            <!-- Botões de ação rápida -->
             <div class="aula-actions">
               <button
                 class="freq-btn present"
                 [class.active]="aula.status === 'present'"
                 [disabled]="savingId() === aula.patient.id"
                 (click)="marcarFrequencia(aula, 'present')"
-                title="Presente">
+                title="Presente"
+              >
                 <i class="pi pi-check"></i>
               </button>
               <button
@@ -145,7 +258,8 @@
                 [class.active]="aula.status === 'absent'"
                 [disabled]="savingId() === aula.patient.id"
                 (click)="marcarFrequencia(aula, 'absent')"
-                title="Falta">
+                title="Falta"
+              >
                 <i class="pi pi-times"></i>
               </button>
               <button
@@ -153,17 +267,18 @@
                 [class.active]="aula.status === 'makeup'"
                 [disabled]="savingId() === aula.patient.id"
                 (click)="marcarFrequencia(aula, 'makeup')"
-                title="Reposição">
+                title="Reposição"
+              >
                 <i class="pi pi-replay"></i>
               </button>
               <a
                 class="freq-btn detail"
                 [routerLink]="['/patients', aula.patient.id]"
-                title="Ver aluno">
+                title="Ver aluno"
+              >
                 <i class="pi pi-user"></i>
               </a>
             </div>
-
           </div>
         }
       </div>
@@ -224,7 +339,7 @@
         </div>
         <div class="resumo-info">
           <span class="resumo-label">Ganho estimado — {{ periodoLabel }}</span>
-          <span class="resumo-value">{{ ganhoMes() | currency:'BRL' }}</span>
+          <span class="resumo-value">{{ ganhoMes() | currency: 'BRL' }}</span>
         </div>
       </div>
       <div class="resumo-card alunos">
@@ -238,5 +353,4 @@
       </div>
     </div>
   </section>
-
 </div>

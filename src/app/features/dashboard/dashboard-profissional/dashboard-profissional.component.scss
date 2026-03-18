@@ -2,7 +2,7 @@
 // Mobile-first — pensado para uso em celular como PWA
 
 .dash-pro-container {
-  padding: 1.25rem 1rem 6rem; // bottom padding para nav bar PWA
+  padding: 1.25rem 1rem 6rem;
   max-width: 640px;
   margin: 0 auto;
   display: flex;
@@ -132,11 +132,155 @@
   font-size: 0.78rem;
   font-weight: 600;
 
-  i { font-size: 0.8rem; }
+  i {
+    font-size: 0.8rem;
+  }
 
-  &.present { color: var(--success, #5a8f5a); }
-  &.absent  { color: var(--danger, #c06060); }
-  &.pending { color: var(--muted, #8a8580); }
+  &.present {
+    color: var(--success, #5a8f5a);
+  }
+  &.absent {
+    color: var(--danger, #c06060);
+  }
+  &.pending {
+    color: var(--muted, #8a8580);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ALERTA DE DIAS ANTERIORES NÃO REGISTRADOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+.pendentes-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.pendentes-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: #92400e; // tom âmbar escuro, consistente com o alerta
+
+  i {
+    font-size: 1rem;
+    color: #d97706;
+  }
+}
+
+.pendentes-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: #d97706;
+  color: white;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pendentes-sub {
+  font-size: 0.78rem;
+  color: #92400e;
+  opacity: 0.8;
+}
+
+// Accordion de dias pendentes
+.pendentes-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acc-item {
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  background: #fffbeb;
+  overflow: hidden;
+}
+
+.acc-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 10px;
+
+  &:hover {
+    background: rgba(253, 230, 138, 0.4);
+  }
+
+  &:active {
+    background: rgba(253, 230, 138, 0.6);
+  }
+}
+
+.acc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.acc-icon-dia {
+  font-size: 1.1rem;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.acc-dia-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.acc-dia-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: capitalize;
+}
+
+.acc-dia-sub {
+  font-size: 0.75rem;
+  color: #b45309;
+}
+
+.acc-chevron {
+  font-size: 0.85rem;
+  color: #d97706;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.acc-body {
+  padding: 0 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #fde68a;
+  padding-top: 10px;
+
+  // Cards de aulas retroativas são levemente menores para criar
+  // hierarquia visual em relação às aulas de hoje
+  .aula-card.passado {
+    background: white;
+    border-color: #fde68a;
+    border-left-color: #d97706;
+    opacity: 0.95;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -179,9 +323,13 @@
   text-decoration: none;
   font-weight: 600;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 
-  i { font-size: 0.75rem; }
+  i {
+    font-size: 0.75rem;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -197,14 +345,23 @@
 .skeleton-card {
   height: 76px;
   border-radius: 14px;
-  background: linear-gradient(90deg, var(--border, #e8e3dc) 25%, var(--cream, #f8f5f0) 50%, var(--border, #e8e3dc) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--border, #e8e3dc) 25%,
+    var(--cream, #f8f5f0) 50%,
+    var(--border, #e8e3dc) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .empty-day {
@@ -235,7 +392,9 @@
     text-decoration: none;
     font-weight: 600;
 
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -255,12 +414,17 @@
   gap: 12px;
   transition: border-color 0.2s;
 
-  // Faixa colorida lateral via border-left
   border-left: 4px solid var(--border, #e8e3dc);
 
-  &.status-present { border-left-color: var(--success, #5a8f5a); }
-  &.status-absent  { border-left-color: var(--danger, #c06060);  }
-  &.status-makeup  { border-left-color: var(--warning, #d4a574); }
+  &.status-present {
+    border-left-color: var(--success, #5a8f5a);
+  }
+  &.status-absent {
+    border-left-color: var(--danger, #c06060);
+  }
+  &.status-makeup {
+    border-left-color: var(--warning, #d4a574);
+  }
 }
 
 .aula-info {
@@ -279,22 +443,21 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
 }
 
 .aula-details {
   flex: 1;
-  min-width: 0; // essencial para o ellipsis funcionar dentro de flex
- 
-  // Wrapper para nome + badge na mesma linha, com overflow correto
+  min-width: 0;
+
   .aula-nome-wrap {
     display: flex;
     align-items: center;
     gap: 6px;
-    min-width: 0; // permite que o nome trunce antes de estourar
+    min-width: 0;
   }
- 
+
   .aula-nome {
     font-size: 0.95rem;
     font-weight: 600;
@@ -302,9 +465,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    // Removido: display inline-flex (causava o estouro do layout)
   }
- 
+
   .badge-exp {
     display: inline-flex;
     align-items: center;
@@ -317,11 +479,13 @@
     font-weight: 700;
     color: #991b1b;
     white-space: nowrap;
-    flex-shrink: 0; // badge nunca comprime — o nome é que trunca
- 
-    i { font-size: 0.65rem; }
+    flex-shrink: 0;
+
+    i {
+      font-size: 0.65rem;
+    }
   }
- 
+
   .aula-horario {
     display: flex;
     align-items: center;
@@ -329,8 +493,10 @@
     margin-top: 3px;
     font-size: 0.78rem;
     color: var(--muted, #8a8580);
- 
-    i { font-size: 0.72rem; }
+
+    i {
+      font-size: 0.72rem;
+    }
   }
 }
 
@@ -344,11 +510,22 @@
   font-weight: 600;
   flex-shrink: 0;
 
-  i { font-size: 0.8rem; }
+  i {
+    font-size: 0.8rem;
+  }
 
-  &.present { background: rgba(90,143,90,0.12);  color: var(--success, #5a8f5a); }
-  &.absent  { background: rgba(192,96,96,0.12);  color: var(--danger, #c06060);  }
-  &.makeup  { background: rgba(212,165,116,0.12); color: var(--warning, #d4a574); }
+  &.present {
+    background: rgba(90, 143, 90, 0.12);
+    color: var(--success, #5a8f5a);
+  }
+  &.absent {
+    background: rgba(192, 96, 96, 0.12);
+    color: var(--danger, #c06060);
+  }
+  &.makeup {
+    background: rgba(212, 165, 116, 0.12);
+    color: var(--warning, #d4a574);
+  }
 }
 
 .aula-actions {
@@ -370,11 +547,11 @@
   font-size: 1rem;
   transition: all 0.15s ease;
   text-decoration: none;
-
-  // toque amigável — área mínima 44px
   min-width: 44px;
 
-  &:active { transform: scale(0.93); }
+  &:active {
+    transform: scale(0.93);
+  }
 
   &:disabled {
     opacity: 0.4;
@@ -382,39 +559,44 @@
   }
 
   &.present {
-    &:hover:not(:disabled), &.active {
+    &:hover:not(:disabled),
+    &.active {
       background: var(--success, #5a8f5a);
       border-color: var(--success, #5a8f5a);
       color: white;
-      box-shadow: 0 3px 10px rgba(90,143,90,0.35);
+      box-shadow: 0 3px 10px rgba(90, 143, 90, 0.35);
     }
   }
 
   &.absent {
-    &:hover:not(:disabled), &.active {
+    &:hover:not(:disabled),
+    &.active {
       background: var(--danger, #c06060);
       border-color: var(--danger, #c06060);
       color: white;
-      box-shadow: 0 3px 10px rgba(192,96,96,0.35);
+      box-shadow: 0 3px 10px rgba(192, 96, 96, 0.35);
     }
   }
 
   &.makeup {
-    &:hover:not(:disabled), &.active {
+    &:hover:not(:disabled),
+    &.active {
       background: var(--warning, #d4a574);
       border-color: var(--warning, #d4a574);
       color: white;
-      box-shadow: 0 3px 10px rgba(212,165,116,0.35);
+      box-shadow: 0 3px 10px rgba(212, 165, 116, 0.35);
     }
   }
 
   &.detail {
     flex: 0 0 44px;
-    background: rgba(122,158,126,0.08);
-    border-color: rgba(122,158,126,0.25);
+    background: rgba(122, 158, 126, 0.08);
+    border-color: rgba(122, 158, 126, 0.25);
     color: var(--sage, #7a9e7e);
 
-    &:hover { background: rgba(122,158,126,0.18); }
+    &:hover {
+      background: rgba(122, 158, 126, 0.18);
+    }
   }
 }
 
@@ -442,11 +624,13 @@
   transition: all 0.2s;
   cursor: pointer;
 
-  &:active { transform: scale(0.95); }
+  &:active {
+    transform: scale(0.95);
+  }
 
   &:hover {
     border-color: var(--sage-light, #a8c5ab);
-    box-shadow: 0 4px 14px rgba(122,158,126,0.12);
+    box-shadow: 0 4px 14px rgba(122, 158, 126, 0.12);
   }
 }
 
@@ -460,10 +644,18 @@
   font-size: 1.2rem;
   color: white;
 
-  &.attendance { background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d); }
-  &.calendar   { background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52)); }
-  &.patients   { background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55); }
-  &.new        { background: linear-gradient(135deg, #7b8fc4, #5a6fa0); }
+  &.attendance {
+    background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
+  }
+  &.calendar {
+    background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
+  }
+  &.patients {
+    background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55);
+  }
+  &.new {
+    background: linear-gradient(135deg, #7b8fc4, #5a6fa0);
+  }
 }
 
 .atalho-label {
@@ -480,7 +672,6 @@
   text-align: center;
 }
 
-// Badge de pendentes sobre o atalho
 .atalho-badge {
   position: absolute;
   top: 8px;
@@ -518,8 +709,8 @@
   border: 1.5px solid transparent;
 
   &.ganho {
-    background: rgba(196,149,106,0.08);
-    border-color: rgba(196,149,106,0.2);
+    background: rgba(196, 149, 106, 0.08);
+    border-color: rgba(196, 149, 106, 0.2);
 
     .resumo-icon {
       background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55);
@@ -527,8 +718,8 @@
   }
 
   &.alunos {
-    background: rgba(122,158,126,0.08);
-    border-color: rgba(122,158,126,0.2);
+    background: rgba(122, 158, 126, 0.08);
+    border-color: rgba(122, 158, 126, 0.2);
 
     .resumo-icon {
       background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
@@ -574,44 +765,58 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DESKTOP — abre um pouco o layout em telas maiores
+// DESKTOP
 // ═══════════════════════════════════════════════════════════════════════════
 
 @media (min-width: 640px) {
   .dash-pro-container {
     padding: 2rem 1.5rem 3rem;
   }
- 
+
   .atalhos-grid {
     grid-template-columns: repeat(4, 1fr);
   }
- 
+
   .aula-card {
     flex-direction: row;
     align-items: center;
     gap: 16px;
- 
-    // Info do aluno: cresce mas nunca estoura
+
     .aula-info {
       flex: 1;
-      min-width: 0; // permite truncagem do nome sem estourar o card
+      min-width: 0;
     }
- 
-    // Status (Presente / Faltou / Reposição): largura fixa para não deslocar os botões
+
     .status-indicator {
       flex-shrink: 0;
       width: 110px;
       justify-content: center;
     }
- 
-    // Botões de ação: nunca comprimem
+
     .aula-actions {
       flex-shrink: 0;
       display: flex;
       gap: 8px;
     }
   }
+
+  // Em desktop, os cards retroativos também viram row
+  .acc-body .aula-card.passado {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+
+    .aula-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .aula-actions {
+      flex-shrink: 0;
+    }
+  }
 }
+
 // ── Badge de reposição pendente ────────────────────────────────────────────
 .badge-makeup-pending {
   display: inline-flex;
@@ -627,7 +832,9 @@
   white-space: nowrap;
   cursor: default;
 
-  i { font-size: 0.7rem; }
+  i {
+    font-size: 0.7rem;
+  }
 
   .makeup-urgency {
     color: #c0392b;
