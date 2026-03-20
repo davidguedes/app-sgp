@@ -381,8 +381,10 @@ export class AttendanceComponent implements OnInit {
     if (!this.showMarkedStudents())
       // Avulsas, repostos já realizados e agendados para hoje sempre aparecem
       filtered = filtered.filter(
-        (p) => p.isAvulso || p.isReposto || p.isAgendadoReposto || !p.todayStatus,
+        //(p) => p.isAvulso || p.isReposto || p.isAgendadoReposto || !p.todayStatus,
+        (p) => !p.todayStatus,
       );
+
     this.filteredPatients.set(filtered);
   }
 

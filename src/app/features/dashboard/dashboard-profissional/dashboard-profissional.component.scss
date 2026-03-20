@@ -842,7 +842,7 @@
   }
 }
 
-// ─── Card de reposição agendada para hoje ────────────────────────────────────
+// ─── Cards especiais: agendado + reposto realizado ───────────────────────────
 
 .aula-card.card-agendado {
   border-left-color: #4a90a4;
@@ -853,18 +853,26 @@
   );
 }
 
-.agendado-banner {
+.aula-card.card-reposto {
+  border-left-color: var(--success, #5a8f5a);
+  background: linear-gradient(
+    to bottom,
+    rgba(90, 143, 90, 0.04),
+    var(--surface, var(--warm-white, #fdfcfa))
+  );
+  opacity: 0.92;
+}
+
+// Banner compartilhado — base
+.agendado-banner,
+.reposto-banner {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4a90a4;
-  background: rgba(74, 144, 164, 0.08);
-  border: 1px solid rgba(74, 144, 164, 0.2);
   border-radius: 8px;
   padding: 5px 10px;
-  // Ocupa a largura toda acima da linha aula-info + aula-actions
   width: 100%;
 
   i {
@@ -873,9 +881,26 @@
   }
 }
 
-// Desktop: card agendado mantém column para o banner ficar no topo
+.agendado-banner {
+  color: #4a90a4;
+  background: rgba(74, 144, 164, 0.08);
+  border: 1px solid rgba(74, 144, 164, 0.2);
+}
+
+.reposto-banner {
+  color: var(--success, #5a8f5a);
+  background: rgba(90, 143, 90, 0.08);
+  border: 1px solid rgba(90, 143, 90, 0.2);
+}
+
+.reposto-actions {
+  justify-content: flex-end;
+}
+
+// Desktop: cards com banner mantêm column para o banner ficar no topo
 @media (min-width: 640px) {
-  .aula-card.card-agendado {
+  .aula-card.card-agendado,
+  .aula-card.card-reposto {
     flex-direction: column !important;
     align-items: stretch !important;
 
@@ -884,7 +909,6 @@
     }
 
     .aula-actions {
-      // Alinha botões à direita em desktop para o card agendado
       justify-content: flex-end;
     }
   }

@@ -26,10 +26,14 @@ interface AulaHoje {
   status: 'present' | 'absent' | 'makeup' | null;
   attendanceId: string | null;
   saving: boolean;
-  /** Aluno está na lista porque tem reposição agendada para hoje (não tem o dia na grade fixa) */
+  /** TRUE quando a presença do dia é resultado de uma reposição (makeup_origin_id preenchido) */
+  isReposto?: boolean;
+  /** Data da falta original que está sendo reposta */
+  makeupOriginDate?: Date;
+  /** TRUE quando o aluno está na lista por ter reposição agendada (não tem o dia na grade fixa) */
   isAgendadoReposto?: boolean;
   makeupAgendadoId?: string;
-  makeupOriginDate?: Date;
+  makeupAgendadoDate?: Date;
 }
 
 /**
@@ -171,15 +175,13 @@ export class DashboardProfissionalComponent implements OnInit {
         this.aulaHoje.set(aulasDeHoje);
 
         // ── Injeta reposições agendadas para hoje ──────────────────────────
-        // Alunos que têm makeup_scheduled_date == hoje mas não têm o dia
-        // na grade fixa não entram em aulasDeHoje. Carregamos os pendentes
-        // e os adicionamos à lista para que o professor possa confirmar
-        // a presença diretamente do dashboard.
+        // Alunos com makeup_scheduled_date == hoje mas sem o dia na grade
+        // fixa não aparecem em aulasDeHoje. Carregamos os pendentes e os
+        // adicionamos para o professor poder confirmar a presença.
         const dateStr = this.getDateStr(this.hoje);
         this.patientService.getPendingMakeupsList(dateStr).subscribe({
           next: (list) => {
             this.pendingMakeups.set(list);
-
             const idsJaNaLista = new Set(aulasDeHoje.map((a) => String(a.patient.id)));
             const agendadosHoje: AulaHoje[] = list
               .filter((m) => {
@@ -200,21 +202,21 @@ export class DashboardProfissionalComponent implements OnInit {
                   saving: false,
                   isAgendadoReposto: true,
                   makeupAgendadoId: m.id,
-                  makeupOriginDate: this.parseDateLocal(m.date),
-                } as AulaHoje);
+                  makeupAgendadoDate: this.parseDateLocal(m.date),
+                });
                 return acc;
               }, []);
 
-            const listaFinal = [...aulasDeHoje, ...agendadosHoje];
-            this.aulaHoje.set(listaFinal);
-            this.carregarFrequenciasDeHoje(listaFinal);
+            const listaComAgendados = [...aulasDeHoje, ...agendadosHoje];
+            this.aulaHoje.set(listaComAgendados);
+            // Passa meusAtivos para que repostoExtras consiga encontrar
+            // pacientes que não estão na grade fixa de hoje
+            this.carregarFrequenciasDeHoje(meusAtivos);
           },
           error: () => {
-            // fallback: carrega sem agendados
-            this.carregarFrequenciasDeHoje(aulasDeHoje);
+            this.carregarFrequenciasDeHoje(meusAtivos);
           },
         });
-        // ──────────────────────────────────────────────────────────────────
 
         // ── Verifica dias anteriores sem registro ──────────────────────────
         this.verificarDiasAnteriores(meusAtivos);
@@ -421,7 +423,7 @@ export class DashboardProfissionalComponent implements OnInit {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FREQUÊNCIA DO DIA ATUAL (lógica existente — sem alterações)
+  // FREQUÊNCIA DO DIA ATUAL
   // ─────────────────────────────────────────────────────────────────────────
 
   private parseDateLocal(raw: string | Date): Date {
@@ -437,18 +439,68 @@ export class DashboardProfissionalComponent implements OnInit {
     return `${y}-${m}-${d}`;
   }
 
-  private carregarFrequenciasDeHoje(aulas: AulaHoje[]): void {
+  private carregarFrequenciasDeHoje(todosOsMeusAtivos: Patient[]): void {
     const dateStr = this.getDateStr(this.hoje);
     this.patientService.getAttendanceByDate(dateStr).subscribe({
       next: (attendances: Attendance[]) => {
+        const regulares = attendances.filter((a) => !a.tipo || a.tipo === 'regular');
+
+        // IDs dos alunos já na lista (têm aula cadastrada hoje ou são agendados)
+        const idsNaLista = new Set(this.aulaHoje().map((a) => String(a.patient.id)));
+
+        // Atualiza status + detecta isReposto nos alunos já na lista
         this.aulaHoje.update((list) =>
           list.map((a) => {
-            const found = attendances.find((att) => att.patient_id === a.patient.id);
-            return found
-              ? { ...a, status: found.status as AulaHoje['status'], attendanceId: found.id }
-              : a;
+            const found = regulares.find((att) => String(att.patient_id) === String(a.patient.id));
+            if (!found) return a;
+            const isReposto = found.status === 'present' && !!found.makeup_origin_id;
+            const makeupOriginDate =
+              isReposto && found.makeup_origin_id
+                ? regulares.find((att) => String(att.id) === String(found.makeup_origin_id))?.date
+                : undefined;
+            return {
+              ...a,
+              status: found.status as AulaHoje['status'],
+              attendanceId: found.id,
+              isReposto,
+              makeupOriginDate: makeupOriginDate
+                ? this.parseDateLocal(makeupOriginDate)
+                : undefined,
+            };
           }),
         );
+
+        // Injeta repostos realizados FORA da grade do dia (aluno veio repor num dia que não é o seu)
+        // Esses attendances existem no banco (makeup_origin_id preenchido) mas não entram
+        // em aulasDeHoje porque o aluno não tem esse dia na grade fixa.
+        const repostoExtras: AulaHoje[] = regulares
+          .filter((att) => att.makeup_origin_id && !idsNaLista.has(String(att.patient_id)))
+          .reduce<AulaHoje[]>((acc, att) => {
+            // Busca o patient nos alunos do profissional (já carregados em aulaHoje ou allPatients)
+            // Usa a lista completa de ativos do profissional — cobre alunos
+            // que vieram repor num dia que não é o seu (fora da grade fixa)
+            const paciente = todosOsMeusAtivos.find((p) => String(p.id) === String(att.patient_id));
+            if (!paciente) return acc;
+            const makeupOriginDate = att.makeup_origin_id
+              ? regulares.find((a) => String(a.id) === String(att.makeup_origin_id))?.date
+              : undefined;
+            acc.push({
+              patient: paciente,
+              horario: '',
+              status: att.status as AulaHoje['status'],
+              attendanceId: att.id,
+              saving: false,
+              isReposto: true,
+              makeupOriginDate: makeupOriginDate
+                ? this.parseDateLocal(makeupOriginDate)
+                : undefined,
+            });
+            return acc;
+          }, []);
+
+        if (repostoExtras.length > 0) {
+          this.aulaHoje.update((list) => [...list, ...repostoExtras]);
+        }
       },
       error: () => {},
     });
@@ -467,6 +519,7 @@ export class DashboardProfissionalComponent implements OnInit {
 
     op$.subscribe({
       next: (saved: Attendance) => {
+        const isReposto = saved.status === 'present' && !!saved.makeup_origin_id;
         this.aulaHoje.update((list) =>
           list.map((a) =>
             a.patient.id === aula.patient.id
@@ -475,6 +528,7 @@ export class DashboardProfissionalComponent implements OnInit {
                   status: saved.status as AulaHoje['status'],
                   attendanceId: saved.id,
                   saving: false,
+                  isReposto,
                 }
               : a,
           ),

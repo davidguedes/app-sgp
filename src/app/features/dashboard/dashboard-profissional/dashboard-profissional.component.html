@@ -202,15 +202,27 @@
             [class.status-present]="aula.status === 'present'"
             [class.status-absent]="aula.status === 'absent'"
             [class.status-makeup]="aula.status === 'makeup'"
-            [class.card-agendado]="aula.isAgendadoReposto"
+            [class.card-agendado]="aula.isAgendadoReposto && !aula.isReposto"
+            [class.card-reposto]="aula.isReposto"
           >
-            <!-- Faixa de aviso no topo — só para reposições agendadas -->
-            @if (aula.isAgendadoReposto) {
+            <!-- Banner: reposição agendada (ainda não confirmada) -->
+            @if (aula.isAgendadoReposto && !aula.isReposto) {
               <div class="agendado-banner">
                 <i class="pi pi-calendar-clock"></i>
                 Reposição agendada para hoje
                 @if (aula.makeupOriginDate) {
                   · falta de {{ aula.makeupOriginDate | date: 'dd/MM' }}
+                }
+              </div>
+            }
+
+            <!-- Banner: reposição já realizada -->
+            @if (aula.isReposto) {
+              <div class="reposto-banner">
+                <i class="pi pi-check-circle"></i>
+                Reposição realizada
+                @if (aula.makeupOriginDate) {
+                  · repõe falta de {{ aula.makeupOriginDate | date: 'dd/MM' }}
                 }
               </div>
             }
@@ -227,7 +239,7 @@
                       <i class="pi pi-exclamation-triangle"></i> EXP
                     </span>
                   }
-                  @if (!aula.isAgendadoReposto) {
+                  @if (!aula.isAgendadoReposto && !aula.isReposto) {
                     @let makeupsPendentes = pendingMakeupsPorAluno(aula.patient.id);
                     @if (makeupsPendentes.length > 0) {
                       <span
@@ -246,59 +258,78 @@
                     }
                   }
                 </div>
-                @if (!aula.isAgendadoReposto) {
+                @if (!aula.isAgendadoReposto && !aula.isReposto) {
                   <span class="aula-horario">
                     <i class="pi pi-clock"></i>
                     {{ aula.horario || 'Sem horário' }}
                   </span>
                 }
               </div>
-              @if (aula.status) {
+              @if (aula.status && !aula.isReposto) {
                 <div class="status-indicator" [class]="aula.status">
                   <i [class]="attendanceConfig[aula.status].icon"></i>
                   <span>{{ attendanceConfig[aula.status].label }}</span>
                 </div>
               }
+              @if (aula.isReposto) {
+                <div class="status-indicator present">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Presente</span>
+                </div>
+              }
             </div>
 
-            <div class="aula-actions">
-              <button
-                class="freq-btn present"
-                [class.active]="aula.status === 'present'"
-                [disabled]="savingId() === aula.patient.id"
-                (click)="marcarFrequencia(aula, 'present')"
-                [title]="aula.isAgendadoReposto ? 'Confirmar reposição' : 'Presente'"
-              >
-                <i class="pi pi-check"></i>
-              </button>
-              <button
-                class="freq-btn absent"
-                [class.active]="aula.status === 'absent'"
-                [disabled]="savingId() === aula.patient.id"
-                (click)="marcarFrequencia(aula, 'absent')"
-                title="Falta"
-              >
-                <i class="pi pi-times"></i>
-              </button>
-              @if (!aula.isAgendadoReposto) {
+            @if (!aula.isReposto) {
+              <div class="aula-actions">
                 <button
-                  class="freq-btn makeup"
-                  [class.active]="aula.status === 'makeup'"
+                  class="freq-btn present"
+                  [class.active]="aula.status === 'present'"
                   [disabled]="savingId() === aula.patient.id"
-                  (click)="marcarFrequencia(aula, 'makeup')"
-                  title="Reposição"
+                  (click)="marcarFrequencia(aula, 'present')"
+                  [title]="aula.isAgendadoReposto ? 'Confirmar reposição' : 'Presente'"
                 >
-                  <i class="pi pi-replay"></i>
+                  <i class="pi pi-check"></i>
                 </button>
-              }
-              <a
-                class="freq-btn detail"
-                [routerLink]="['/patients', aula.patient.id]"
-                title="Ver aluno"
-              >
-                <i class="pi pi-user"></i>
-              </a>
-            </div>
+                <button
+                  class="freq-btn absent"
+                  [class.active]="aula.status === 'absent'"
+                  [disabled]="savingId() === aula.patient.id"
+                  (click)="marcarFrequencia(aula, 'absent')"
+                  title="Falta"
+                >
+                  <i class="pi pi-times"></i>
+                </button>
+                @if (!aula.isAgendadoReposto) {
+                  <button
+                    class="freq-btn makeup"
+                    [class.active]="aula.status === 'makeup'"
+                    [disabled]="savingId() === aula.patient.id"
+                    (click)="marcarFrequencia(aula, 'makeup')"
+                    title="Reposição"
+                  >
+                    <i class="pi pi-replay"></i>
+                  </button>
+                }
+                <a
+                  class="freq-btn detail"
+                  [routerLink]="['/patients', aula.patient.id]"
+                  title="Ver aluno"
+                >
+                  <i class="pi pi-user"></i>
+                </a>
+              </div>
+            } @else {
+              <!-- Reposição já realizada: só link para o aluno -->
+              <div class="aula-actions reposto-actions">
+                <a
+                  class="freq-btn detail"
+                  [routerLink]="['/patients', aula.patient.id]"
+                  title="Ver aluno"
+                >
+                  <i class="pi pi-user"></i>
+                </a>
+              </div>
+            }
           </div>
         }
       </div>
