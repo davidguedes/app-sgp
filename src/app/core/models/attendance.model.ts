@@ -7,8 +7,9 @@ export interface Attendance {
   valor?: number;
   notes?: string;
   // ── Campos de controle de reposição ──────────────
-  reposto?: boolean;           // TRUE quando o makeup foi quitado por uma reposição
-  makeup_origin_id?: string;   // INTEGER referenciando attendance.id   // Na presença da reposição: aponta pro makeup original
+  reposto?: boolean; // TRUE quando o makeup foi quitado por uma reposição
+  makeup_origin_id?: string; // INTEGER referenciando attendance.id   // Na presença da reposição: aponta pro makeup original
+  makeup_scheduled_date?: Date;
   // ─────────────────────────────────────────────────
   createdAt?: Date;
 }
@@ -51,20 +52,20 @@ export const ATTENDANCE_STATUS_CONFIG = {
     label: 'Presente',
     icon: 'pi pi-check-circle',
     class: 'present',
-    color: '#5a8f5a'
+    color: '#5a8f5a',
   },
   absent: {
     label: 'Faltou',
     icon: 'pi pi-times-circle',
     class: 'absent',
-    color: '#c06060'
+    color: '#c06060',
   },
   makeup: {
     label: 'Reposição Pendente',
     icon: 'pi pi-replay',
     class: 'makeup',
-    color: '#d4a574'
-  }
+    color: '#d4a574',
+  },
 };
 
 export interface AvulsoAttendance extends Attendance {
@@ -75,11 +76,17 @@ export interface AvulsoAttendance extends Attendance {
 // ── Reposições pendentes ──────────────────────────────────────────────────
 
 export interface PendingMakeup {
-  id: string;         // serial4 / INTEGER no banco
+  id: string;
   patient_id: string;
   patient_nome: string;
   date: Date;
   notes?: string;
+  makeup_scheduled_date?: string | null;
+}
+
+export interface ScheduleMakeupFormData {
+  makeupId: string;
+  scheduledDate: string; // YYYY-MM-DD
 }
 
 export interface PendingMakeupsHttpResponse {

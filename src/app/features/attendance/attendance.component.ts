@@ -39,6 +39,11 @@ interface PatientAttendance extends Patient {
   isReposto?: boolean;
   /** Data da falta original que está sendo reposta — exibida na listagem para controle */
   makeupOriginDate?: Date;
+  /** TRUE quando o aluno tem reposição AGENDADA para hoje mas ainda não registrada */
+  isAgendadoReposto?: boolean;
+  /** ID do makeup que gerou o agendamento — usado para abrir o dialog direto */
+  _makeupAgendadoId?: string;
+  _makeupAgendadoDate?: Date;
 }
 
 @Component({
@@ -106,6 +111,11 @@ export class AttendanceComponent implements OnInit {
   showRepostoDialog = signal(false);
   savingReposto = signal(false);
   pendingMakeups = signal<PendingMakeup[]>([]);
+
+  // Sinais para o modo de agendamento
+  scheduleMode = signal(false); // false = registrar agora | true = agendar
+  scheduledDate = signal<Date | null>(null);
+  savingSchedule = signal(false);
 
   /** Controla em qual passo do dialog estamos */
   repostoStep = signal<'select-student' | 'select-makeup'>('select-makeup');
@@ -178,8 +188,12 @@ export class AttendanceComponent implements OnInit {
 
   /** Alunos que vieram repor hoje mas não têm aula cadastrada neste dia da semana */
   repostoExtrasList = computed(() =>
-    this.filteredPatients().filter((p) => p.isReposto && !p.hasClass && !p.isAvulso),
+    this.filteredPatients().filter(
+      (p) => (p.isReposto || p.isAgendadoReposto) && !p.hasClass && !p.isAvulso,
+    ),
   );
+
+  today = signal(new Date());
 
   ngOnInit(): void {
     this.biometricService.isSupported().then((s) => this.biometricSupported.set(s));
@@ -279,12 +293,48 @@ export class AttendanceComponent implements OnInit {
               })
               .filter((x): x is PatientAttendance => x !== null);
 
-            this.patients.set([...mapped, ...repostoExtras, ...avulsoItems]);
-            this.applyFilters();
-
+            // ── Reposições agendadas para hoje (ainda não realizadas) ────────
+            // Alunos que têm um makeup com makeup_scheduled_date == hoje mas
+            // ainda não têm presença registrada. Devem aparecer na lista para
+            // que o professor saiba que a reposição está prevista para este dia.
             this.patientService.getPendingMakeupsList(dateStr).subscribe({
-              next: (list) => this.pendingMakeups.set(list),
-              error: () => {},
+              next: (list) => {
+                this.pendingMakeups.set(list);
+
+                const idsJaNaLista = new Set(
+                  [...mapped, ...repostoExtras, ...avulsoItems].map((p) => String(p.id)),
+                );
+
+                const agendadosHoje: PatientAttendance[] = list
+                  .filter((m) => {
+                    if (!m.makeup_scheduled_date) return false;
+                    // Normaliza para YYYY-MM-DD independente de timezone ou formato ISO
+                    const scheduled = String(m.makeup_scheduled_date).slice(0, 10);
+                    if (scheduled !== dateStr) return false;
+                    return !idsJaNaLista.has(String(m.patient_id));
+                  })
+                  .reduce<PatientAttendance[]>((acc, m) => {
+                    const paciente = allPatients.find((p) => String(p.id) === String(m.patient_id));
+                    if (!paciente) return acc;
+                    const item: PatientAttendance = {
+                      ...paciente,
+                      hasClass: false,
+                      isAgendadoReposto: true,
+                      todayStatus: null,
+                      _makeupAgendadoId: m.id,
+                      _makeupAgendadoDate: this.parseDateLocal(m.date),
+                    };
+                    acc.push(item);
+                    return acc;
+                  }, []);
+
+                this.patients.set([...mapped, ...repostoExtras, ...agendadosHoje, ...avulsoItems]);
+                this.applyFilters();
+              },
+              error: () => {
+                this.patients.set([...mapped, ...repostoExtras, ...avulsoItems]);
+                this.applyFilters();
+              },
             });
 
             this.loading.set(false);
@@ -329,8 +379,10 @@ export class AttendanceComponent implements OnInit {
     if (this.selectedProfessional())
       filtered = filtered.filter((p) => p.profissional_id === this.selectedProfessional());
     if (!this.showMarkedStudents())
-      // Avulsas e repostos fora do dia habitual sempre aparecem — têm registro explícito no dia
-      filtered = filtered.filter((p) => p.isAvulso || p.isReposto || !p.todayStatus);
+      // Avulsas, repostos já realizados e agendados para hoje sempre aparecem
+      filtered = filtered.filter(
+        (p) => p.isAvulso || p.isReposto || p.isAgendadoReposto || !p.todayStatus,
+      );
     this.filteredPatients.set(filtered);
   }
 
@@ -420,13 +472,17 @@ export class AttendanceComponent implements OnInit {
    */
   openRepostoDialog(patient: PatientAttendance | null): void {
     this.selectedMakeupId.set(null);
+    this.scheduleMode.set(false);
+    this.scheduledDate.set(null);
 
     if (patient) {
-      // Passo 2 direto: já sabemos quem é o aluno
       this.repostoPatient.set(patient);
       this.repostoStep.set('select-makeup');
+      // Se o card veio de um agendamento, pré-seleciona o makeup correspondente
+      if (patient.isAgendadoReposto && patient._makeupAgendadoId) {
+        this.selectedMakeupId.set(patient._makeupAgendadoId);
+      }
     } else {
-      // Passo 1: professor precisa indicar quem está presente
       this.repostoPatient.set(null);
       this.repostoStep.set('select-student');
     }
@@ -759,6 +815,13 @@ export class AttendanceComponent implements OnInit {
     );
   }
 
+  /** Parseia campo DATE do Postgres sem shift de fuso horário */
+  private parseDateLocal(raw: string | Date): Date {
+    const s = raw instanceof Date ? raw.toISOString() : String(raw);
+    const [y, m, d] = s.slice(0, 10).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   getDateString(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -798,5 +861,46 @@ export class AttendanceComponent implements OnInit {
 
   onCheckinSuccess(attendance: Attendance): void {
     this.loadDayAttendance();
+  }
+
+  // Chama quando o professor clica em "Agendar para outro dia"
+  toggleScheduleMode(): void {
+    this.scheduleMode.set(!this.scheduleMode());
+    this.scheduledDate.set(null);
+  }
+
+  // Confirma o agendamento (sem criar presença)
+  confirmSchedule(): void {
+    const makeupId = this.selectedMakeupId();
+    const date = this.scheduledDate();
+    if (!makeupId || !date) return;
+
+    const dateStr = date.toISOString().split('T')[0];
+    this.savingSchedule.set(true);
+
+    this.patientService.scheduleMakeup(makeupId, dateStr).subscribe({
+      next: () => {
+        // Atualiza o registro na lista local para mostrar a data agendada
+        this.pendingMakeups.update((list) =>
+          list.map((m) => (m.id === makeupId ? { ...m, makeup_scheduled_date: dateStr } : m)),
+        );
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Reposição agendada',
+          detail: `Marcada para ${date.toLocaleDateString('pt-BR')}`,
+          life: 5000,
+        });
+        this.savingSchedule.set(false);
+        this.showRepostoDialog.set(false);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível agendar a reposição',
+        });
+        this.savingSchedule.set(false);
+      },
+    });
   }
 }

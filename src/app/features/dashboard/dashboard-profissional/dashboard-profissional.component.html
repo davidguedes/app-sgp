@@ -202,7 +202,19 @@
             [class.status-present]="aula.status === 'present'"
             [class.status-absent]="aula.status === 'absent'"
             [class.status-makeup]="aula.status === 'makeup'"
+            [class.card-agendado]="aula.isAgendadoReposto"
           >
+            <!-- Faixa de aviso no topo — só para reposições agendadas -->
+            @if (aula.isAgendadoReposto) {
+              <div class="agendado-banner">
+                <i class="pi pi-calendar-clock"></i>
+                Reposição agendada para hoje
+                @if (aula.makeupOriginDate) {
+                  · falta de {{ aula.makeupOriginDate | date: 'dd/MM' }}
+                }
+              </div>
+            }
+
             <div class="aula-info">
               <div class="aula-avatar" [style.background]="getAvatarColor(aula.patient.nome)">
                 {{ getInitials(aula.patient.nome) }}
@@ -215,25 +227,31 @@
                       <i class="pi pi-exclamation-triangle"></i> EXP
                     </span>
                   }
-                  @let makeupsPendentes = pendingMakeupsPorAluno(aula.patient.id);
-                  @if (makeupsPendentes.length > 0) {
-                    <span
-                      class="badge-makeup-pending"
-                      [pTooltip]="makeupsPendentes.length + ' reposição(ões) pendente(s) este mês'"
-                      tooltipPosition="top"
-                    >
-                      <i class="pi pi-replay"></i>
-                      {{ makeupsPendentes.length }} repos.
-                      @if (diasRestantesMes <= 5) {
-                        <span class="makeup-urgency">· {{ diasRestantesMes }}d</span>
-                      }
-                    </span>
+                  @if (!aula.isAgendadoReposto) {
+                    @let makeupsPendentes = pendingMakeupsPorAluno(aula.patient.id);
+                    @if (makeupsPendentes.length > 0) {
+                      <span
+                        class="badge-makeup-pending"
+                        [pTooltip]="
+                          makeupsPendentes.length + ' reposição(ões) pendente(s) este mês'
+                        "
+                        tooltipPosition="top"
+                      >
+                        <i class="pi pi-replay"></i>
+                        {{ makeupsPendentes.length }} repos.
+                        @if (diasRestantesMes <= 5) {
+                          <span class="makeup-urgency">· {{ diasRestantesMes }}d</span>
+                        }
+                      </span>
+                    }
                   }
                 </div>
-                <span class="aula-horario">
-                  <i class="pi pi-clock"></i>
-                  {{ aula.horario || 'Sem horário' }}
-                </span>
+                @if (!aula.isAgendadoReposto) {
+                  <span class="aula-horario">
+                    <i class="pi pi-clock"></i>
+                    {{ aula.horario || 'Sem horário' }}
+                  </span>
+                }
               </div>
               @if (aula.status) {
                 <div class="status-indicator" [class]="aula.status">
@@ -249,7 +267,7 @@
                 [class.active]="aula.status === 'present'"
                 [disabled]="savingId() === aula.patient.id"
                 (click)="marcarFrequencia(aula, 'present')"
-                title="Presente"
+                [title]="aula.isAgendadoReposto ? 'Confirmar reposição' : 'Presente'"
               >
                 <i class="pi pi-check"></i>
               </button>
@@ -262,15 +280,17 @@
               >
                 <i class="pi pi-times"></i>
               </button>
-              <button
-                class="freq-btn makeup"
-                [class.active]="aula.status === 'makeup'"
-                [disabled]="savingId() === aula.patient.id"
-                (click)="marcarFrequencia(aula, 'makeup')"
-                title="Reposição"
-              >
-                <i class="pi pi-replay"></i>
-              </button>
+              @if (!aula.isAgendadoReposto) {
+                <button
+                  class="freq-btn makeup"
+                  [class.active]="aula.status === 'makeup'"
+                  [disabled]="savingId() === aula.patient.id"
+                  (click)="marcarFrequencia(aula, 'makeup')"
+                  title="Reposição"
+                >
+                  <i class="pi pi-replay"></i>
+                </button>
+              }
               <a
                 class="freq-btn detail"
                 [routerLink]="['/patients', aula.patient.id]"

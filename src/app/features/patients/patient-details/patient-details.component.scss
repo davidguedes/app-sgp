@@ -18,13 +18,13 @@
   border-radius: 18px;
   box-shadow: var(--card-shadow);
   border: 1px solid var(--border, #e8e3dc);
-  
+
   .header-left {
     display: flex;
     align-items: center;
     gap: 1.5rem;
   }
-  
+
   .patient-avatar-large {
     width: 80px;
     height: 80px;
@@ -37,7 +37,7 @@
     color: white;
     flex-shrink: 0;
   }
-  
+
   .patient-info {
     h1 {
       margin: 0;
@@ -46,26 +46,26 @@
       color: var(--sage-dark, #4e6e52);
       line-height: 1.2;
     }
-    
+
     .patient-meta {
       display: flex;
       gap: 1.5rem;
       margin-top: 0.5rem;
-      
+
       span {
         display: flex;
         align-items: center;
         gap: 6px;
         color: var(--muted, #8a8580);
         font-size: 0.9rem;
-        
+
         i {
           font-size: 0.85rem;
         }
       }
     }
   }
-  
+
   .header-actions {
     display: flex;
     align-items: center;
@@ -139,13 +139,13 @@
   ::ng-deep .p-card-body {
     padding: 1.5rem;
   }
-  
+
   .card-content {
     display: flex;
     align-items: center;
     gap: 1rem;
   }
-  
+
   .card-icon {
     width: 56px;
     height: 56px;
@@ -156,30 +156,30 @@
     font-size: 1.5rem;
     color: white;
     flex-shrink: 0;
-    
+
     &.valor {
       background: linear-gradient(135deg, var(--accent, #c4956a), #a67c55);
     }
-    
+
     &.ganho {
       background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
     }
-    
+
     &.taxa {
       background: linear-gradient(135deg, var(--warning, #d4a574), #c49261);
     }
-    
+
     &.presenca {
       background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
     }
   }
-  
+
   .card-info {
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .card-label {
     font-size: 0.75rem;
     font-weight: 600;
@@ -187,7 +187,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  
+
   .card-value {
     font-size: 1.5rem;
     font-weight: 700;
@@ -231,7 +231,7 @@
 
 .card-header {
   padding: 1.5rem;
-  
+
   h3 {
     margin: 0;
     font-family: 'DM Serif Display', serif;
@@ -249,25 +249,25 @@
     .p-tabview-nav {
       background: transparent;
       border-bottom: 2px solid var(--border, #e8e3dc);
-      
+
       .p-tabview-nav-link {
         background: transparent;
         border: none;
         font-weight: 600;
         color: var(--muted, #8a8580);
-        
+
         &:focus {
           box-shadow: none;
         }
       }
-      
+
       .p-highlight .p-tabview-nav-link {
         background: transparent;
         color: var(--sage-dark, #4e6e52);
         border-bottom: 3px solid var(--sage, #7a9e7e);
       }
     }
-    
+
     .p-tabview-panels {
       background: transparent;
       padding: 2rem 0;
@@ -290,20 +290,20 @@
   display: grid;
   grid-template-columns: 400px 1fr;
   gap: 2rem;
-  
+
   .attendance-chart {
     background: var(--warm-white, #fdfcfa);
     border-radius: 12px;
     padding: 1.5rem;
     border: 1px solid var(--border, #e8e3dc);
-    
+
     h4 {
       margin: 0 0 1rem 0;
       font-family: 'DM Serif Display', serif;
       color: var(--sage-dark, #4e6e52);
     }
   }
-  
+
   .attendance-list {
     h4 {
       margin: 0 0 1.5rem 0;
@@ -318,12 +318,12 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-top: 1.5rem;
-  
+
   .summary-item {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    
+
     .label {
       font-size: 0.7rem;
       font-weight: 600;
@@ -331,17 +331,27 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    
+
     .value {
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--charcoal, #2c2c2c);
-      
-      &.success { color: var(--success, #5a8f5a); }
-      &.danger  { color: var(--danger,  #c06060); }
-      &.warning { color: var(--warning, #d4a574); }
-      &.info    { color: #4a90a4; }
-      &.neutral { color: var(--muted, #8a8580); }
+
+      &.success {
+        color: var(--success, #5a8f5a);
+      }
+      &.danger {
+        color: var(--danger, #c06060);
+      }
+      &.warning {
+        color: var(--warning, #d4a574);
+      }
+      &.info {
+        color: #4a90a4;
+      }
+      &.neutral {
+        color: var(--muted, #8a8580);
+      }
     }
   }
 }
@@ -359,25 +369,25 @@
   border-radius: 10px;
   padding: 1rem;
   border: 1px solid var(--border, #e8e3dc);
-  
+
   .timeline-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
   }
-  
+
   .timeline-date {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--muted, #8a8580);
   }
-  
+
   .timeline-actions {
     display: flex;
     gap: 4px;
   }
-  
+
   .timeline-notes {
     margin-top: 0.5rem;
     font-size: 0.85rem;
@@ -389,8 +399,13 @@
 // ─── Indicadores de reposição na timeline ───────────────────────
 
 .timeline-item {
-  &.tl-reposto-feito  { border-left: 3px solid #4a90a4; }
-  &.tl-makeup-quitado { border-left: 3px solid #9ca3af; opacity: 0.85; }
+  &.tl-reposto-feito {
+    border-left: 3px solid #4a90a4;
+  }
+  &.tl-makeup-quitado {
+    border-left: 3px solid #9ca3af;
+    opacity: 0.85;
+  }
 }
 
 .att-extra-chip {
@@ -404,9 +419,18 @@
   margin-top: 6px;
   margin-left: 6px;
 
-  &.chip-reposto  { background: #e0f2f7; color: #4a90a4; }
-  &.chip-quitado  { background: #f3f4f6; color: #6b7280; }
-  &.chip-pendente { background: #fef3c7; color: #d97706; }
+  &.chip-reposto {
+    background: #e0f2f7;
+    color: #4a90a4;
+  }
+  &.chip-quitado {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  &.chip-pendente {
+    background: #fef3c7;
+    color: #d97706;
+  }
 }
 
 // ─── Header da lista com contador ────────────────────────────────
@@ -417,7 +441,11 @@
   gap: 10px;
   margin-bottom: 1.5rem;
 
-  h4 { margin: 0; font-family: 'DM Serif Display', serif; color: var(--sage-dark, #4e6e52); }
+  h4 {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    color: var(--sage-dark, #4e6e52);
+  }
 }
 
 .evolutions-list-header {
@@ -464,7 +492,10 @@
       color: var(--sage-dark, #4e6e52);
     }
 
-    &[disabled] { opacity: 0.35; cursor: not-allowed; }
+    &[disabled] {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
 
     &.pag-num.active {
       background: var(--sage-dark, #4e6e52);
@@ -520,7 +551,9 @@
           font-size: 0.875rem;
           color: var(--muted, #8a8580);
 
-          i { font-size: 1rem; }
+          i {
+            font-size: 1rem;
+          }
         }
       }
     }
@@ -609,14 +642,14 @@
   text-align: center;
   padding: 4rem 2rem;
   color: var(--muted, #8a8580);
-  
+
   i {
     font-size: 3rem;
     margin-bottom: 1rem;
     display: block;
     opacity: 0.5;
   }
-  
+
   p {
     font-size: 0.95rem;
   }
@@ -631,7 +664,7 @@
   flex-direction: column;
   gap: 1.2rem;
   padding: 1rem 0;
-  
+
   .form-group {
     label {
       display: block;
@@ -766,7 +799,9 @@
   color: var(--text-color, #1f2937);
   font-size: 0.95rem;
 
-  i { color: var(--primary-color, #3b82f6); }
+  i {
+    color: var(--primary-color, #3b82f6);
+  }
 }
 
 .eva-rating-wrapper {
@@ -800,11 +835,26 @@
   display: inline-block;
 }
 
-.eva-none     { background-color: #d1fae5; color: #065f46; }
-.eva-mild     { background-color: #fef3c7; color: #92400e; }
-.eva-moderate { background-color: #fed7aa; color: #9a3412; }
-.eva-severe   { background-color: #fecaca; color: #991b1b; }
-.eva-extreme  { background-color: #fca5a5; color: #7f1d1d; }
+.eva-none {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.eva-mild {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+.eva-moderate {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+.eva-severe {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+.eva-extreme {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+}
 
 // ============================================
 // RESPONSIVE
@@ -814,16 +864,16 @@
   .attendance-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .details-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.5rem;
-    
+
     .header-left {
       flex-wrap: wrap;
     }
-    
+
     .header-actions {
       width: 100%;
       justify-content: flex-end;
@@ -835,16 +885,16 @@
   .patient-details-container {
     padding: 1rem;
   }
-  
+
   .details-header {
     padding: 1.5rem;
-    
+
     .patient-avatar-large {
       width: 60px;
       height: 60px;
       font-size: 1.3rem;
     }
-    
+
     .patient-info h1 {
       font-size: 1.5rem;
     }
@@ -865,11 +915,11 @@
       width: 100%;
     }
   }
-  
+
   .info-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .attendance-summary {
     grid-template-columns: 1fr;
   }
@@ -907,12 +957,12 @@
     grid-template-columns: repeat(4, 1fr);
     justify-items: center;
   }
-  
+
   .eva-level-image {
     width: 38px;
     height: 38px;
   }
-  
+
   .eva-level-button {
     padding: 0.25rem;
     border-radius: 8px;
@@ -928,7 +978,7 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .eva-readonly-image {
     width: 45px;
     height: 45px;
@@ -980,4 +1030,152 @@
       }
     }
   }
+}
+// ─── Chip pendente com botão de agendamento ───────────────────────────────────
+
+.chip-pendente-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chip-agendada {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e0f2f7;
+  color: #4a90a4;
+
+  i {
+    font-size: 0.7rem;
+  }
+
+  &.chip-agendada-soon {
+    background: #fef9c3;
+    color: #ca8a04;
+  }
+}
+
+.inline-schedule-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 12px;
+  border: 1px dashed var(--surface-border);
+  background: transparent;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  i {
+    font-size: 0.7rem;
+  }
+
+  &:hover {
+    border-color: #4a90a4;
+    color: #4a90a4;
+    background: #4a90a408;
+  }
+
+  &.has-date {
+    border-style: solid;
+    border-color: #4a90a4;
+    color: #4a90a4;
+    background: #e0f2f720;
+  }
+}
+
+// ─── Dialog de agendamento (patient-details) ──────────────────────────────────
+
+.schedule-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  .schedule-dialog-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a90a4, #357a8a);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0 0 2px;
+    font-size: 1rem;
+  }
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+  }
+}
+
+.schedule-dialog-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+
+  .schedule-calendar-pd {
+    width: 100%;
+  }
+}
+
+.schedule-dialog-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-color-secondary);
+  background: var(--surface-hover);
+  padding: 8px 10px;
+  border-radius: 8px;
+  width: 100%;
+  margin: 0;
+
+  i {
+    color: #4a90a4;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+}
+
+.current-schedule-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+  background: var(--surface-hover);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: 100%;
+
+  i {
+    color: #4a90a4;
+  }
+  strong {
+    color: var(--text-color);
+  }
+}
+
+.schedule-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

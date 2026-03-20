@@ -11,7 +11,7 @@
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
-  
+
   .header-left {
     h1 {
       margin: 0;
@@ -20,24 +20,24 @@
       color: var(--sage-dark, #4e6e52);
     }
   }
-  
+
   .header-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     align-items: center;
-    
+
     ::ng-deep {
       .date-selector,
       .filter-dropdown {
         min-width: 200px;
       }
-      
+
       .view-mode-toggle {
         .p-buttonset {
           display: flex;
           gap: 0;
-          
+
           .p-button {
             display: flex;
             align-items: center;
@@ -49,12 +49,19 @@
             font-weight: 600;
             font-size: 0.85rem;
             transition: all 0.2s;
-            
-            &:first-child { border-radius: 10px 0 0 10px; }
-            &:last-child  { border-radius: 0 10px 10px 0; border-left: none; }
-            
-            i { font-size: 0.9rem; }
-            
+
+            &:first-child {
+              border-radius: 10px 0 0 10px;
+            }
+            &:last-child {
+              border-radius: 0 10px 10px 0;
+              border-left: none;
+            }
+
+            i {
+              font-size: 0.9rem;
+            }
+
             &.p-highlight {
               background: var(--sage, #7a9e7e);
               border-color: var(--sage, #7a9e7e);
@@ -62,7 +69,7 @@
               box-shadow: 0 2px 8px rgba(122, 158, 126, 0.3);
               z-index: 1;
             }
-            
+
             &:hover:not(.p-highlight) {
               background: var(--sage-light, #d4e8d4);
               border-color: var(--sage, #7a9e7e);
@@ -101,13 +108,15 @@
 }
 
 .stat-card {
-  ::ng-deep .p-card-body { padding: 1.5rem; }
-  
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+  }
+
   .stat-content {
     display: flex;
     align-items: center;
     gap: 1rem;
-    
+
     i {
       font-size: 2rem;
       width: 56px;
@@ -119,13 +128,13 @@
       color: white;
     }
   }
-  
+
   .stat-info {
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .stat-label {
     font-size: 0.75rem;
     font-weight: 600;
@@ -133,7 +142,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  
+
   .stat-value {
     font-size: 2rem;
     font-weight: 700;
@@ -155,13 +164,24 @@
     width: fit-content;
     margin-top: 2px;
 
-    i { font-size: 0.65rem; color: #c4956a; }
+    i {
+      font-size: 0.65rem;
+      color: #c4956a;
+    }
   }
 
-  &.total   i { background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52)); }
-  &.present i { background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d); }
-  &.absent  i { background: linear-gradient(135deg, var(--danger, #c06060), #a85050); }
-  &.pending i { background: linear-gradient(135deg, var(--warning, #d4a574), #c49261); }
+  &.total i {
+    background: linear-gradient(135deg, var(--sage, #7a9e7e), var(--sage-dark, #4e6e52));
+  }
+  &.present i {
+    background: linear-gradient(135deg, var(--success, #5a8f5a), #4d7a4d);
+  }
+  &.absent i {
+    background: linear-gradient(135deg, var(--danger, #c06060), #a85050);
+  }
+  &.pending i {
+    background: linear-gradient(135deg, var(--warning, #d4a574), #c49261);
+  }
 }
 
 // ── Bulk Actions ─────────────────────────────────────────────
@@ -173,18 +193,20 @@
 
 // ── Lista ────────────────────────────────────────────────────
 .attendance-card {
-  ::ng-deep .p-card-body { padding: 0; }
+  ::ng-deep .p-card-body {
+    padding: 0;
+  }
 }
 
 .results-header {
   padding: 1rem 1.5rem;
   background: rgba(122, 158, 126, 0.05);
   border-bottom: 1px solid var(--border, #e8e3dc);
-  
+
   .results-count {
     font-size: 0.9rem;
     color: var(--muted, #8a8580);
-    
+
     strong {
       color: var(--sage-dark, #4e6e52);
       font-weight: 700;
@@ -205,18 +227,24 @@
   border-bottom: 1px solid var(--border, #e8e3dc);
   transition: background 0.2s;
   gap: 2rem;
-  
-  &:last-child { border-bottom: none; }
-  &:hover { background: rgba(122, 158, 126, 0.03); }
-  &.has-status { background: rgba(122, 158, 126, 0.05); }
-  
+
+  &:last-child {
+    border-bottom: none;
+  }
+  &:hover {
+    background: rgba(122, 158, 126, 0.03);
+  }
+  &.has-status {
+    background: rgba(122, 158, 126, 0.05);
+  }
+
   .patient-info-section {
     display: flex;
     align-items: center;
     gap: 1rem;
     flex: 0 0 300px;
   }
-  
+
   .patient-avatar {
     width: 50px;
     height: 50px;
@@ -229,16 +257,16 @@
     color: white;
     flex-shrink: 0;
   }
-  
+
   .patient-details {
     flex: 1;
     min-width: 0;
-    
+
     .patient-name-row {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      
+
       h4 {
         margin: 0;
         font-size: 1rem;
@@ -248,7 +276,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      
+
       .badge-exp {
         display: inline-flex;
         align-items: center;
@@ -260,26 +288,30 @@
         font-size: 0.7rem;
         font-weight: 700;
         color: #991b1b;
-        i { font-size: 0.7rem; }
+        i {
+          font-size: 0.7rem;
+        }
       }
     }
-    
+
     .patient-meta {
       display: flex;
       gap: 1rem;
       margin-top: 4px;
-      
+
       span {
         display: flex;
         align-items: center;
         gap: 4px;
         font-size: 0.8rem;
         color: var(--muted, #8a8580);
-        i { font-size: 0.75rem; }
+        i {
+          font-size: 0.75rem;
+        }
       }
     }
   }
-  
+
   .patient-actions {
     display: flex;
     align-items: center;
@@ -287,17 +319,17 @@
     flex: 1;
     justify-content: flex-end;
   }
-  
+
   .current-status {
     display: flex;
     align-items: center;
     gap: 8px;
-    
+
     .status-label {
       font-size: 0.8rem;
       color: var(--muted, #8a8580);
     }
-    
+
     .status-badge {
       display: flex;
       align-items: center;
@@ -306,18 +338,27 @@
       border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
-      
-      &.present { background: rgba(90, 143, 90, 0.12);  color: var(--success, #5a8f5a); }
-      &.absent  { background: rgba(192, 96, 96, 0.12);  color: var(--danger, #c06060);  }
-      &.makeup  { background: rgba(212, 165, 116, 0.12); color: var(--warning, #d4a574); }
+
+      &.present {
+        background: rgba(90, 143, 90, 0.12);
+        color: var(--success, #5a8f5a);
+      }
+      &.absent {
+        background: rgba(192, 96, 96, 0.12);
+        color: var(--danger, #c06060);
+      }
+      &.makeup {
+        background: rgba(212, 165, 116, 0.12);
+        color: var(--warning, #d4a574);
+      }
     }
   }
-  
+
   .action-buttons {
     display: flex;
     gap: 8px;
   }
-  
+
   .action-btn {
     display: flex;
     align-items: center;
@@ -332,14 +373,43 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    
-    &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
-    i { font-size: 0.9rem; }
-    
-    &.present { &:hover:not(:disabled), &.active { background: var(--success, #5a8f5a); border-color: var(--success, #5a8f5a); color: white; } }
-    &.absent  { &:hover:not(:disabled), &.active { background: var(--danger, #c06060);  border-color: var(--danger, #c06060);  color: white; } }
-    &.makeup  { &:hover:not(:disabled), &.active { background: var(--warning, #d4a574); border-color: var(--warning, #d4a574); color: white; } }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    i {
+      font-size: 0.9rem;
+    }
+
+    &.present {
+      &:hover:not(:disabled),
+      &.active {
+        background: var(--success, #5a8f5a);
+        border-color: var(--success, #5a8f5a);
+        color: white;
+      }
+    }
+    &.absent {
+      &:hover:not(:disabled),
+      &.active {
+        background: var(--danger, #c06060);
+        border-color: var(--danger, #c06060);
+        color: white;
+      }
+    }
+    &.makeup {
+      &:hover:not(:disabled),
+      &.active {
+        background: var(--warning, #d4a574);
+        border-color: var(--warning, #d4a574);
+        color: white;
+      }
+    }
 
     // Botão de reposição — verde-azulado para diferenciar do "repor depois"
     &.reposto {
@@ -351,7 +421,10 @@
         background: #4a90a4;
         border-color: #4a90a4;
         color: white;
-        .reposto-badge { background: white; color: #4a90a4; }
+        .reposto-badge {
+          background: white;
+          color: #4a90a4;
+        }
       }
 
       .reposto-badge {
@@ -373,13 +446,14 @@
   }
 }
 
-
 // ═══════════════════════════════════════════════════════
 // DIALOG — REGISTRAR REPOSIÇÃO
 // ═══════════════════════════════════════════════════════
 
 ::ng-deep .reposto-dialog {
-  .p-dialog-header { padding: 0 !important; }
+  .p-dialog-header {
+    padding: 0 !important;
+  }
 
   .reposto-dialog-header {
     display: flex;
@@ -400,8 +474,17 @@
       flex-shrink: 0;
     }
 
-    h3 { margin: 0 0 2px; font-size: 1.05rem; font-weight: 700; color: var(--text, #2c2a26); }
-    p  { margin: 0; font-size: 0.85rem; color: var(--muted, #8a8580); }
+    h3 {
+      margin: 0 0 2px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text, #2c2a26);
+    }
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted, #8a8580);
+    }
   }
 
   .reposto-content {
@@ -418,7 +501,10 @@
     font-size: 0.83rem;
     color: #357a8a;
     margin-bottom: 16px;
-    i { font-size: 0.85rem; flex-shrink: 0; }
+    i {
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
   }
 
   .reposto-empty {
@@ -428,8 +514,14 @@
     gap: 8px;
     padding: 32px 0;
     color: var(--muted, #8a8580);
-    i { font-size: 2rem; color: #5a8f5a; }
-    p { margin: 0; font-size: 0.9rem; }
+    i {
+      font-size: 2rem;
+      color: #5a8f5a;
+    }
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
   }
 
   .makeup-list {
@@ -495,13 +587,16 @@
         font-size: 0.9rem;
         color: var(--text, #2c2a26);
       }
-      .makeup-date, .makeup-notes {
+      .makeup-date,
+      .makeup-notes {
         display: flex;
         align-items: center;
         gap: 4px;
         font-size: 0.78rem;
         color: var(--muted, #8a8580);
-        i { font-size: 0.72rem; }
+        i {
+          font-size: 0.72rem;
+        }
       }
     }
 
@@ -547,16 +642,25 @@
   padding: 4rem 2rem;
   text-align: center;
   color: var(--muted, #8a8580);
-  
+
   i {
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.5;
-    &.pi-check-circle { color: var(--success, #5a8f5a); opacity: 0.7; }
+    &.pi-check-circle {
+      color: var(--success, #5a8f5a);
+      opacity: 0.7;
+    }
   }
-  
-  h3 { margin: 0 0 0.5rem 0; color: var(--charcoal, #2c2c2c); }
-  p  { margin: 0; font-size: 0.9rem; }
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--charcoal, #2c2c2c);
+  }
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
 }
 
 // ── Footer ───────────────────────────────────────────────────
@@ -569,14 +673,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  
+
   .info-item {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     font-size: 0.85rem;
     color: var(--sage-dark, #4e6e52);
-    i { font-size: 1rem; margin-top: 2px; flex-shrink: 0; }
+    i {
+      font-size: 1rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -584,7 +692,9 @@
 // DIALOG — AULA AVULSA
 // ════════════════════════════════════════════════════════════
 ::ng-deep .avulso-dialog {
-  .p-dialog-header { display: none; } // usamos ng-template header customizado
+  .p-dialog-header {
+    display: none;
+  } // usamos ng-template header customizado
 
   .p-dialog-content {
     padding: 0;
@@ -657,9 +767,15 @@
     align-items: center;
     gap: 6px;
 
-    i { font-size: 0.85rem; color: var(--sage, #7a9e7e); }
+    i {
+      font-size: 0.85rem;
+      color: var(--sage, #7a9e7e);
+    }
 
-    .required { color: var(--danger, #c06060); margin-left: 2px; }
+    .required {
+      color: var(--danger, #c06060);
+      margin-left: 2px;
+    }
   }
 
   .field-error {
@@ -687,16 +803,22 @@
   }
 
   ::ng-deep {
-    .w-full { width: 100%; }
+    .w-full {
+      width: 100%;
+    }
 
     // multiselect, datepicker, inputnumber largura total
     .p-multiselect,
     .p-datepicker-input-icon-container,
-    .p-inputnumber { width: 100%; }
+    .p-inputnumber {
+      width: 100%;
+    }
 
     .ng-invalid .p-inputtext,
     .ng-invalid.p-multiselect,
-    .ng-invalid .p-datepicker-input { border-color: var(--danger, #c06060) !important; }
+    .ng-invalid .p-datepicker-input {
+      border-color: var(--danger, #c06060) !important;
+    }
   }
 }
 
@@ -727,9 +849,16 @@
   color: #7a4f1e;
   line-height: 1.5;
 
-  i { font-size: 1rem; margin-top: 1px; flex-shrink: 0; color: #c4956a; }
+  i {
+    font-size: 1rem;
+    margin-top: 1px;
+    flex-shrink: 0;
+    color: #c4956a;
+  }
 
-  strong { color: #8a5a2a; }
+  strong {
+    color: #8a5a2a;
+  }
 }
 
 // Footer do dialog
@@ -743,7 +872,9 @@
     border-color: #b07d52;
     font-weight: 600;
 
-    &:hover { background: linear-gradient(135deg, #b07d52, #9a6b42); }
+    &:hover {
+      background: linear-gradient(135deg, #b07d52, #9a6b42);
+    }
   }
 }
 
@@ -762,7 +893,9 @@
     font-size: 0.7rem;
     font-weight: 700;
     color: #8a5a2a;
-    i { font-size: 0.68rem; }
+    i {
+      font-size: 0.68rem;
+    }
   }
 
   .avulso-valor-badge {
@@ -772,7 +905,10 @@
     font-size: 0.8rem;
     color: #8a5a2a;
     font-weight: 600;
-    i { font-size: 0.75rem; color: #c4956a; }
+    i {
+      font-size: 0.75rem;
+      color: #c4956a;
+    }
   }
 }
 
@@ -791,72 +927,104 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  i { font-size: 0.85rem; color: #c4956a; }
+  i {
+    font-size: 0.85rem;
+    color: #c4956a;
+  }
 }
 
 // ── Responsivo ───────────────────────────────────────────────
 @media (max-width: 1200px) {
   .patient-item {
     flex-wrap: wrap;
-    .patient-info-section { flex: 1 1 100%; }
-    .patient-actions { flex: 1 1 100%; justify-content: space-between; }
+    .patient-info-section {
+      flex: 1 1 100%;
+    }
+    .patient-actions {
+      flex: 1 1 100%;
+      justify-content: space-between;
+    }
   }
 }
 
 @media (max-width: 768px) {
-  .attendance-container { padding: 1rem; }
-  
+  .attendance-container {
+    padding: 1rem;
+  }
+
   .attendance-header {
     flex-direction: column;
     align-items: stretch;
-    
+
     .header-actions {
       flex-direction: column;
-      
+
       ::ng-deep {
         .date-selector,
         .filter-dropdown,
-        .view-mode-toggle { width: 100%; }
-        
-        .view-mode-toggle .p-buttonset {
+        .view-mode-toggle {
           width: 100%;
-          .p-button { flex: 1; }
         }
 
-        .avulso-btn.p-button { width: 100%; justify-content: center; }
+        .view-mode-toggle .p-buttonset {
+          width: 100%;
+          .p-button {
+            flex: 1;
+          }
+        }
+
+        .avulso-btn.p-button {
+          width: 100%;
+          justify-content: center;
+        }
       }
     }
   }
-  
-  .stats-grid { grid-template-columns: 1fr; }
-  
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
   .bulk-actions {
     justify-content: stretch;
-    button { width: 100%; }
+    button {
+      width: 100%;
+    }
   }
-  
+
   .patient-item {
     padding: 1rem;
-    
-    .patient-info-section { flex: 1 1 100%; }
-    
+
+    .patient-info-section {
+      flex: 1 1 100%;
+    }
+
     .patient-actions {
       flex-direction: column;
       align-items: stretch;
       width: 100%;
-      
-      .current-status { width: 100%; justify-content: space-between; }
-      
+
+      .current-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+
       .action-buttons {
         width: 100%;
         flex-direction: column;
-        .action-btn { width: 100%; justify-content: center; }
+        .action-btn {
+          width: 100%;
+          justify-content: center;
+        }
       }
     }
   }
 
   ::ng-deep .avulso-dialog {
-    .p-dialog { width: 95vw !important; margin: 0 auto; }
+    .p-dialog {
+      width: 95vw !important;
+      margin: 0 auto;
+    }
   }
 }
 // ── Botão "Reposição" nativo no header ────────────────────────────────────
@@ -883,7 +1051,9 @@
     transform: translateY(-1px);
   }
 
-  i { font-size: 0.9rem; }
+  i {
+    font-size: 0.9rem;
+  }
 
   .reposto-header-badge {
     display: inline-flex;
@@ -920,7 +1090,9 @@
     white-space: nowrap;
     cursor: default;
 
-    i { font-size: 0.68rem; }
+    i {
+      font-size: 0.68rem;
+    }
 
     .reposto-origin-date {
       font-weight: 500;
@@ -931,7 +1103,6 @@
 
 // ── Passo 1 do dialog de reposição: lista de alunos com pendências ─────────
 ::ng-deep .reposto-dialog {
-
   // Lista de alunos clicáveis no passo 1
   .student-select-list {
     display: flex;
@@ -996,7 +1167,9 @@
     font-size: 0.78rem;
     color: #4a90a4;
     font-weight: 600;
-    i { font-size: 0.72rem; }
+    i {
+      font-size: 0.72rem;
+    }
   }
 
   .student-select-arrow {
@@ -1028,7 +1201,9 @@
       background: #f0f8fb;
     }
 
-    i { font-size: 0.78rem; }
+    i {
+      font-size: 0.78rem;
+    }
   }
 }
 
@@ -1047,7 +1222,10 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  i { font-size: 0.85rem; color: #4a90a4; }
+  i {
+    font-size: 0.85rem;
+    color: #4a90a4;
+  }
 }
 
 .patient-item.reposto-extra-item {
@@ -1067,5 +1245,111 @@
   font-size: 0.7rem;
   font-weight: 700;
   color: #2a6070;
-  i { font-size: 0.68rem; }
+  i {
+    font-size: 0.68rem;
+  }
+}
+
+.schedule-toggle-area {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border, #e8e3dc);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 1.5px solid var(--border, #e8e3dc);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sage, #7a9e7e);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--sage, #7a9e7e);
+    background: rgba(122, 158, 126, 0.06);
+  }
+}
+
+.schedule-date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted, #8a8580);
+  margin: 0;
+  i {
+    color: var(--sage, #7a9e7e);
+  }
+}
+
+.scheduled-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(122, 158, 126, 0.12);
+  border: 1px solid rgba(122, 158, 126, 0.3);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--sage-dark, #4e6e52);
+}
+
+// ─── Aluno com reposição agendada para hoje ───────────────────────────────────
+
+.badge-agendado-reposto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e0f2f7;
+  color: #4a90a4;
+  border: 1px solid #b0d8e8;
+
+  i {
+    font-size: 0.7rem;
+  }
+}
+
+.agendado-reposto-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #e0f2f720, #f0f9fc40);
+  border: 1px dashed #4a90a440;
+
+  .agendado-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.74rem;
+    color: var(--text-color-secondary);
+    i {
+      color: #4a90a4;
+      font-size: 0.7rem;
+    }
+  }
 }

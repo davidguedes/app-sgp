@@ -190,6 +190,14 @@
                         <i class="pi pi-replay"></i> Reposição
                       </span>
                     }
+                    @if (patient.isAgendadoReposto) {
+                      <span
+                        class="badge-agendado-reposto"
+                        pTooltip="Reposição agendada para hoje — registre a presença"
+                      >
+                        <i class="pi pi-calendar-clock"></i> Reposto hoje
+                      </span>
+                    }
                   </div>
                   <div class="patient-meta">
                     @if (isGestor()) {
@@ -256,7 +264,25 @@
                 }
 
                 <!-- Botões presente/falta/repor: ocultos em registros de reposição -->
-                @if (!patient.isReposto) {
+                <!-- Aluno agendado para repor hoje: mostra CTA dedicado antes dos botões normais -->
+                @if (patient.isAgendadoReposto && !patient.todayStatus) {
+                  <div class="agendado-reposto-action">
+                    <p-button
+                      label="Registrar Reposição"
+                      icon="pi pi-check-circle"
+                      severity="warn"
+                      size="small"
+                      [disabled]="saving()"
+                      (onClick)="openRepostoDialog(patient)"
+                    >
+                    </p-button>
+                    <span class="agendado-hint">
+                      <i class="pi pi-info-circle"></i>
+                      Repõe falta de {{ formatMakeupOriginDate(patient._makeupAgendadoDate) }}
+                    </span>
+                  </div>
+                }
+                @if (!patient.isReposto && !patient.isAgendadoReposto) {
                   <div class="action-buttons">
                     <button
                       class="action-btn present"
@@ -310,7 +336,7 @@
                     }
                   </div>
                 }
-                <!-- fim @if (!patient.isReposto) -->
+                <!-- fim @if (!patient.isReposto && !patient.isAgendadoReposto) -->
 
                 <p-button
                   icon="pi pi-eye"
@@ -588,9 +614,48 @@
                   <span class="urgency-chip">{{ diasRest }}d restantes</span>
                 }
               </div>
+
+              @if (makeup.makeup_scheduled_date) {
+                <span class="scheduled-badge">
+                  <i class="pi pi-calendar-check"></i>
+                  Agendada: {{ makeup.makeup_scheduled_date | date: 'dd/MM' }}
+                </span>
+              }
             </div>
           }
         </div>
+        <!-- Opção de agendar para outro dia -->
+        @if (selectedMakeupId()) {
+          <div class="schedule-toggle-area">
+            <button class="schedule-toggle-btn" (click)="toggleScheduleMode()">
+              <i
+                class="pi"
+                [class.pi-calendar-plus]="!scheduleMode()"
+                [class.pi-times]="scheduleMode()"
+              ></i>
+              {{ scheduleMode() ? 'Cancelar agendamento' : 'Agendar para outro dia' }}
+            </button>
+
+            @if (scheduleMode()) {
+              <div class="schedule-date-picker">
+                <p class="schedule-hint">
+                  <i class="pi pi-info-circle"></i>
+                  O aluno não precisa estar presente agora. Escolha a data planejada.
+                </p>
+                <p-datepicker
+                  [(ngModel)]="scheduledDate"
+                  dateFormat="dd/mm/yy"
+                  [showIcon]="true"
+                  [minDate]="today()"
+                  placeholder="Selecione a data da reposição"
+                  appendTo="body"
+                  styleClass="w-full"
+                >
+                </p-datepicker>
+              </div>
+            }
+          </div>
+        }
       }
     }
   </div>
@@ -602,20 +667,33 @@
         severity="secondary"
         [outlined]="true"
         (onClick)="showRepostoDialog.set(false)"
-        [disabled]="savingReposto()"
+        [disabled]="savingReposto() || savingSchedule()"
       >
       </p-button>
 
       @if (repostoStep() === 'select-makeup') {
-        <p-button
-          label="Confirmar Reposição"
-          icon="pi pi-check"
-          styleClass="reposto-confirm-btn"
-          [loading]="savingReposto()"
-          [disabled]="!selectedMakeupId() || makeupsPorAluno().length === 0"
-          (onClick)="confirmReposto()"
-        >
-        </p-button>
+        @if (scheduleMode()) {
+          <!-- Botão de agendar -->
+          <p-button
+            label="Confirmar Agendamento"
+            icon="pi pi-calendar-plus"
+            [loading]="savingSchedule()"
+            [disabled]="!selectedMakeupId() || !scheduledDate()"
+            (onClick)="confirmSchedule()"
+          >
+          </p-button>
+        } @else {
+          <!-- Botão original de registrar presença agora -->
+          <p-button
+            label="Confirmar Reposição"
+            icon="pi pi-check"
+            styleClass="reposto-confirm-btn"
+            [loading]="savingReposto()"
+            [disabled]="!selectedMakeupId() || makeupsPorAluno().length === 0"
+            (onClick)="confirmReposto()"
+          >
+          </p-button>
+        }
       }
     </div>
   </ng-template>

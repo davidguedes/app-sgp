@@ -23,25 +23,59 @@ import { PatientService } from '../../../core/services/patient.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PatientDetail } from '../../../core/models/patient.model';
-import { Attendance, AttendanceFormData, ATTENDANCE_STATUS_CONFIG } from '../../../core/models/attendance.model';
-import { Evolution, EvolutionFormData, EXERCISES_BY_EQUIPMENT, ExercisesByEquipment } from '../../../core/models/evolution.model';
+import {
+  Attendance,
+  AttendanceFormData,
+  ATTENDANCE_STATUS_CONFIG,
+} from '../../../core/models/attendance.model';
+import {
+  Evolution,
+  EvolutionFormData,
+  EXERCISES_BY_EQUIPMENT,
+  ExercisesByEquipment,
+} from '../../../core/models/evolution.model';
 import { BiometricManagerComponent } from '../../biometric/biometric-manager/biometric-manager';
+import { TooltipModule } from 'primeng/tooltip';
 
-interface ExerciseOption { label: string; value: string; }
-interface ExerciseEquipment { key: keyof ExercisesByEquipment; label: string; exercises: ExerciseOption[]; }
+interface ExerciseOption {
+  label: string;
+  value: string;
+}
+interface ExerciseEquipment {
+  key: keyof ExercisesByEquipment;
+  label: string;
+  exercises: ExerciseOption[];
+}
 
 @Component({
   selector: 'app-patient-details',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink, CardModule, ButtonModule, TabsModule,
-    TagModule, BadgeModule, DialogModule, InputTextModule, TextareaModule,
-    DatePickerModule, SelectModule, MultiSelectModule, RatingModule,
-    ToastModule, ConfirmDialogModule, TimelineModule, ChartModule, BiometricManagerComponent
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    CardModule,
+    ButtonModule,
+    TabsModule,
+    TagModule,
+    BadgeModule,
+    DialogModule,
+    InputTextModule,
+    TextareaModule,
+    DatePickerModule,
+    SelectModule,
+    MultiSelectModule,
+    RatingModule,
+    ToastModule,
+    ConfirmDialogModule,
+    TimelineModule,
+    ChartModule,
+    BiometricManagerComponent,
+    TooltipModule,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './patient-details.component.html',
-  styleUrls: ['./patient-details.component.scss']
+  styleUrls: ['./patient-details.component.scss'],
 })
 export class PatientDetailsComponent implements OnInit {
   private authService = inject(AuthService);
@@ -55,26 +89,64 @@ export class PatientDetailsComponent implements OnInit {
   editingAttendance = signal<Attendance | null>(null);
   editingEvolution = signal<Evolution | null>(null);
 
+  // ── Agendamento de reposição ──
+  showScheduleDialog = signal(false);
+  schedulingAtt = signal<Attendance | null>(null);
+  savingSchedule = signal(false);
+  get today(): Date {
+    return new Date();
+  }
+
+  // ngModel two-way para p-datePicker (signals não fazem two-way diretamente)
+  private _scheduleDate = signal<Date | null>(null);
+  get scheduleDateValue(): Date | null {
+    return this._scheduleDate();
+  }
+  set scheduleDateValue(v: Date | null) {
+    this._scheduleDate.set(v);
+  }
+
   attendanceForm = signal<AttendanceFormData>({ date: new Date(), status: 'present', notes: '' });
 
   evolutionForm = signal<EvolutionFormData>({
-    notes: '', eva: 0,
+    notes: '',
+    eva: 0,
     exercises: { reformer: [], cadillac: [], chair: [], barrel: [], solo: [] },
-    date: new Date()
+    date: new Date(),
   });
 
   statusOptions = [
-    { label: 'Presente',   value: 'present' },
-    { label: 'Faltou',     value: 'absent'  },
-    { label: 'Reposição',  value: 'makeup'  }
+    { label: 'Presente', value: 'present' },
+    { label: 'Faltou', value: 'absent' },
+    { label: 'Reposição', value: 'makeup' },
   ];
 
   exerciseEquipments: ExerciseEquipment[] = [
-    { key: 'reformer', label: 'Reformer',  exercises: EXERCISES_BY_EQUIPMENT.reformer.map(ex => ({ label: ex, value: ex })) },
-    { key: 'cadillac', label: 'Cadillac',  exercises: EXERCISES_BY_EQUIPMENT.cadillac.map(ex => ({ label: ex, value: ex })) },
-    { key: 'chair',    label: 'Chair',     exercises: EXERCISES_BY_EQUIPMENT.chair.map(ex => ({ label: ex, value: ex }))    },
-    { key: 'barrel',   label: 'Barrel',    exercises: EXERCISES_BY_EQUIPMENT.barrel.map(ex => ({ label: ex, value: ex }))   },
-    { key: 'solo',     label: 'Solo/Mat',  exercises: EXERCISES_BY_EQUIPMENT.solo.map(ex => ({ label: ex, value: ex }))     }
+    {
+      key: 'reformer',
+      label: 'Reformer',
+      exercises: EXERCISES_BY_EQUIPMENT.reformer.map((ex) => ({ label: ex, value: ex })),
+    },
+    {
+      key: 'cadillac',
+      label: 'Cadillac',
+      exercises: EXERCISES_BY_EQUIPMENT.cadillac.map((ex) => ({ label: ex, value: ex })),
+    },
+    {
+      key: 'chair',
+      label: 'Chair',
+      exercises: EXERCISES_BY_EQUIPMENT.chair.map((ex) => ({ label: ex, value: ex })),
+    },
+    {
+      key: 'barrel',
+      label: 'Barrel',
+      exercises: EXERCISES_BY_EQUIPMENT.barrel.map((ex) => ({ label: ex, value: ex })),
+    },
+    {
+      key: 'solo',
+      label: 'Solo/Mat',
+      exercises: EXERCISES_BY_EQUIPMENT.solo.map((ex) => ({ label: ex, value: ex })),
+    },
   ];
 
   attendanceConfig = ATTENDANCE_STATUS_CONFIG;
@@ -83,20 +155,20 @@ export class PatientDetailsComponent implements OnInit {
   professionalsMap = this.authService.professionalsMap;
 
   // ── Paginação frequência ──
-  attPage     = signal(0);   // índice da página atual (base 0)
+  attPage = signal(0); // índice da página atual (base 0)
   attPageSize = 10;
 
   // ── Paginação evoluções ──
-  evoPage     = signal(0);
+  evoPage = signal(0);
   evoPageSize = 5;
 
   evaLevels = [
-    { value: 0,  image: 'assets/eva/grau-0.svg',  description: 'Sem dor'           },
-    { value: 2,  image: 'assets/eva/grau-2.svg',  description: 'Dor leve'          },
-    { value: 4,  image: 'assets/eva/grau-4.svg',  description: 'Dor leve a moderada' },
-    { value: 6,  image: 'assets/eva/grau-6.svg',  description: 'Dor moderada'      },
-    { value: 8,  image: 'assets/eva/grau-8.svg',  description: 'Dor intensa'       },
-    { value: 10, image: 'assets/eva/grau-10.svg', description: 'Pior dor possível' }
+    { value: 0, image: 'assets/eva/grau-0.svg', description: 'Sem dor' },
+    { value: 2, image: 'assets/eva/grau-2.svg', description: 'Dor leve' },
+    { value: 4, image: 'assets/eva/grau-4.svg', description: 'Dor leve a moderada' },
+    { value: 6, image: 'assets/eva/grau-6.svg', description: 'Dor moderada' },
+    { value: 8, image: 'assets/eva/grau-8.svg', description: 'Dor intensa' },
+    { value: 10, image: 'assets/eva/grau-10.svg', description: 'Pior dor possível' },
   ];
 
   constructor(
@@ -105,7 +177,7 @@ export class PatientDetailsComponent implements OnInit {
     private patientService: PatientService,
     private exportService: ExportService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
   ) {
     this.setupChartOptions();
   }
@@ -124,10 +196,14 @@ export class PatientDetailsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Aluno não encontrado' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Aluno não encontrado',
+        });
         this.router.navigate(['/patients']);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -159,7 +235,11 @@ export class PatientDetailsComponent implements OnInit {
   }
 
   editAttendance(attendance: Attendance): void {
-    this.attendanceForm.set({ date: new Date(attendance.date), status: attendance.status, notes: attendance.notes || '' });
+    this.attendanceForm.set({
+      date: new Date(attendance.date),
+      status: attendance.status,
+      notes: attendance.notes || '',
+    });
     this.editingAttendance.set(attendance);
     this.showAttendanceDialog.set(true);
   }
@@ -169,7 +249,11 @@ export class PatientDetailsComponent implements OnInit {
     if (!patient) return;
     const formData = this.attendanceForm();
     if (!formData.date) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione uma data' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Selecione uma data',
+      });
       return;
     }
 
@@ -186,18 +270,26 @@ export class PatientDetailsComponent implements OnInit {
         const p = this.patient()!;
         const current = p.attendance || [];
         const updated = editing
-          ? current.map(a => a.id === editing.id ? saved : a)
+          ? current.map((a) => (a.id === editing.id ? saved : a))
           : [saved, ...current];
         this.patchAttendance(updated);
         this.attPage.set(0); // volta para a primeira página após salvar
         this.showAttendanceDialog.set(false);
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: editing ? 'Frequência atualizada' : 'Frequência registrada' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: editing ? 'Frequência atualizada' : 'Frequência registrada',
+        });
         this.loading.set(false);
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível salvar',
+        });
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -215,11 +307,16 @@ export class PatientDetailsComponent implements OnInit {
         this.patientService.deleteAttendance(patient.id, attendance.id).subscribe({
           next: () => {
             const p = this.patient()!;
-            this.patchAttendance(p.attendance.filter(a => a.id !== attendance.id));
+            this.patchAttendance(p.attendance.filter((a) => a.id !== attendance.id));
           },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível remover' })
+          error: () =>
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Não foi possível remover',
+            }),
         });
-      }
+      },
     });
   }
 
@@ -228,13 +325,29 @@ export class PatientDetailsComponent implements OnInit {
   // ─────────────────────────────────────────────
 
   openEvolutionDialog(): void {
-    this.evolutionForm.set({ notes: '', eva: 0, exercises: { reformer: [], cadillac: [], chair: [], barrel: [], solo: [] }, date: new Date() });
+    this.evolutionForm.set({
+      notes: '',
+      eva: 0,
+      exercises: { reformer: [], cadillac: [], chair: [], barrel: [], solo: [] },
+      date: new Date(),
+    });
     this.editingEvolution.set(null);
     this.showEvolutionDialog.set(true);
   }
 
   editEvolution(evolution: Evolution): void {
-    this.evolutionForm.set({ notes: evolution.notes || '', eva: evolution.eva || 0, exercises: evolution.exercises || { reformer: [], cadillac: [], chair: [], barrel: [], solo: [] }, date: new Date(evolution.date) });
+    this.evolutionForm.set({
+      notes: evolution.notes || '',
+      eva: evolution.eva || 0,
+      exercises: evolution.exercises || {
+        reformer: [],
+        cadillac: [],
+        chair: [],
+        barrel: [],
+        solo: [],
+      },
+      date: new Date(evolution.date),
+    });
     this.editingEvolution.set(evolution);
     this.showEvolutionDialog.set(true);
   }
@@ -244,7 +357,11 @@ export class PatientDetailsComponent implements OnInit {
     if (!patient) return;
     const formData = this.evolutionForm();
     if (!formData.notes?.trim()) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha as observações da aula' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Preencha as observações da aula',
+      });
       return;
     }
 
@@ -261,18 +378,26 @@ export class PatientDetailsComponent implements OnInit {
         const p = this.patient()!;
         const current = p.evolutions || [];
         const updated = editing
-          ? current.map(e => e.id === editing.id ? saved : e)
+          ? current.map((e) => (e.id === editing.id ? saved : e))
           : [saved, ...current];
         this.patchEvolutions(updated);
         this.evoPage.set(0); // volta para a primeira página após salvar
         this.showEvolutionDialog.set(false);
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: editing ? 'Evolução atualizada' : 'Evolução registrada' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: editing ? 'Evolução atualizada' : 'Evolução registrada',
+        });
         this.loading.set(false);
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível salvar',
+        });
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -290,12 +415,21 @@ export class PatientDetailsComponent implements OnInit {
         this.patientService.deleteEvolution(patient.id, evolution.id).subscribe({
           next: () => {
             const p = this.patient()!;
-            this.patchEvolutions(p.evolutions.filter(e => e.id !== evolution.id));
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Evolução removida' });
+            this.patchEvolutions(p.evolutions.filter((e) => e.id !== evolution.id));
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Sucesso',
+              detail: 'Evolução removida',
+            });
           },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível remover' })
+          error: () =>
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Não foi possível remover',
+            }),
         });
-      }
+      },
     });
   }
 
@@ -303,30 +437,32 @@ export class PatientDetailsComponent implements OnInit {
   // ESCALA EVA
   // ─────────────────────────────────────────────
 
-  setEvaLevel(level: number): void { this.evolutionForm.update(f => ({ ...f, eva: level })); }
+  setEvaLevel(level: number): void {
+    this.evolutionForm.update((f) => ({ ...f, eva: level }));
+  }
 
   getEvaDescription(eva: number): string {
     if (eva === 0) return 'Sem dor';
-    if (eva <= 3)  return 'Dor leve';
-    if (eva <= 6)  return 'Dor moderada';
-    if (eva <= 9)  return 'Dor intensa';
+    if (eva <= 3) return 'Dor leve';
+    if (eva <= 6) return 'Dor moderada';
+    if (eva <= 9) return 'Dor intensa';
     return 'Pior dor possível';
   }
 
   getEvaSeverityClass(eva: number): string {
     if (eva === 0) return 'eva-none';
-    if (eva <= 3)  return 'eva-mild';
-    if (eva <= 6)  return 'eva-moderate';
-    if (eva <= 9)  return 'eva-severe';
+    if (eva <= 3) return 'eva-mild';
+    if (eva <= 6) return 'eva-moderate';
+    if (eva <= 9) return 'eva-severe';
     return 'eva-extreme';
   }
 
   getEvaImage(eva: number): string {
     if (eva === 0) return 'assets/eva/grau-0.svg';
-    if (eva <= 3)  return 'assets/eva/grau-2.svg';
-    if (eva <= 5)  return 'assets/eva/grau-4.svg';
-    if (eva <= 7)  return 'assets/eva/grau-6.svg';
-    if (eva <= 9)  return 'assets/eva/grau-8.svg';
+    if (eva <= 3) return 'assets/eva/grau-2.svg';
+    if (eva <= 5) return 'assets/eva/grau-4.svg';
+    if (eva <= 7) return 'assets/eva/grau-6.svg';
+    if (eva <= 9) return 'assets/eva/grau-8.svg';
     return 'assets/eva/grau-10.svg';
   }
 
@@ -336,36 +472,101 @@ export class PatientDetailsComponent implements OnInit {
 
   hasExercises(exercises: ExercisesByEquipment): boolean {
     if (!exercises) return false;
-    return Object.values(exercises).some(v => v?.length > 0);
+    return Object.values(exercises).some((v) => v?.length > 0);
   }
 
   getAttendanceStats() {
     const attendance = this.patient()?.attendance ?? [];
 
     // Presenças comuns (sem ser reposição)
-    const present         = attendance.filter(a => a.status === 'present' && !a.makeup_origin_id).length;
+    const present = attendance.filter((a) => a.status === 'present' && !a.makeup_origin_id).length;
     // Reposições realizadas (present + makeup_origin_id)
-    const repostoFeito    = attendance.filter(a => a.status === 'present' && !!a.makeup_origin_id).length;
-    const absent          = attendance.filter(a => a.status === 'absent').length;
+    const repostoFeito = attendance.filter(
+      (a) => a.status === 'present' && !!a.makeup_origin_id,
+    ).length;
+    const absent = attendance.filter((a) => a.status === 'absent').length;
     // Faltas pendentes de reposição (makeup ainda não quitado)
-    const makeupPendente  = attendance.filter(a => a.status === 'makeup' && !a.reposto).length;
+    const makeupPendente = attendance.filter((a) => a.status === 'makeup' && !a.reposto).length;
     // Faltas já quitadas
-    const makeupQuitado   = attendance.filter(a => a.status === 'makeup' && !!a.reposto).length;
+    const makeupQuitado = attendance.filter((a) => a.status === 'makeup' && !!a.reposto).length;
 
     const total = present + repostoFeito + absent;
     return {
-      present, repostoFeito, absent,
-      makeupPendente, makeupQuitado,
+      present,
+      repostoFeito,
+      absent,
+      makeupPendente,
+      makeupQuitado,
       // makeup é o total de faltas (para manter compatibilidade com o gráfico)
       makeup: makeupPendente + makeupQuitado,
       total,
-      rate: total > 0 ? ((present + repostoFeito) / total) * 100 : 0
+      rate: total > 0 ? ((present + repostoFeito) / total) * 100 : 0,
     };
   }
 
   // ── Helpers de reposição ──
   isRepostoFeito(att: Attendance): boolean {
     return att.status === 'present' && !!att.makeup_origin_id;
+  }
+
+  // ─────────────────────────────────────────────
+  // AGENDAMENTO DE REPOSIÇÃO
+  // ─────────────────────────────────────────────
+
+  openScheduleDialog(att: Attendance): void {
+    this.schedulingAtt.set(att);
+    this._scheduleDate.set(att.makeup_scheduled_date ? new Date(att.makeup_scheduled_date) : null);
+    this.showScheduleDialog.set(true);
+  }
+
+  confirmSchedule(): void {
+    const att = this.schedulingAtt();
+    const date = this._scheduleDate();
+    if (!att || !date) return;
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const scheduledDate = `${y}-${m}-${d}`;
+
+    this.savingSchedule.set(true);
+    this.patientService.scheduleMakeup(att.id, scheduledDate).subscribe({
+      next: (saved) => {
+        const p = this.patient()!;
+        this.patchAttendance(p.attendance.map((a) => (a.id === att.id ? saved : a)));
+        this.showScheduleDialog.set(false);
+        this.savingSchedule.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Reposição agendada!',
+          detail: `Agendada para ${date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'long' })}.`,
+          life: 4000,
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível agendar. Tente novamente.',
+        });
+        this.savingSchedule.set(false);
+      },
+    });
+  }
+
+  getScheduledDateLabel(att: Attendance): string {
+    if (!att.makeup_scheduled_date) return '';
+    return new Date(att.makeup_scheduled_date).toLocaleDateString('pt-BR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    });
+  }
+
+  isScheduledSoon(att: Attendance): boolean {
+    if (!att.makeup_scheduled_date) return false;
+    const diff = new Date(att.makeup_scheduled_date).getTime() - new Date().setHours(0, 0, 0, 0);
+    return diff >= 0 && diff <= 3 * 24 * 60 * 60 * 1000;
   }
 
   isMakeupPendente(att: Attendance): boolean {
@@ -377,15 +578,15 @@ export class PatientDetailsComponent implements OnInit {
   }
 
   getAttendanceTagSeverity(att: Attendance): 'success' | 'danger' | 'warn' | 'info' | 'secondary' {
-    if (this.isRepostoFeito(att))   return 'info';    // azul — presença de reposição
-    if (this.isMakeupQuitado(att))  return 'secondary'; // cinza — falta já quitada
-    if (att.status === 'present')   return 'success';
-    if (att.status === 'absent')    return 'danger';
+    if (this.isRepostoFeito(att)) return 'info'; // azul — presença de reposição
+    if (this.isMakeupQuitado(att)) return 'secondary'; // cinza — falta já quitada
+    if (att.status === 'present') return 'success';
+    if (att.status === 'absent') return 'danger';
     return 'warn'; // makeup pendente
   }
 
   getAttendanceTagLabel(att: Attendance): string {
-    if (this.isRepostoFeito(att))  return 'Reposição realizada';
+    if (this.isRepostoFeito(att)) return 'Reposição realizada';
     if (this.isMakeupQuitado(att)) return 'Falta — já reposta';
     return this.getAttendanceStatus(att.status).label;
   }
@@ -426,7 +627,14 @@ export class PatientDetailsComponent implements OnInit {
     return 'danger';
   }
 
-  getInitials(name: string): string { return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2); }
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
   getAvatarColor(name: string): string {
     return ['#7a9e7e', '#c4956a', '#5a8f5a', '#d4a574', '#4e6e52'][name.charCodeAt(0) % 5];
   }
@@ -435,14 +643,20 @@ export class PatientDetailsComponent implements OnInit {
     const patient = this.patient();
     if (!patient) return;
     this.exportService.exportPatientDetail(patient);
-    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Relatório exportado' });
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Sucesso',
+      detail: 'Relatório exportado',
+    });
   }
 
   setupChartOptions(): void {
     this.attendanceChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 12 } } } }
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 12 } } },
+      },
     };
   }
 
@@ -450,12 +664,14 @@ export class PatientDetailsComponent implements OnInit {
     const s = this.getAttendanceStats();
     this.attendanceChartData = {
       labels: ['Presenças', 'Faltas', 'Reposições'],
-      datasets: [{
-        data: [s.present, s.absent, s.makeup],
-        backgroundColor: ['rgba(90,143,90,0.8)', 'rgba(192,96,96,0.8)', 'rgba(212,165,116,0.8)'],
-        borderColor: ['#5a8f5a', '#c06060', '#d4a574'],
-        borderWidth: 2
-      }]
+      datasets: [
+        {
+          data: [s.present, s.absent, s.makeup],
+          backgroundColor: ['rgba(90,143,90,0.8)', 'rgba(192,96,96,0.8)', 'rgba(212,165,116,0.8)'],
+          borderColor: ['#5a8f5a', '#c06060', '#d4a574'],
+          borderWidth: 2,
+        },
+      ],
     };
   }
 

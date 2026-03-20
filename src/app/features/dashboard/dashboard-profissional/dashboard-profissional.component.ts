@@ -26,6 +26,10 @@ interface AulaHoje {
   status: 'present' | 'absent' | 'makeup' | null;
   attendanceId: string | null;
   saving: boolean;
+  /** Aluno está na lista porque tem reposição agendada para hoje (não tem o dia na grade fixa) */
+  isAgendadoReposto?: boolean;
+  makeupAgendadoId?: string;
+  makeupOriginDate?: Date;
 }
 
 /**
@@ -165,12 +169,55 @@ export class DashboardProfissionalComponent implements OnInit {
           .sort((a, b) => (a.horario || '23:59').localeCompare(b.horario || '23:59'));
 
         this.aulaHoje.set(aulasDeHoje);
-        this.carregarFrequenciasDeHoje(aulasDeHoje);
 
-        // ── NOVO: verifica dias anteriores sem registro ────────────────────
-        // Passa todos os alunos ativos para cruzar com os attendances de cada dia.
+        // ── Injeta reposições agendadas para hoje ──────────────────────────
+        // Alunos que têm makeup_scheduled_date == hoje mas não têm o dia
+        // na grade fixa não entram em aulasDeHoje. Carregamos os pendentes
+        // e os adicionamos à lista para que o professor possa confirmar
+        // a presença diretamente do dashboard.
+        const dateStr = this.getDateStr(this.hoje);
+        this.patientService.getPendingMakeupsList(dateStr).subscribe({
+          next: (list) => {
+            this.pendingMakeups.set(list);
+
+            const idsJaNaLista = new Set(aulasDeHoje.map((a) => String(a.patient.id)));
+            const agendadosHoje: AulaHoje[] = list
+              .filter((m) => {
+                if (!m.makeup_scheduled_date) return false;
+                return (
+                  String(m.makeup_scheduled_date).slice(0, 10) === dateStr &&
+                  !idsJaNaLista.has(String(m.patient_id))
+                );
+              })
+              .reduce<AulaHoje[]>((acc, m) => {
+                const paciente = meusAtivos.find((p) => String(p.id) === String(m.patient_id));
+                if (!paciente) return acc;
+                acc.push({
+                  patient: paciente,
+                  horario: '',
+                  status: null,
+                  attendanceId: null,
+                  saving: false,
+                  isAgendadoReposto: true,
+                  makeupAgendadoId: m.id,
+                  makeupOriginDate: this.parseDateLocal(m.date),
+                } as AulaHoje);
+                return acc;
+              }, []);
+
+            const listaFinal = [...aulasDeHoje, ...agendadosHoje];
+            this.aulaHoje.set(listaFinal);
+            this.carregarFrequenciasDeHoje(listaFinal);
+          },
+          error: () => {
+            // fallback: carrega sem agendados
+            this.carregarFrequenciasDeHoje(aulasDeHoje);
+          },
+        });
+        // ──────────────────────────────────────────────────────────────────
+
+        // ── Verifica dias anteriores sem registro ──────────────────────────
         this.verificarDiasAnteriores(meusAtivos);
-        // ─────────────────────────────────────────────────────────────────
 
         this.loading.set(false);
       },
@@ -377,8 +424,21 @@ export class DashboardProfissionalComponent implements OnInit {
   // FREQUÊNCIA DO DIA ATUAL (lógica existente — sem alterações)
   // ─────────────────────────────────────────────────────────────────────────
 
+  private parseDateLocal(raw: string | Date): Date {
+    const s = raw instanceof Date ? raw.toISOString() : String(raw);
+    const [y, m, d] = s.slice(0, 10).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  private getDateStr(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   private carregarFrequenciasDeHoje(aulas: AulaHoje[]): void {
-    const dateStr = this.hoje.toISOString().split('T')[0];
+    const dateStr = this.getDateStr(this.hoje);
     this.patientService.getAttendanceByDate(dateStr).subscribe({
       next: (attendances: Attendance[]) => {
         this.aulaHoje.update((list) =>
@@ -389,10 +449,6 @@ export class DashboardProfissionalComponent implements OnInit {
               : a;
           }),
         );
-        this.patientService.getPendingMakeupsList(dateStr).subscribe({
-          next: (list) => this.pendingMakeups.set(list),
-          error: () => {},
-        });
       },
       error: () => {},
     });
@@ -402,8 +458,8 @@ export class DashboardProfissionalComponent implements OnInit {
     if (aula.status === status) return;
 
     this.savingId.set(aula.patient.id);
-    const dateStr = this.hoje.toISOString().split('T')[0];
-    const formData = { date: new Date(dateStr), status, notes: '' };
+    const dateStr = this.getDateStr(this.hoje);
+    const formData = { date: this.hoje, status, notes: '' };
 
     const op$ = aula.attendanceId
       ? this.patientService.updateAttendance(aula.patient.id, aula.attendanceId, formData)

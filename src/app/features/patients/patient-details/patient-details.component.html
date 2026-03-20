@@ -1,23 +1,17 @@
 <div class="patient-details-container">
   <p-toast />
   <p-confirmDialog />
-  
+
   @if (patient(); as p) {
     <div class="details-header">
       <div class="header-left">
-        <p-button
-          icon="pi pi-arrow-left"
-          [text]="true"
-          routerLink="/patients"
-          pTooltip="Voltar">
+        <p-button icon="pi pi-arrow-left" [text]="true" routerLink="/patients" pTooltip="Voltar">
         </p-button>
-        
-        <div 
-          class="patient-avatar-large"
-          [style.background]="getAvatarColor(p.nome)">
+
+        <div class="patient-avatar-large" [style.background]="getAvatarColor(p.nome)">
           {{ getInitials(p.nome) }}
         </div>
-        
+
         <div class="patient-info">
           <h1>{{ p.nome }}</h1>
           <div class="patient-meta">
@@ -32,20 +26,18 @@
           </div>
         </div>
       </div>
-      
+
       <div class="header-actions">
         <p-button
           label="Exportar"
           icon="pi pi-file-excel"
           severity="success"
           [text]="true"
-          (onClick)="exportPatient()">
+          (onClick)="exportPatient()"
+        >
         </p-button>
-        
-        <p-button
-          label="Editar"
-          icon="pi pi-pencil"
-          [routerLink]="['/patients', p.id, 'edit']">
+
+        <p-button label="Editar" icon="pi pi-pencil" [routerLink]="['/patients', p.id, 'edit']">
         </p-button>
       </div>
     </div>
@@ -60,7 +52,7 @@
         <app-biometric-manager [patientId]="patient()!.id" />
       </div>
     </div>
-    
+
     <div class="details-grid">
       <!-- Cards de Informações -->
       <div class="info-cards">
@@ -71,11 +63,11 @@
             </div>
             <div class="card-info">
               <span class="card-label">Valor Pacote</span>
-              <span class="card-value">{{ p.valor | currency:'BRL' }}</span>
+              <span class="card-value">{{ p.valor | currency: 'BRL' }}</span>
             </div>
           </div>
         </p-card>
-        
+
         <p-card styleClass="info-card">
           <div class="card-content">
             <div class="card-icon ganho">
@@ -83,11 +75,11 @@
             </div>
             <div class="card-info">
               <span class="card-label">Ganho Líquido</span>
-              <span class="card-value">{{ p.ganho | currency:'BRL' }}</span>
+              <span class="card-value">{{ p.ganho | currency: 'BRL' }}</span>
             </div>
           </div>
         </p-card>
-        
+
         <p-card styleClass="info-card">
           <div class="card-content">
             <div class="card-icon presenca">
@@ -96,16 +88,17 @@
             <div class="card-info">
               <span class="card-label">Taxa Frequência</span>
               @let stats = getAttendanceStats();
-              <p-tag 
+              <p-tag
                 [value]="stats.rate.toFixed(0) + '%'"
                 [severity]="getSeverity(stats.rate)"
-                styleClass="card-value">
+                styleClass="card-value"
+              >
               </p-tag>
             </div>
           </div>
         </p-card>
       </div>
-      
+
       <!-- Dias da Semana -->
       <p-card>
         <ng-template pTemplate="header">
@@ -113,7 +106,7 @@
             <h3>Dias de Aula</h3>
           </div>
         </ng-template>
-        
+
         <div class="days-display">
           @for (dia of p.dias; track dia) {
             <div class="day-badge">
@@ -126,7 +119,7 @@
         </div>
       </p-card>
     </div>
-    
+
     <!-- Tabs de Conteúdo -->
     <p-tabs styleClass="details-tabs">
       <!-- Tab Frequência -->
@@ -135,22 +128,24 @@
           <p-button
             label="Registrar Frequência"
             icon="pi pi-plus"
-            (onClick)="openAttendanceDialog()">
+            (onClick)="openAttendanceDialog()"
+          >
           </p-button>
         </div>
-        
+
         <div class="attendance-grid">
           <div class="attendance-chart">
             <h4>Estatísticas</h4>
             @if (attendanceChartData) {
-              <p-chart 
-                type="doughnut" 
-                [data]="attendanceChartData" 
+              <p-chart
+                type="doughnut"
+                [data]="attendanceChartData"
                 [options]="attendanceChartOptions"
-                [style]="{ width: '100%', height: '250px' }">
+                [style]="{ width: '100%', height: '250px' }"
+              >
               </p-chart>
             }
-            
+
             @let attendanceStats = getAttendanceStats();
             <div class="attendance-summary">
               <div class="summary-item">
@@ -182,7 +177,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="attendance-list">
             <div class="list-header-row">
               <h4>Histórico</h4>
@@ -192,24 +187,39 @@
             </div>
 
             @if (p.attendance && p.attendance.length > 0) {
-              <p-timeline
-                [value]="pagedAttendance()"
-                align="left"
-                styleClass="attendance-timeline">
+              <p-timeline [value]="pagedAttendance()" align="left" styleClass="attendance-timeline">
                 <ng-template pTemplate="content" let-att>
-                  <div class="timeline-item" [class.tl-reposto-feito]="isRepostoFeito(att)" [class.tl-makeup-quitado]="isMakeupQuitado(att)">
+                  <div
+                    class="timeline-item"
+                    [class.tl-reposto-feito]="isRepostoFeito(att)"
+                    [class.tl-makeup-quitado]="isMakeupQuitado(att)"
+                  >
                     <div class="timeline-header">
-                      <span class="timeline-date">{{ att.date | date:'dd/MM/yyyy' }}</span>
+                      <span class="timeline-date">{{ att.date | date: 'dd/MM/yyyy' }}</span>
                       <div class="timeline-actions">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="editAttendance(att)"></p-button>
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" (onClick)="deleteAttendance(att)"></p-button>
+                        <p-button
+                          icon="pi pi-pencil"
+                          [rounded]="true"
+                          [text]="true"
+                          size="small"
+                          (onClick)="editAttendance(att)"
+                        ></p-button>
+                        <p-button
+                          icon="pi pi-trash"
+                          [rounded]="true"
+                          [text]="true"
+                          severity="danger"
+                          size="small"
+                          (onClick)="deleteAttendance(att)"
+                        ></p-button>
                       </div>
                     </div>
 
                     <!-- Tag principal com label e cor contextuais -->
                     <p-tag
                       [value]="getAttendanceTagLabel(att)"
-                      [severity]="getAttendanceTagSeverity(att)">
+                      [severity]="getAttendanceTagSeverity(att)"
+                    >
                     </p-tag>
 
                     <!-- Chip extra informativo de reposição -->
@@ -224,9 +234,34 @@
                       </span>
                     }
                     @if (isMakeupPendente(att)) {
-                      <span class="att-extra-chip chip-pendente">
-                        <i class="pi pi-clock"></i> Pendente de reposição
-                      </span>
+                      <div class="chip-pendente-row">
+                        <span class="att-extra-chip chip-pendente">
+                          <i class="pi pi-clock"></i> Pendente de reposição
+                        </span>
+                        @if (att.makeup_scheduled_date) {
+                          <span
+                            class="att-extra-chip chip-agendada"
+                            [class.chip-agendada-soon]="isScheduledSoon(att)"
+                          >
+                            <i class="pi pi-calendar-clock"></i>
+                            Agendada p/ {{ getScheduledDateLabel(att) }}
+                          </span>
+                        }
+                        <button
+                          class="inline-schedule-btn"
+                          [class.has-date]="!!att.makeup_scheduled_date"
+                          [pTooltip]="
+                            att.makeup_scheduled_date
+                              ? 'Reagendar reposição'
+                              : 'Agendar data de reposição'
+                          "
+                          tooltipPosition="top"
+                          (click)="openScheduleDialog(att); $event.stopPropagation()"
+                        >
+                          <i class="pi pi-calendar-plus"></i>
+                          {{ att.makeup_scheduled_date ? 'Reagendar' : 'Agendar' }}
+                        </button>
+                      </div>
                     }
 
                     @if (att.notes) {
@@ -239,24 +274,39 @@
               <!-- Paginador frequência -->
               @if (attTotalPages > 1) {
                 <div class="paginator-row">
-                  <button class="pag-btn" [disabled]="attPage() === 0" (click)="attGoTo(attPage() - 1)">
+                  <button
+                    class="pag-btn"
+                    [disabled]="attPage() === 0"
+                    (click)="attGoTo(attPage() - 1)"
+                  >
                     <i class="pi pi-chevron-left"></i>
                   </button>
                   @for (i of [].constructor(attTotalPages); track $index) {
-                    <button class="pag-btn pag-num" [class.active]="attPage() === $index" (click)="attGoTo($index)">
+                    <button
+                      class="pag-btn pag-num"
+                      [class.active]="attPage() === $index"
+                      (click)="attGoTo($index)"
+                    >
                       {{ $index + 1 }}
                     </button>
                   }
-                  <button class="pag-btn" [disabled]="attPage() === attTotalPages - 1" (click)="attGoTo(attPage() + 1)">
+                  <button
+                    class="pag-btn"
+                    [disabled]="attPage() === attTotalPages - 1"
+                    (click)="attGoTo(attPage() + 1)"
+                  >
                     <i class="pi pi-chevron-right"></i>
                   </button>
                   <span class="pag-info">
-                    {{ attPage() * attPageSize + 1 }}–{{ (attPage() + 1) * attPageSize > (p.attendance.length) ? (p.attendance.length) : (attPage() + 1) * attPageSize }}
+                    {{ attPage() * attPageSize + 1 }}–{{
+                      (attPage() + 1) * attPageSize > p.attendance.length
+                        ? p.attendance.length
+                        : (attPage() + 1) * attPageSize
+                    }}
                     de {{ p.attendance.length }}
                   </span>
                 </div>
               }
-
             } @else {
               <div class="empty-state">
                 <i class="pi pi-calendar"></i>
@@ -266,17 +316,14 @@
           </div>
         </div>
       </p-tabs>
-      
+
       <!-- Tab Evoluções -->
       <p-tabs header="Evoluções" leftIcon="pi pi-file-edit">
         <div class="tab-header">
-          <p-button
-            label="Nova Evolução"
-            icon="pi pi-plus"
-            (onClick)="openEvolutionDialog()">
+          <p-button label="Nova Evolução" icon="pi pi-plus" (onClick)="openEvolutionDialog()">
           </p-button>
         </div>
-        
+
         @if (p.evolutions && p.evolutions.length > 0) {
           <div class="evolutions-list-header">
             <span class="list-count">{{ p.evolutions.length }} registros</span>
@@ -289,14 +336,14 @@
                     <div class="evolution-meta">
                       <span class="evolution-date">
                         <i class="pi pi-calendar"></i>
-                        {{ evo.date | date:'dd/MM/yyyy' }}
+                        {{ evo.date | date: 'dd/MM/yyyy' }}
                       </span>
                       <span class="evolution-author">
                         <i class="pi pi-user"></i>
                         {{ evo.author }}
                       </span>
                     </div>
-                    
+
                     @if (evo.eva !== undefined && evo.eva !== null) {
                       <div class="evolution-eva-display">
                         <span class="eva-label">
@@ -305,10 +352,11 @@
                         </span>
                         <div class="eva-rating-wrapper">
                           <div class="eva-readonly-display">
-                            <img 
-                              [src]="getEvaImage(evo.eva)" 
+                            <img
+                              [src]="getEvaImage(evo.eva)"
                               [alt]="getEvaDescription(evo.eva)"
-                              class="eva-readonly-image">
+                              class="eva-readonly-image"
+                            />
                             <span class="eva-readonly-value" [class]="getEvaSeverityClass(evo.eva)">
                               {{ evo.eva }}/10 - {{ getEvaDescription(evo.eva) }}
                             </span>
@@ -322,25 +370,27 @@
                       icon="pi pi-pencil"
                       [rounded]="true"
                       [text]="true"
-                      (onClick)="editEvolution(evo)">
+                      (onClick)="editEvolution(evo)"
+                    >
                     </p-button>
                     <p-button
                       icon="pi pi-trash"
                       [rounded]="true"
                       [text]="true"
                       severity="danger"
-                      (onClick)="deleteEvolution(evo)">
+                      (onClick)="deleteEvolution(evo)"
+                    >
                     </p-button>
                   </div>
                 </div>
-                
+
                 @if (evo.notes) {
                   <div class="evolution-notes">
                     <h5><i class="pi pi-comment"></i> Observações</h5>
                     <p>{{ evo.notes }}</p>
                   </div>
                 }
-                
+
                 @if (evo.exercises && hasExercises(evo.exercises)) {
                   <div class="evolution-exercises">
                     <h5><i class="pi pi-list"></i> Exercícios Realizados</h5>
@@ -355,7 +405,7 @@
                           </div>
                         </div>
                       }
-                      
+
                       @if (evo.exercises.cadillac && evo.exercises.cadillac.length > 0) {
                         <div class="exercise-group">
                           <span class="group-title">Cadillac</span>
@@ -366,7 +416,7 @@
                           </div>
                         </div>
                       }
-                      
+
                       @if (evo.exercises.chair && evo.exercises.chair.length > 0) {
                         <div class="exercise-group">
                           <span class="group-title">Chair</span>
@@ -377,7 +427,7 @@
                           </div>
                         </div>
                       }
-                      
+
                       @if (evo.exercises.barrel && evo.exercises.barrel.length > 0) {
                         <div class="exercise-group">
                           <span class="group-title">Barrel</span>
@@ -388,7 +438,7 @@
                           </div>
                         </div>
                       }
-                      
+
                       @if (evo.exercises.solo && evo.exercises.solo.length > 0) {
                         <div class="exercise-group">
                           <span class="group-title">Solo/Mat</span>
@@ -413,20 +463,31 @@
                 <i class="pi pi-chevron-left"></i>
               </button>
               @for (i of [].constructor(evoTotalPages); track $index) {
-                <button class="pag-btn pag-num" [class.active]="evoPage() === $index" (click)="evoGoTo($index)">
+                <button
+                  class="pag-btn pag-num"
+                  [class.active]="evoPage() === $index"
+                  (click)="evoGoTo($index)"
+                >
                   {{ $index + 1 }}
                 </button>
               }
-              <button class="pag-btn" [disabled]="evoPage() === evoTotalPages - 1" (click)="evoGoTo(evoPage() + 1)">
+              <button
+                class="pag-btn"
+                [disabled]="evoPage() === evoTotalPages - 1"
+                (click)="evoGoTo(evoPage() + 1)"
+              >
                 <i class="pi pi-chevron-right"></i>
               </button>
               <span class="pag-info">
-                {{ evoPage() * evoPageSize + 1 }}–{{ (evoPage() + 1) * evoPageSize > (p.evolutions.length) ? (p.evolutions.length) : (evoPage() + 1) * evoPageSize }}
+                {{ evoPage() * evoPageSize + 1 }}–{{
+                  (evoPage() + 1) * evoPageSize > p.evolutions.length
+                    ? p.evolutions.length
+                    : (evoPage() + 1) * evoPageSize
+                }}
                 de {{ p.evolutions.length }}
               </span>
             </div>
           }
-
         } @else {
           <div class="empty-state">
             <i class="pi pi-file-edit"></i>
@@ -436,16 +497,16 @@
       </p-tabs>
     </p-tabs>
   }
-  
+
   <!-- Dialog Frequência -->
-  <p-dialog 
+  <p-dialog
     [(visible)]="showAttendanceDialog"
     [header]="editingAttendance() ? 'Editar Frequência' : 'Registrar Frequência'"
     [modal]="true"
     [style]="{ width: '500px', maxWidth: '95vw' }"
     [breakpoints]="{ '768px': '95vw', '480px': '100vw' }"
-    [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '80vh' }">
-    
+    [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '80vh' }"
+  >
     <div class="dialog-form">
       <div class="form-group">
         <label for="attDate">Data *</label>
@@ -456,10 +517,11 @@
           dateFormat="dd/mm/yy"
           [showIcon]="true"
           appendTo="body"
-          styleClass="w-full">
+          styleClass="w-full"
+        >
         </p-datepicker>
       </div>
-      
+
       <div class="form-group">
         <label for="attStatus">Status *</label>
         <p-select
@@ -468,10 +530,11 @@
           [options]="statusOptions"
           [(ngModel)]="attendanceForm().status"
           placeholder="Selecione o status"
-          styleClass="w-full">
+          styleClass="w-full"
+        >
         </p-select>
       </div>
-      
+
       <div class="form-group">
         <label for="attNotes">Observações</label>
         <textarea
@@ -481,29 +544,32 @@
           [(ngModel)]="attendanceForm().notes"
           rows="3"
           placeholder="Observações opcionais..."
-          class="w-full">
+          class="w-full"
+        >
         </textarea>
       </div>
     </div>
-    
+
     <ng-template pTemplate="footer">
       <p-button
         label="Cancelar"
         severity="secondary"
         [text]="true"
-        (onClick)="showAttendanceDialog.set(false)">
+        (onClick)="showAttendanceDialog.set(false)"
+      >
       </p-button>
       <p-button
         label="Salvar"
         icon="pi pi-check"
         (onClick)="saveAttendance()"
-        [loading]="loading()">
+        [loading]="loading()"
+      >
       </p-button>
     </ng-template>
   </p-dialog>
-  
+
   <!-- Dialog Evolução -->
-  <p-dialog 
+  <p-dialog
     [(visible)]="showEvolutionDialog"
     [header]="editingEvolution() ? 'Editar Evolução' : 'Nova Evolução'"
     [modal]="true"
@@ -511,8 +577,8 @@
     [breakpoints]="{ '768px': '95vw', '480px': '100vw' }"
     [maximizable]="true"
     [contentStyle]="{ 'overflow-y': 'auto', 'max-height': '75vh' }"
-    styleClass="evolution-dialog">
-    
+    styleClass="evolution-dialog"
+  >
     <div class="dialog-form">
       <div class="form-row">
         <div class="form-group">
@@ -522,11 +588,12 @@
             [(ngModel)]="evolutionForm().date"
             dateFormat="dd/mm/yy"
             [showIcon]="true"
-            styleClass="w-full">
+            styleClass="w-full"
+          >
           </p-datepicker>
         </div>
       </div>
-      
+
       <div class="form-group eva-form-group">
         <label for="evoEva">
           <i class="pi pi-heartbeat"></i>
@@ -535,23 +602,25 @@
         <div class="eva-input-wrapper">
           <div class="eva-image-rating">
             @for (level of evaLevels; track level.value) {
-              <button 
+              <button
                 type="button"
                 class="eva-level-button"
                 [class.selected]="evolutionForm().eva === level.value"
                 (click)="setEvaLevel(level.value)"
-                [attr.aria-label]="level.description">
-                <img 
-                  [src]="level.image" 
-                  [alt]="level.description"
-                  class="eva-level-image">
+                [attr.aria-label]="level.description"
+              >
+                <img [src]="level.image" [alt]="level.description" class="eva-level-image" />
                 <span class="eva-level-label">{{ level.value }}</span>
               </button>
             }
           </div>
-          
+
           <div class="eva-description">
-            @if (evolutionForm().eva !== undefined && evolutionForm().eva !== null && evolutionForm().eva! > 0) {
+            @if (
+              evolutionForm().eva !== undefined &&
+              evolutionForm().eva !== null &&
+              evolutionForm().eva! > 0
+            ) {
               <span class="eva-value-display" [class]="getEvaSeverityClass(evolutionForm().eva!)">
                 {{ evolutionForm().eva }}/10 - {{ getEvaDescription(evolutionForm().eva!) }}
               </span>
@@ -561,10 +630,11 @@
           </div>
         </div>
         <small class="eva-help">
-          0 = Sem dor | 1-3 = Dor leve | 4-6 = Dor moderada | 7-9 = Dor intensa | 10 = Pior dor possível
+          0 = Sem dor | 1-3 = Dor leve | 4-6 = Dor moderada | 7-9 = Dor intensa | 10 = Pior dor
+          possível
         </small>
       </div>
-      
+
       <div class="form-group">
         <label for="evoNotes">Observações da Aula *</label>
         <textarea
@@ -573,53 +643,120 @@
           [(ngModel)]="evolutionForm().notes"
           rows="4"
           placeholder="Descreva como foi a aula, progressos, dificuldades..."
-          class="w-full">
+          class="w-full"
+        >
         </textarea>
       </div>
-      
+
       <div class="exercises-section">
         <h4>Exercícios Realizados</h4>
         <p-tabs styleClass="exercise-tabs">
-            <p-tablist>
-              @for (equipment of exerciseEquipments; track equipment.key) {
-                <p-tab [value]="equipment.key">{{ equipment.label }}</p-tab>
-              }
-            </p-tablist>
-            <p-tabpanels>
-              @for (equipment of exerciseEquipments; track equipment.key) {
-                <p-tabpanel [value]="equipment.key">
-                  <div class="exercise-selector">
-                    <p-multiSelect
-                      [options]="equipment.exercises"
-                      [(ngModel)]="evolutionForm().exercises![equipment.key]"
-                      [placeholder]="'Selecione exercícios do ' + equipment.label"
-                      [filter]="true"
-                      filterBy="label"
-                      styleClass="w-full"
-                      [showToggleAll]="false"
-                      display="chip">
-                    </p-multiSelect>
-                  </div>
-                </p-tabpanel>
-              }
-            </p-tabpanels>
+          <p-tablist>
+            @for (equipment of exerciseEquipments; track equipment.key) {
+              <p-tab [value]="equipment.key">{{ equipment.label }}</p-tab>
+            }
+          </p-tablist>
+          <p-tabpanels>
+            @for (equipment of exerciseEquipments; track equipment.key) {
+              <p-tabpanel [value]="equipment.key">
+                <div class="exercise-selector">
+                  <p-multiSelect
+                    [options]="equipment.exercises"
+                    [(ngModel)]="evolutionForm().exercises![equipment.key]"
+                    [placeholder]="'Selecione exercícios do ' + equipment.label"
+                    [filter]="true"
+                    filterBy="label"
+                    styleClass="w-full"
+                    [showToggleAll]="false"
+                    display="chip"
+                  >
+                  </p-multiSelect>
+                </div>
+              </p-tabpanel>
+            }
+          </p-tabpanels>
         </p-tabs>
       </div>
     </div>
-    
+
     <ng-template pTemplate="footer">
       <p-button
         label="Cancelar"
         severity="secondary"
         [text]="true"
-        (onClick)="showEvolutionDialog.set(false)">
+        (onClick)="showEvolutionDialog.set(false)"
+      >
       </p-button>
-      <p-button
-        label="Salvar"
-        icon="pi pi-check"
-        (onClick)="saveEvolution()"
-        [loading]="loading()">
+      <p-button label="Salvar" icon="pi pi-check" (onClick)="saveEvolution()" [loading]="loading()">
       </p-button>
     </ng-template>
   </p-dialog>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DIALOG — AGENDAR / REAGENDAR DATA DE REPOSIÇÃO
+     ═══════════════════════════════════════════════════════════════ -->
+<p-dialog
+  [(visible)]="showScheduleDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="schedule-dialog-pd"
+  [style]="{ width: '380px' }"
+>
+  <ng-template pTemplate="header">
+    <div class="schedule-dialog-header">
+      <span class="schedule-dialog-icon"><i class="pi pi-calendar-plus"></i></span>
+      <div>
+        <h3>
+          {{ schedulingAtt()?.makeup_scheduled_date ? 'Reagendar Reposição' : 'Agendar Reposição' }}
+        </h3>
+        @if (schedulingAtt()) {
+          <p>Falta registrada em {{ schedulingAtt()!.date | date: 'dd/MM/yyyy' }}</p>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="schedule-dialog-body">
+    <p class="schedule-dialog-hint">
+      <i class="pi pi-info-circle"></i>
+      Registra apenas a intenção. A presença é confirmada ao usar "Registrar Reposição".
+    </p>
+    <p-datePicker
+      [(ngModel)]="scheduleDateValue"
+      [inline]="true"
+      [minDate]="today"
+      dateFormat="dd/mm/yy"
+      styleClass="schedule-calendar-pd"
+    >
+    </p-datePicker>
+    @if (schedulingAtt()?.makeup_scheduled_date) {
+      <div class="current-schedule-info">
+        <i class="pi pi-clock"></i>
+        Atualmente agendada para <strong>{{ getScheduledDateLabel(schedulingAtt()!) }}</strong>
+      </div>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="schedule-dialog-footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showScheduleDialog.set(false)"
+        [disabled]="savingSchedule()"
+      >
+      </p-button>
+      <p-button
+        [label]="schedulingAtt()?.makeup_scheduled_date ? 'Reagendar' : 'Confirmar Agendamento'"
+        icon="pi pi-check"
+        [loading]="savingSchedule()"
+        [disabled]="!scheduleDateValue"
+        (onClick)="confirmSchedule()"
+      >
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
