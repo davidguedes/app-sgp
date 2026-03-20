@@ -220,6 +220,7 @@ export class DashboardProfissionalComponent implements OnInit {
           const aulasSemRegistro = todosAlunos
             .filter((p) => p.dias.includes(dia.dayKey))
             .filter((p) => !registradosIds.has(String(p.id)))
+            .filter((p) => p.tipo === 'fixo')
             .filter((p) => {
               // Aluno precisava estar ativo nesse dia específico
               const dataVerificacao = new Date(dia.dateStr + 'T12:00:00');
