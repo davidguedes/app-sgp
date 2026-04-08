@@ -114,8 +114,8 @@ export class ExportService {
       [`Usuário: ${userName} (${userRole === 'gestor' ? 'Gestor' : 'Profissional'})`],
       [`Gerado em: ${hoje.toLocaleString('pt-BR')}`],
       [],
-      ['Nome', 'Profissional', 'Modalidade', 'Dias', 'Início', 'Total Aulas', 'Total Evoluções',
-       'Pacote', 'Líquido no Período', 'Líquido (pro-rata)', 'Obs Pro-Rata']
+      ['Nome', 'Profissional', 'Modalidade', 'Dias', 'Início', 'Total Aulas', 'Total Evoluções', 'Pacote', 'Líquido no Período']
+      //['Nome', 'Profissional', 'Modalidade', 'Dias', 'Início', 'Total Aulas', 'Total Evoluções', 'Pacote', 'Líquido no Período', 'Líquido (pro-rata)', 'Obs Pro-Rata']
     ];
 
     let totalLiquidoPeriodo  = 0;
@@ -155,8 +155,8 @@ export class ExportService {
         p.total_evolutions ?? '-',
         `R$ ${p.valor.toFixed(2)}`,
         `R$ ${liquidoPeriodo.toFixed(2)}`,
-        `R$ ${liquidoProRata.toFixed(2)}`,
-        obsProRata
+        //`R$ ${liquidoProRata.toFixed(2)}`,
+        //obsProRata
       ]);
     });
 
@@ -167,7 +167,7 @@ export class ExportService {
       `TOTAL (${patients.length} alunos)`, '', '', '', '', '', '',
       `R$ ${patients.reduce((s, p) => s + p.valor, 0).toFixed(2)}`,
       `R$ ${totalLiquidoPeriodo.toFixed(2)}`,
-      `R$ ${totalLiquidoProRata.toFixed(2)}`,
+      //`R$ ${totalLiquidoProRata.toFixed(2)}`,
       ''
     ]);
 
